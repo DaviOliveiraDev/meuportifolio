@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # Frontend Service (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dev.Dockerfile
+    container_name: devfolio-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost/api/v1
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    networks:
+      - devfolio-network
+
+  # Backend Service (Laravel API)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dev.Dockerfile
+    container_name: devfolio-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_KEY=base64:L7pG4b8hT4+29/Jz9m6P30N1y0X5d6G7m8e9r0t1y2u= # Chave provisória, deve ser regerada
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=devfolio
+      - DB_USERNAME=devuser
+      - DB_PASSWORD=devpassword
+      - REDIS_HOST=redis
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - SANCTUM_STATEFUL_DOMAINS=localhost,localhost:3000,127.0.0.1,127.0.0.1:3000
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - devfolio-network
+
+  # Queue Worker Service (Laravel Queue)
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dev.Dockerfile
+    container_name: devfolio-worker
+    command: php artisan queue:work --queue=default,github,pdf
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_KEY=base64:L7pG4b8hT4+29/Jz9m6P30N1y0X5d6G7m8e9r0t1y2u=
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=devfolio
+      - DB_USERNAME=devuser
+      - DB_PASSWORD=devpassword
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - backend
+      - redis
+    networks:
+      - devfolio-network
+
+  # Database Service (PostgreSQL)
+  postgres:
+    image: postgres:16-alpine
+    container_name: devfolio-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=devfolio
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=devpassword
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - devfolio-network
+
+  # Cache & Queue Broker Service (Redis)
+  redis:
+    image: redis:7-alpine
+    container_name: devfolio-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - devfolio-network
+
+  # Reverse Proxy (Nginx)
+  nginx:
+    image: nginx:alpine
+    container_name: devfolio-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - devfolio-network
+
+networks:
+  devfolio-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:

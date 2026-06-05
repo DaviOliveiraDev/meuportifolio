@@ -1,0 +1,197 @@
+'use client';
+
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Loader2, AlertCircle } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '../hooks/use-auth';
+import { loginSchema, LoginInput } from '../schemas/auth-schema';
+import { apiClient } from '@/lib/api-client';
+
+export function LoginForm() {
+  const router = useRouter();
+  const { login, isLoggingIn } = useAuth();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      remember: true,
+    },
+  });
+
+  const onSubmit = async (data: LoginInput) => {
+    setErrorMessage(null);
+    try {
+      await login(data);
+      router.push('/dashboard');
+    } catch (error: any) {
+      if (error.response?.data?.errors?.email) {
+        setErrorMessage(error.response.data.errors.email[0]);
+      } else if (error.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage('Ocorreu um erro ao realizar o login. Tente novamente.');
+      }
+    }
+  };
+
+  const handleSocialLogin = async (provider: 'github' | 'google') => {
+    setErrorMessage(null);
+    try {
+      // Busca a URL de autenticação na nossa API Laravel
+      const response = await apiClient.get(`/auth/redirect/${provider}`);
+      if (response.data?.url) {
+        // Redireciona o usuário para o GitHub/Google
+        window.location.href = response.data.url;
+      } else {
+        setErrorMessage('Não foi possível iniciar o login social.');
+      }
+    } catch (error) {
+      setErrorMessage('Falha ao conectar com o provedor social.');
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-md border-neutral-800 bg-neutral-900/60 backdrop-blur-md shadow-2xl text-neutral-100">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold tracking-tight text-center bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+          Entrar no DevFolio
+        </CardTitle>
+        <CardDescription className="text-neutral-400 text-center">
+          Escolha o seu método de entrada favorito
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Botões Sociais */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="outline"
+            className="border-neutral-800 bg-neutral-900 text-neutral-100 hover:bg-neutral-800 hover:text-white cursor-pointer transition-colors duration-200"
+            onClick={() => handleSocialLogin('github')}
+          >
+            <svg className="mr-2 h-4 w-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+            </svg>
+            GitHub
+          </Button>
+          <Button
+            variant="outline"
+            className="border-neutral-800 bg-neutral-900 text-neutral-100 hover:bg-neutral-800 hover:text-white cursor-pointer transition-colors duration-200"
+            onClick={() => handleSocialLogin('google')}
+          >
+            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+            </svg>
+            Google
+          </Button>
+        </div>
+
+        <div className="relative flex items-center justify-center">
+          <span className="absolute w-full border-t border-neutral-800"></span>
+          <span className="relative px-3 text-xs uppercase bg-neutral-950/20 backdrop-blur text-neutral-500 font-medium">
+            Ou continue com
+          </span>
+        </div>
+
+        {/* Mensagem de Erro Geral */}
+        {errorMessage && (
+          <div className="flex items-center gap-2 p-3 text-sm text-red-400 border border-red-900/50 bg-red-950/20 rounded-lg">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Formulário Tradicional */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-1">
+            <Label htmlFor="email" className="text-neutral-300">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="seu@email.com"
+              {...register('email')}
+              className="border-neutral-800 bg-neutral-950/50 text-neutral-100 placeholder-neutral-600 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200"
+            />
+            {errors.email && (
+              <span className="text-xs text-red-400">{errors.email.message}</span>
+            )}
+          </div>
+
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password" className="text-neutral-300">Senha</Label>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-violet-400 hover:text-violet-300 hover:underline transition-colors"
+              >
+                Esqueceu a senha?
+              </Link>
+            </div>
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              {...register('password')}
+              className="border-neutral-800 bg-neutral-950/50 text-neutral-100 placeholder-neutral-600 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200"
+            />
+            {errors.password && (
+              <span className="text-xs text-red-400">{errors.password.message}</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              id="remember"
+              type="checkbox"
+              {...register('remember')}
+              className="h-4 w-4 rounded border-neutral-800 bg-neutral-950 accent-violet-500 cursor-pointer"
+            />
+            <Label htmlFor="remember" className="text-xs text-neutral-400 select-none cursor-pointer">
+              Manter-me conectado
+            </Label>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isLoggingIn}
+            className="w-full bg-violet-600 hover:bg-violet-500 text-white font-medium cursor-pointer transition-all duration-200 shadow-lg shadow-violet-600/20 active:scale-[0.98]"
+          >
+            {isLoggingIn ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Conectando...
+              </>
+            ) : (
+              'Entrar'
+            )}
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-center border-t border-neutral-800/50 pt-4">
+        <p className="text-sm text-neutral-400">
+          Não tem uma conta?{' '}
+          <Link href="/register" className="text-violet-400 hover:text-violet-300 hover:underline transition-colors font-medium">
+            Cadastre-se
+          </Link>
+        </p>
+      </CardFooter>
+    </Card>
+  );
+}

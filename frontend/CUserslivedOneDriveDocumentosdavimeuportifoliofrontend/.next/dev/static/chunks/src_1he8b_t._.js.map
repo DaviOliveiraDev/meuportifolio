@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///app/src/lib/query-client.ts"],"sourcesContent":["import { QueryClient } from '@tanstack/react-query';\n\nexport const queryClient = new QueryClient({\n  defaultOptions: {\n    queries: {\n      refetchOnWindowFocus: false, // Evita disparar requisições extras ao mudar de aba\n      retry: 1, // Tenta no máximo 1 vez extra antes de falhar\n      staleTime: 1000 * 60 * 5, // 5 minutos de dados em cache como padrão\n    },\n  },\n});\n"],"names":["queryClient","defaultOptions","queries","refetchOnWindowFocus","retry","staleTime"],"mappings":";;;;AAAA;;AAEO,MAAMA,cAAc,IAAI,+LAAW,CAAC;IACzCC,gBAAgB;QACdC,SAAS;YACPC,sBAAsB;YACtBC,OAAO;YACPC,WAAW,OAAO,KAAK;QACzB;IACF;AACF"}},
+    {"offset": {"line": 26, "column": 0}, "map": {"version":3,"sources":["file:///app/src/app/providers.tsx"],"sourcesContent":["'use client';\n\nimport { ReactNode } from 'react';\nimport { QueryClientProvider } from '@tanstack/react-query';\nimport { queryClient } from '@/lib/query-client';\n\ninterface ProvidersProps {\n  children: ReactNode;\n}\n\nexport function Providers({ children }: ProvidersProps) {\n  return (\n    <QueryClientProvider client={queryClient}>\n      {children}\n    </QueryClientProvider>\n  );\n}\n"],"names":["Providers","children","client"],"mappings":";;;;;AAGA;AACA;AAJA;;;;AAUO,SAASA,UAAU,EAAEC,QAAQ,EAAkB;IACpD,qBACE,6LAAC,gNAAmB;QAACC,QAAQ,+IAAW;kBACrCD;;;;;;AAGP;KANgBD"}}]
+}
