@@ -36,9 +36,7 @@ jobs:
           cd backend
           cp .env.example .env
           php artisan key:generate
-          sed -i 's/DB_CONNECTION=pgsql/DB_CONNECTION=sqlite/g' .env
-          sed -i 's/DB_DATABASE=devfolio/DB_DATABASE=:memory:/g' .env
-          php artisan test
+          DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan test
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
