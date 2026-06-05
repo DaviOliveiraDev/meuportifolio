@@ -76,9 +76,38 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
   if (!profile) {
     return { title: 'Portfólio Não Encontrado' };
   }
+  
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const description = profile.bio 
+    ? (profile.bio.length > 160 ? profile.bio.substring(0, 157) + '...' : profile.bio) 
+    : `Confira o portfólio profissional de ${profile.name} no DevFolio.`;
+  const avatarUrl = profile.avatar_url || '';
+
   return {
-    title: `${profile.name} | DevFolio`,
-    description: profile.bio || `Portfólio de ${profile.name}`,
+    title: `${profile.name} | ${profile.role || 'Desenvolvedor'} | DevFolio`,
+    description: description,
+    openGraph: {
+      title: `${profile.name} | ${profile.role || 'Desenvolvedor'}`,
+      description: description,
+      url: `${siteUrl}/${profile.username}`,
+      siteName: 'DevFolio SaaS',
+      type: 'profile',
+      username: profile.username,
+      images: avatarUrl ? [
+        {
+          url: avatarUrl,
+          width: 800,
+          height: 800,
+          alt: `Foto de perfil de ${profile.name}`,
+        }
+      ] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${profile.name} | ${profile.role || 'Desenvolvedor'}`,
+      description: description,
+      images: avatarUrl ? [avatarUrl] : [],
+    },
   };
 }
 

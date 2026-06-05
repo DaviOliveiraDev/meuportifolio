@@ -96,13 +96,15 @@ function DetailModal({
   data, 
   theme, 
   onClose, 
-  formatDate 
+  formatDate,
+  onLinkClick
 }: { 
   type: 'project' | 'experience';
   data: any; 
   theme: string; 
   onClose: () => void; 
   formatDate: (dateStr: string) => string;
+  onLinkClick?: (url: string | null) => void;
 }) {
   const isProject = type === 'project';
 
@@ -163,13 +165,13 @@ function DetailModal({
             {isProject && (data.repository_url || data.demo_url) && (
               <div className="flex gap-6 pt-4 border-t border-[#e2e2de] dark:border-[#272725]">
                 {data.repository_url && (
-                  <a href={data.repository_url} target="_blank" rel="noopener noreferrer" className="text-xs flex items-center gap-1 text-[#1c1c1c] dark:text-[#f3f3f3] hover:underline font-medium">
+                  <a href={data.repository_url} target="_blank" rel="noopener noreferrer" onClick={() => onLinkClick?.(data.repository_url)} className="text-xs flex items-center gap-1 text-[#1c1c1c] dark:text-[#f3f3f3] hover:underline font-medium">
                     <span>Repository</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
                 {data.demo_url && (
-                  <a href={data.demo_url} target="_blank" rel="noopener noreferrer" className="text-xs flex items-center gap-1 text-[#1c1c1c] dark:text-[#f3f3f3] hover:underline font-medium">
+                  <a href={data.demo_url} target="_blank" rel="noopener noreferrer" onClick={() => onLinkClick?.(data.demo_url)} className="text-xs flex items-center gap-1 text-[#1c1c1c] dark:text-[#f3f3f3] hover:underline font-medium">
                     <span>Live Demo</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
@@ -236,13 +238,13 @@ function DetailModal({
             {isProject && (data.repository_url || data.demo_url) && (
               <div className="flex gap-4 pt-4 border-t border-white/5">
                 {data.repository_url && (
-                  <a href={data.repository_url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-violet-400 hover:text-violet-350 flex items-center gap-1 group bg-white/5 border border-white/10 py-2 px-4 rounded-lg hover:bg-white/8 transition-all">
+                  <a href={data.repository_url} target="_blank" rel="noopener noreferrer" onClick={() => onLinkClick?.(data.repository_url)} className="text-xs font-semibold text-violet-400 hover:text-violet-350 flex items-center gap-1 group bg-white/5 border border-white/10 py-2 px-4 rounded-lg hover:bg-white/8 transition-all">
                     <span>Repository</span>
                     <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                   </a>
                 )}
                 {data.demo_url && (
-                  <a href={data.demo_url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-cyan-400 hover:text-cyan-350 flex items-center gap-1 bg-white/5 border border-white/10 py-2 px-4 rounded-lg hover:bg-white/8 transition-all">
+                  <a href={data.demo_url} target="_blank" rel="noopener noreferrer" onClick={() => onLinkClick?.(data.demo_url)} className="text-xs font-semibold text-cyan-400 hover:text-cyan-350 flex items-center gap-1 bg-white/5 border border-white/10 py-2 px-4 rounded-lg hover:bg-white/8 transition-all">
                     <span>Live Demo</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
@@ -311,13 +313,13 @@ function DetailModal({
             {isProject && (data.repository_url || data.demo_url) && (
               <div className="flex gap-4 pt-2 font-mono">
                 {data.repository_url && (
-                  <a href={data.repository_url} target="_blank" rel="noopener noreferrer" className="text-xs text-cyan-400 hover:text-cyan-300 border border-cyan-500/20 hover:border-cyan-500/50 py-1.5 px-3 bg-cyan-950/5 flex items-center gap-1 transition-all">
+                  <a href={data.repository_url} target="_blank" rel="noopener noreferrer" onClick={() => onLinkClick?.(data.repository_url)} className="text-xs text-cyan-400 hover:text-cyan-300 border border-cyan-500/20 hover:border-cyan-500/50 py-1.5 px-3 bg-cyan-950/5 flex items-center gap-1 transition-all">
                     <span>SRC_CODE</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </a>
                 )}
                 {data.demo_url && (
-                  <a href={data.demo_url} target="_blank" rel="noopener noreferrer" className="text-xs text-pink-400 hover:text-pink-300 border border-pink-500/20 hover:border-pink-500/50 py-1.5 px-3 bg-pink-950/5 flex items-center gap-1 transition-all">
+                  <a href={data.demo_url} target="_blank" rel="noopener noreferrer" onClick={() => onLinkClick?.(data.demo_url)} className="text-xs text-pink-400 hover:text-pink-300 border border-pink-500/20 hover:border-pink-500/50 py-1.5 px-3 bg-pink-950/5 flex items-center gap-1 transition-all">
                     <span>LIVE_SYS</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
@@ -381,13 +383,13 @@ function DetailModal({
             {isProject && (data.repository_url || data.demo_url) && (
               <div className="flex gap-4 pt-2">
                 {data.repository_url && (
-                  <a href={data.repository_url} target="_blank" rel="noopener noreferrer" className="text-xs font-extrabold underline decoration-2 hover:text-[#9333ea] flex items-center gap-1 bg-white border-2 border-neutral-950 py-2 px-4 rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
+                  <a href={data.repository_url} target="_blank" rel="noopener noreferrer" onClick={() => onLinkClick?.(data.repository_url)} className="text-xs font-extrabold underline decoration-2 hover:text-[#9333ea] flex items-center gap-1 bg-white border-2 border-neutral-950 py-2 px-4 rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
                     <span>Ver Código</span>
                     <ArrowRight className="w-4 h-4" />
                   </a>
                 )}
                 {data.demo_url && (
-                  <a href={data.demo_url} target="_blank" rel="noopener noreferrer" className="text-xs font-extrabold underline decoration-2 hover:text-[#059669] flex items-center gap-1 bg-[#bbf7d0] border-2 border-neutral-950 py-2 px-4 rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
+                  <a href={data.demo_url} target="_blank" rel="noopener noreferrer" onClick={() => onLinkClick?.(data.demo_url)} className="text-xs font-extrabold underline decoration-2 hover:text-[#059669] flex items-center gap-1 bg-[#bbf7d0] border-2 border-neutral-950 py-2 px-4 rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all">
                     <span>Testar Demo</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
@@ -411,6 +413,31 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
   const theme = profile.theme_name || 'minimalist';
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
+
+  const trackEvent = (eventType: 'view_project' | 'click_link', targetId?: string | null) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+    fetch(`${apiUrl}/portfolios/${profile.username}/track`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        event_type: eventType,
+        target_id: targetId || null,
+      }),
+    }).catch((err) => console.error('Failed to track analytics event:', err));
+  };
+
+  const handleOpenProject = (project: Project) => {
+    setSelectedProject(project);
+    trackEvent('view_project', project.id);
+  };
+
+  const handleLinkClick = (url: string | null) => {
+    if (url) {
+      trackEvent('click_link', url);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '';
@@ -458,17 +485,17 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
                 {/* Social media connections */}
                 <div className="flex items-center gap-4 pt-2">
                   {profile.github_url && (
-                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-black dark:text-neutral-400 dark:hover:text-white transition-colors" title="GitHub">
+                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.github_url)} className="text-neutral-500 hover:text-black dark:text-neutral-400 dark:hover:text-white transition-colors" title="GitHub">
                       <GithubIcon className="w-5 h-5" />
                     </a>
                   )}
                   {profile.linkedin_url && (
-                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-black dark:text-neutral-400 dark:hover:text-white transition-colors" title="LinkedIn">
+                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.linkedin_url)} className="text-neutral-500 hover:text-black dark:text-neutral-400 dark:hover:text-white transition-colors" title="LinkedIn">
                       <LinkedinIcon className="w-5 h-5" />
                     </a>
                   )}
                   {profile.website_url && (
-                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-black dark:text-neutral-400 dark:hover:text-white transition-colors" title="Website">
+                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.website_url)} className="text-neutral-500 hover:text-black dark:text-neutral-400 dark:hover:text-white transition-colors" title="Website">
                       <Globe className="w-5 h-5" />
                     </a>
                   )}
@@ -506,7 +533,7 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
                       {profile.projects.map((project) => (
                         <div 
                           key={project.id} 
-                          onClick={() => setSelectedProject(project)}
+                          onClick={() => handleOpenProject(project)}
                           className="group space-y-4 cursor-pointer"
                         >
                           {project.cover_image_url && (
@@ -624,17 +651,17 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
               {/* Social networks */}
               <div className="flex items-center gap-4 pt-2">
                 {profile.github_url && (
-                  <a href={profile.github_url} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:border-violet-500/30 text-[#94a3b8] hover:text-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                  <a href={profile.github_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.github_url)} className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:border-violet-500/30 text-[#94a3b8] hover:text-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]">
                     <GithubIcon className="w-4 h-4" />
                   </a>
                 )}
                 {profile.linkedin_url && (
-                  <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:border-violet-500/30 text-[#94a3b8] hover:text-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                  <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.linkedin_url)} className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:border-violet-500/30 text-[#94a3b8] hover:text-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]">
                     <LinkedinIcon className="w-4 h-4" />
                   </a>
                 )}
                 {profile.website_url && (
-                  <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:border-violet-500/30 text-[#94a3b8] hover:text-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                  <a href={profile.website_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.website_url)} className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:border-violet-500/30 text-[#94a3b8] hover:text-white transition-all duration-300 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]">
                     <Globe className="w-4 h-4" />
                   </a>
                 )}
@@ -681,7 +708,7 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
                   {profile.projects.map((project) => (
                     <div 
                       key={project.id} 
-                      onClick={() => setSelectedProject(project)}
+                      onClick={() => handleOpenProject(project)}
                       className="bg-white/4 border border-white/8 backdrop-blur-md rounded-2xl overflow-hidden hover:border-violet-500/30 hover:shadow-[0_20px_50px_rgba(99,102,241,0.15)] hover:scale-[1.01] transition-all duration-500 flex flex-col justify-between cursor-pointer group"
                     >
                       <div>
@@ -808,17 +835,17 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
                 {/* Social media Links with Cyberpunk outline buttons */}
                 <div className="flex items-center justify-center sm:justify-start gap-3">
                   {profile.github_url && (
-                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" className="p-2 border border-neutral-800 text-neutral-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-all">
+                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.github_url)} className="p-2 border border-neutral-800 text-neutral-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-all">
                       <GithubIcon className="w-4 h-4" />
                     </a>
                   )}
                   {profile.linkedin_url && (
-                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="p-2 border border-neutral-800 text-neutral-400 hover:text-pink-500 hover:border-pink-500/40 transition-all">
+                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.linkedin_url)} className="p-2 border border-neutral-800 text-neutral-400 hover:text-pink-500 hover:border-pink-500/40 transition-all">
                       <LinkedinIcon className="w-4 h-4" />
                     </a>
                   )}
                   {profile.website_url && (
-                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="p-2 border border-neutral-800 text-neutral-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-all">
+                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.website_url)} className="p-2 border border-neutral-800 text-neutral-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-all">
                       <Globe className="w-4 h-4" />
                     </a>
                   )}
@@ -856,7 +883,7 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
                   {profile.projects.map((project) => (
                     <div 
                       key={project.id} 
-                      onClick={() => setSelectedProject(project)}
+                      onClick={() => handleOpenProject(project)}
                       className="border border-neutral-850 bg-[#090a12]/60 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all duration-300 relative group flex flex-col justify-between cursor-pointer"
                     >
                       {/* Corner tag on project */}
@@ -970,17 +997,17 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
 
                 <div className="flex items-center justify-center sm:justify-start gap-3 pt-1">
                   {profile.github_url && (
-                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" className="p-2 bg-white hover:bg-neutral-100 border-2 border-neutral-950 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all">
+                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.github_url)} className="p-2 bg-white hover:bg-neutral-100 border-2 border-neutral-950 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all">
                       <GithubIcon className="w-4 h-4 text-neutral-900" />
                     </a>
                   )}
                   {profile.linkedin_url && (
-                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="p-2 bg-white hover:bg-neutral-100 border-2 border-neutral-950 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all">
+                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.linkedin_url)} className="p-2 bg-white hover:bg-neutral-100 border-2 border-neutral-950 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all">
                       <LinkedinIcon className="w-4 h-4 text-neutral-900" />
                     </a>
                   )}
                   {profile.website_url && (
-                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="p-2 bg-white hover:bg-neutral-100 border-2 border-neutral-950 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all">
+                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(profile.website_url)} className="p-2 bg-white hover:bg-neutral-100 border-2 border-neutral-950 rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all">
                       <Globe className="w-4 h-4 text-neutral-900" />
                     </a>
                   )}
@@ -1018,7 +1045,7 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
                   {profile.projects.map((project) => (
                     <div 
                       key={project.id} 
-                      onClick={() => setSelectedProject(project)}
+                      onClick={() => handleOpenProject(project)}
                       className="bg-white border-[3px] border-neutral-950 rounded-2xl overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between cursor-pointer group"
                     >
                       <div>
@@ -1102,6 +1129,7 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
           theme={theme}
           onClose={() => setSelectedProject(null)}
           formatDate={formatDate}
+          onLinkClick={handleLinkClick}
         />
       )}
 
@@ -1112,6 +1140,7 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
           theme={theme}
           onClose={() => setSelectedExperience(null)}
           formatDate={formatDate}
+          onLinkClick={handleLinkClick}
         />
       )}
     </>

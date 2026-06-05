@@ -14,6 +14,14 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(StorageServiceInterface::class, S3FileStorage::class);
+        $this->app->singleton(
+            \App\Domain\Services\GithubServiceInterface::class,
+            \App\Infrastructure\Services\Github\GithubService::class
+        );
+        $this->app->singleton(
+            \App\Domain\Services\AnalyticsServiceInterface::class,
+            \App\Infrastructure\Services\Analytics\RedisAnalyticsService::class
+        );
     }
 
     /**

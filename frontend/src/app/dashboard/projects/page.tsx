@@ -4,7 +4,8 @@ import { useProjects, ProjectData } from '@/features/projects/hooks/use-projects
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 import { 
@@ -70,6 +71,73 @@ export default function ProjectsPage() {
   
   const [isUploading, setIsUploading] = useState(false);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<string>('idle');
+  const queryClient = useQueryClient();
+
+  const checkSyncStatus = async (count = 0) => {
+    try {
+      const response = await apiClient.get('/github/sync/status');
+      const status = response.data.status;
+      setSyncStatus(status);
+
+      if (status === 'pending' || status === 'processing') {
+        if (status === 'pending' && count > 10) { // 30 seconds limit for starting job
+          setIsSyncing(false);
+          toast.warning('A sincronização está na fila, mas o processador de tarefas (queue worker) do Laravel não respondeu. Execute "php artisan queue:work" na pasta backend.');
+          return;
+        }
+        setIsSyncing(true);
+        setTimeout(() => checkSyncStatus(count + 1), 3000);
+      } else {
+        setIsSyncing(false);
+        if (status === 'completed') {
+          toast.success('Projetos sincronizados do GitHub com sucesso!');
+          queryClient.invalidateQueries({ queryKey: ['projects'] });
+        } else if (status === 'failed') {
+          const errorMessage = response.data.error || 'Erro desconhecido.';
+          toast.error(`Falha na sincronização: ${errorMessage}`);
+        }
+      }
+    } catch (error) {
+      setIsSyncing(false);
+      setSyncStatus('failed');
+      toast.error('Erro ao verificar status de sincronização.');
+    }
+  };
+
+  const handleGithubSync = async () => {
+    setIsSyncing(true);
+    setSyncStatus('pending');
+    try {
+      await apiClient.post('/github/sync');
+      toast.info('Sincronização iniciada. Mapeando seus repositórios...');
+      checkSyncStatus(0);
+    } catch (error: any) {
+      setIsSyncing(false);
+      setSyncStatus('failed');
+      const message = error.response?.data?.message || 'Erro ao iniciar sincronização.';
+      toast.error(message);
+    }
+  };
+
+  useEffect(() => {
+    const checkInitialStatus = async () => {
+      try {
+        const response = await apiClient.get('/github/sync/status');
+        const status = response.data.status;
+        setSyncStatus(status);
+        if (status === 'pending' || status === 'processing') {
+          setIsSyncing(true);
+          setTimeout(() => checkSyncStatus(0), 1500);
+        }
+      } catch (e) {
+        // Ignora
+      }
+    };
+    checkInitialStatus();
+  }, []);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -193,13 +261,31 @@ export default function ProjectsPage() {
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Projetos</h1>
           <p className="text-sm text-neutral-500">Adicione e organize seus projetos no seu portfólio.</p>
         </div>
-        <Button
-          onClick={openAddDialog}
-          className="bg-violet-600 hover:bg-violet-500 text-white font-semibold cursor-pointer py-2 px-4 rounded-lg flex items-center gap-2 text-sm transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Novo Projeto
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleGithubSync}
+            disabled={isSyncing}
+            variant="outline"
+            className="border-neutral-250 dark:border-neutral-850 hover:bg-neutral-50 dark:hover:bg-neutral-900 text-neutral-700 dark:text-neutral-300 font-semibold cursor-pointer py-2 px-4 rounded-lg flex items-center gap-2 text-sm transition-colors"
+          >
+            {isSyncing ? (
+              <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
+            ) : (
+              <GithubIcon className="w-4 h-4" />
+            )}
+            {isSyncing 
+              ? (syncStatus === 'pending' ? 'Conectando...' : 'Sincronizando...') 
+              : 'Sincronizar GitHub'}
+          </Button>
+
+          <Button
+            onClick={openAddDialog}
+            className="bg-violet-600 hover:bg-violet-500 text-white font-semibold cursor-pointer py-2 px-4 rounded-lg flex items-center gap-2 text-sm transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Novo Projeto
+          </Button>
+        </div>
       </div>
 
       {projects.length === 0 ? (
@@ -207,12 +293,30 @@ export default function ProjectsPage() {
           <FolderGit2 className="w-12 h-12 text-neutral-400 dark:text-neutral-600" />
           <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-300">Nenhum projeto cadastrado</h3>
           <p className="text-sm text-neutral-500 max-w-sm">Adicione seus primeiros projetos para começar a exibir em seu portfólio.</p>
-          <Button
-            onClick={openAddDialog}
-            className="bg-violet-600 hover:bg-violet-500 text-white font-semibold cursor-pointer py-2 px-4 rounded-lg text-xs"
-          >
-            Adicionar Projeto
-          </Button>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button
+              onClick={handleGithubSync}
+              disabled={isSyncing}
+              variant="outline"
+              className="border-neutral-250 dark:border-neutral-850 hover:bg-neutral-50 dark:hover:bg-neutral-900 text-neutral-700 dark:text-neutral-300 font-semibold cursor-pointer py-2 px-4 rounded-lg flex items-center gap-2 text-sm transition-colors"
+            >
+              {isSyncing ? (
+                <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
+              ) : (
+                <GithubIcon className="w-4 h-4" />
+              )}
+              {isSyncing 
+                ? (syncStatus === 'pending' ? 'Conectando...' : 'Sincronizando...') 
+                : 'Sincronizar GitHub'}
+            </Button>
+            <Button
+              onClick={openAddDialog}
+              className="bg-violet-600 hover:bg-violet-500 text-white font-semibold cursor-pointer py-2 px-4 rounded-lg flex items-center gap-2 text-sm transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Adicionar Manualmente
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

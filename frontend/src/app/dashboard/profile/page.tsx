@@ -13,7 +13,8 @@ import {
   Briefcase, 
   Globe, 
   Loader2, 
-  UploadCloud 
+  UploadCloud,
+  FileDown
 } from 'lucide-react';
 
 const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -80,6 +81,42 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [newSkill, setNewSkill] = useState('');
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handleExportPdf = async () => {
+    setIsGeneratingPdf(true);
+    toast.info('Iniciando geração do PDF do currículo...');
+    try {
+      await apiClient.post('/profile/pdf');
+      
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusRes = await apiClient.get('/profile/pdf/status');
+          const { status, url, error } = statusRes.data;
+          
+          if (status === 'completed' && url) {
+            clearInterval(pollInterval);
+            setIsGeneratingPdf(false);
+            toast.success('Currículo PDF gerado com sucesso!');
+            window.open(url, '_blank');
+          } else if (status === 'failed') {
+            clearInterval(pollInterval);
+            setIsGeneratingPdf(false);
+            toast.error(`Falha ao gerar o PDF: ${error || 'Erro desconhecido'}`);
+          }
+        } catch (pollErr) {
+          clearInterval(pollInterval);
+          setIsGeneratingPdf(false);
+          toast.error('Erro ao verificar status da geração do PDF.');
+        }
+      }, 2500);
+
+    } catch (error: any) {
+      setIsGeneratingPdf(false);
+      const message = error.response?.data?.message || 'Erro ao solicitar geração do PDF.';
+      toast.error(message);
+    }
+  };
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -196,11 +233,29 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-300">
-      <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-850">
+      <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-850 gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Editar Perfil</h1>
           <p className="text-sm text-neutral-500">Configure suas informações pessoais e tema de portfólio.</p>
         </div>
+        <Button
+          type="button"
+          onClick={handleExportPdf}
+          disabled={isGeneratingPdf}
+          className="bg-neutral-850 hover:bg-neutral-800 dark:bg-neutral-200 dark:hover:bg-neutral-300 dark:text-neutral-900 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer shadow-sm text-xs"
+        >
+          {isGeneratingPdf ? (
+            <>
+              <Loader2 className="w-4.5 h-4.5 animate-spin" />
+              Gerando PDF...
+            </>
+          ) : (
+            <>
+              <FileDown className="w-4.5 h-4.5" />
+              Exportar Currículo PDF
+            </>
+          )}
+        </Button>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-3 gap-6">
