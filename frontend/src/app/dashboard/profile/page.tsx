@@ -196,9 +196,9 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-300">
-      <div className="flex items-center justify-between pb-4 border-b border-neutral-850">
+      <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-850">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-100">Editar Perfil</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Editar Perfil</h1>
           <p className="text-sm text-neutral-500">Configure suas informações pessoais e tema de portfólio.</p>
         </div>
       </div>
@@ -207,17 +207,17 @@ export default function ProfilePage() {
         {/* Coluna Esquerda - Foto e Tema */}
         <div className="space-y-6 md:col-span-1">
           {/* Card Avatar */}
-          <Card className="bg-neutral-900/30 border-neutral-850">
+          <Card className="bg-white dark:bg-neutral-900/30 border-neutral-200 dark:border-neutral-850 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold text-neutral-100">Foto de Perfil</CardTitle>
+              <CardTitle className="text-base font-bold text-neutral-900 dark:text-neutral-100">Foto de Perfil</CardTitle>
               <CardDescription className="text-xs text-neutral-500">Carregue sua foto de exibição.</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4">
-              <div className="relative w-32 h-32 rounded-full overflow-hidden bg-neutral-850 border border-neutral-800 flex items-center justify-center group">
+              <div className="relative w-32 h-32 rounded-full overflow-hidden bg-neutral-100 dark:bg-neutral-850 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center group">
                 {avatarPreview ? (
                   <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <User className="w-12 h-12 text-neutral-500" />
+                  <User className="w-12 h-12 text-neutral-450 dark:text-neutral-500" />
                 )}
                 {isUploading && (
                   <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -227,7 +227,7 @@ export default function ProfilePage() {
               </div>
               
               <div className="w-full">
-                <Label htmlFor="avatar-file" className="flex items-center justify-center gap-2 py-2 px-3 border border-dashed border-neutral-800 hover:border-violet-500/50 rounded-lg text-xs font-semibold cursor-pointer transition-colors text-neutral-400 hover:text-neutral-200 w-full text-center">
+                <Label htmlFor="avatar-file" className="flex items-center justify-center gap-2 py-2 px-3 border border-dashed border-neutral-300 dark:border-neutral-800 hover:border-violet-500/50 rounded-lg text-xs font-semibold cursor-pointer transition-colors text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 w-full text-center">
                   <UploadCloud className="w-4 h-4" />
                   Upload Foto
                 </Label>
@@ -244,24 +244,24 @@ export default function ProfilePage() {
           </Card>
 
           {/* Card Tema */}
-          <Card className="bg-neutral-900/30 border-neutral-850">
+          <Card className="bg-white dark:bg-neutral-900/30 border-neutral-200 dark:border-neutral-850 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold text-neutral-100">Tema do Portfólio</CardTitle>
+              <CardTitle className="text-base font-bold text-neutral-900 dark:text-neutral-100">Tema do Portfólio</CardTitle>
               <CardDescription className="text-xs text-neutral-500">Escolha o visual do seu site público.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="theme-select" className="text-xs font-semibold text-neutral-400">Tema Ativo</Label>
+                <Label htmlFor="theme-select" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Tema Ativo</Label>
                 <Select
                   value={watch('theme_name')}
                   onValueChange={(val) => {
                     if (val) setValue('theme_name', val, { shouldValidate: true });
                   }}
                 >
-                  <SelectTrigger id="theme-select" className="bg-neutral-950 border-neutral-850 text-sm text-neutral-300">
+                  <SelectTrigger id="theme-select" className="bg-white border-neutral-250 text-sm text-neutral-800 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-350">
                     <SelectValue placeholder="Selecione um tema" />
                   </SelectTrigger>
-                  <SelectContent className="bg-neutral-900 border-neutral-850 text-neutral-300">
+                  <SelectContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-850 text-neutral-800 dark:text-neutral-300">
                     <SelectItem value="minimalist">Minimalista</SelectItem>
                     <SelectItem value="modern">Moderno (Gradients)</SelectItem>
                     <SelectItem value="dark">Dark Mode Extremo</SelectItem>
@@ -276,14 +276,14 @@ export default function ProfilePage() {
           </Card>
 
           {/* Card Competências */}
-          <Card className="bg-neutral-900/30 border-neutral-850">
+          <Card className="bg-white dark:bg-neutral-900/30 border-neutral-200 dark:border-neutral-850 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold text-neutral-100">Competências</CardTitle>
+              <CardTitle className="text-base font-bold text-neutral-900 dark:text-neutral-100">Competências</CardTitle>
               <CardDescription className="text-xs text-neutral-500">Adicione habilidades técnicas ao seu portfólio.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="skill-input" className="text-xs font-semibold text-neutral-400">Adicionar Habilidade</Label>
+                <Label htmlFor="skill-input" className="text-xs font-semibold text-neutral-550 dark:text-neutral-400">Adicionar Habilidade</Label>
                 <div className="flex gap-2">
                   <Input
                     id="skill-input"
@@ -291,7 +291,7 @@ export default function ProfilePage() {
                     onChange={(e) => setNewSkill(e.target.value)}
                     onKeyDown={handleSkillKeyDown}
                     placeholder="Ex: React, Laravel, Docker..."
-                    className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200"
+                    className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
                   />
                   <Button
                     type="button"
@@ -316,21 +316,21 @@ export default function ProfilePage() {
 
               {/* List of skills as badges with clear buttons */}
               <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-neutral-400">Habilidades Adicionadas</Label>
-                <div className="flex flex-wrap gap-1.5 p-3 rounded-lg bg-neutral-950 border border-neutral-850 min-h-[60px]">
+                <Label className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Habilidades Adicionadas</Label>
+                <div className="flex flex-wrap gap-1.5 p-3 rounded-lg bg-neutral-50 border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-850 min-h-[60px]">
                   {(watch('skills') || []).length === 0 ? (
-                    <span className="text-xs text-neutral-600 italic">Nenhuma habilidade adicionada ainda.</span>
+                    <span className="text-xs text-neutral-400 dark:text-neutral-600 italic">Nenhuma habilidade adicionada ainda.</span>
                   ) : (
                     (watch('skills') || []).map((skillName) => (
                       <span
                         key={skillName}
-                        className="inline-flex items-center gap-1 py-0.5 pl-2.5 pr-1.5 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/20"
+                        className="inline-flex items-center gap-1 py-0.5 pl-2.5 pr-1.5 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-750 dark:bg-violet-500/10 dark:text-violet-400 border border-violet-200 dark:border-violet-500/20"
                       >
                         {skillName}
                         <button
                           type="button"
                           onClick={() => handleRemoveSkill(skillName)}
-                          className="p-0.5 rounded-full hover:bg-violet-500/20 text-violet-400 hover:text-violet-300 transition-colors cursor-pointer"
+                          className="p-0.5 rounded-full hover:bg-violet-250 dark:hover:bg-violet-500/20 text-violet-750 dark:text-violet-400 hover:text-violet-900 dark:hover:text-violet-300 transition-colors cursor-pointer"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                         </button>
@@ -345,21 +345,21 @@ export default function ProfilePage() {
 
         {/* Coluna Direita - Informações Gerais e Sociais */}
         <div className="md:col-span-2 space-y-6">
-          <Card className="bg-neutral-900/30 border-neutral-850">
+          <Card className="bg-white dark:bg-neutral-900/30 border-neutral-200 dark:border-neutral-850 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold text-neutral-100">Dados Pessoais</CardTitle>
+              <CardTitle className="text-base font-bold text-neutral-900 dark:text-neutral-100">Dados Pessoais</CardTitle>
               <CardDescription className="text-xs text-neutral-500">Essas informações aparecerão no topo do seu portfólio.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Nome */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="name" className="text-xs font-semibold text-neutral-400">Nome Completo</Label>
+                  <Label htmlFor="name" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Nome Completo</Label>
                   <Input
                     id="name"
                     {...register('name')}
                     placeholder="Davi Silva"
-                    className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200"
+                    className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
                   />
                   {errors.name && (
                     <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>
@@ -368,12 +368,12 @@ export default function ProfilePage() {
 
                 {/* Username slug */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="username" className="text-xs font-semibold text-neutral-400">Nome de Usuário (Slug URL)</Label>
+                  <Label htmlFor="username" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Nome de Usuário (Slug URL)</Label>
                   <Input
                     id="username"
                     {...register('username')}
                     placeholder="davisilva"
-                    className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200"
+                    className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
                   />
                   {errors.username && (
                     <p className="text-xs text-red-500 mt-1">{errors.username.message}</p>
@@ -384,14 +384,14 @@ export default function ProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Cargo */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="role" className="text-xs font-semibold text-neutral-400">Cargo / Profissão</Label>
+                  <Label htmlFor="role" className="text-xs font-semibold text-neutral-550 dark:text-neutral-400">Cargo / Profissão</Label>
                   <div className="relative">
-                    <Briefcase className="absolute left-3 top-3 w-4 h-4 text-neutral-500" />
+                    <Briefcase className="absolute left-3 top-3 w-4 h-4 text-neutral-400 dark:text-neutral-500" />
                     <Input
                       id="role"
                       {...register('role')}
                       placeholder="Desenvolvedor Full Stack"
-                      className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200 pl-10"
+                      className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200 pl-10"
                     />
                   </div>
                   {errors.role && (
@@ -401,14 +401,14 @@ export default function ProfilePage() {
 
                 {/* Localização */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="location" className="text-xs font-semibold text-neutral-400">Localização</Label>
+                  <Label htmlFor="location" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Localização</Label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-3 w-4 h-4 text-neutral-500" />
+                    <MapPin className="absolute left-3 top-3 w-4 h-4 text-neutral-400 dark:text-neutral-500" />
                     <Input
                       id="location"
                       {...register('location')}
                       placeholder="São Paulo, Brasil"
-                      className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200 pl-10"
+                      className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200 pl-10"
                     />
                   </div>
                   {errors.location && (
@@ -419,12 +419,12 @@ export default function ProfilePage() {
 
               {/* Bio */}
               <div className="space-y-1.5">
-                <Label htmlFor="bio" className="text-xs font-semibold text-neutral-400">Biografia (Sobre Mim)</Label>
+                <Label htmlFor="bio" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Biografia (Sobre Mim)</Label>
                 <Textarea
                   id="bio"
                   {...register('bio')}
                   placeholder="Escreva sobre suas paixões, tecnologias favoritas e histórico..."
-                  className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200 min-h-[120px]"
+                  className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200 min-h-[120px]"
                 />
                 {errors.bio && (
                   <p className="text-xs text-red-500 mt-1">{errors.bio.message}</p>
@@ -434,23 +434,23 @@ export default function ProfilePage() {
           </Card>
 
           {/* Links Sociais */}
-          <Card className="bg-neutral-900/30 border-neutral-850">
+          <Card className="bg-white dark:bg-neutral-900/30 border-neutral-200 dark:border-neutral-850 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold text-neutral-100">Links Sociais</CardTitle>
+              <CardTitle className="text-base font-bold text-neutral-900 dark:text-neutral-100">Links Sociais</CardTitle>
               <CardDescription className="text-xs text-neutral-500">Conecte seus perfis profissionais externos.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* LinkedIn */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="linkedin" className="text-xs font-semibold text-neutral-400">LinkedIn URL</Label>
+                  <Label htmlFor="linkedin" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">LinkedIn URL</Label>
                   <div className="relative">
-                    <LinkedinIcon className="absolute left-3 top-3 w-4 h-4 text-neutral-500" />
+                    <LinkedinIcon className="absolute left-3 top-3 w-4 h-4 text-neutral-400 dark:text-neutral-500" />
                     <Input
                       id="linkedin"
                       {...register('linkedin_url')}
                       placeholder="https://linkedin.com/in/username"
-                      className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200 pl-10"
+                      className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200 pl-10"
                     />
                   </div>
                   {errors.linkedin_url && (
@@ -460,14 +460,14 @@ export default function ProfilePage() {
 
                 {/* GitHub */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="github" className="text-xs font-semibold text-neutral-400">GitHub URL</Label>
+                  <Label htmlFor="github" className="text-xs font-semibold text-neutral-550 dark:text-neutral-400">GitHub URL</Label>
                   <div className="relative">
-                    <GithubIcon className="absolute left-3 top-3 w-4 h-4 text-neutral-500" />
+                    <GithubIcon className="absolute left-3 top-3 w-4 h-4 text-neutral-400 dark:text-neutral-500" />
                     <Input
                       id="github"
                       {...register('github_url')}
                       placeholder="https://github.com/username"
-                      className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200 pl-10"
+                      className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200 pl-10"
                     />
                   </div>
                   {errors.github_url && (
@@ -477,14 +477,14 @@ export default function ProfilePage() {
 
                 {/* Website */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="website" className="text-xs font-semibold text-neutral-400">Website Pessoal</Label>
+                  <Label htmlFor="website" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Website Pessoal</Label>
                   <div className="relative">
-                    <Globe className="absolute left-3 top-3 w-4 h-4 text-neutral-500" />
+                    <Globe className="absolute left-3 top-3 w-4 h-4 text-neutral-400 dark:text-neutral-500" />
                     <Input
                       id="website"
                       {...register('website_url')}
                       placeholder="https://meusite.com"
-                      className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200 pl-10"
+                      className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200 pl-10"
                     />
                   </div>
                   {errors.website_url && (

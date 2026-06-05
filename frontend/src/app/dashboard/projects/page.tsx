@@ -188,9 +188,9 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6 max-w-5xl animate-in fade-in duration-300">
-      <div className="flex items-center justify-between pb-4 border-b border-neutral-850">
+      <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-850">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-100">Projetos</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Projetos</h1>
           <p className="text-sm text-neutral-500">Adicione e organize seus projetos no seu portfólio.</p>
         </div>
         <Button
@@ -203,9 +203,9 @@ export default function ProjectsPage() {
       </div>
 
       {projects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 border border-dashed border-neutral-800 rounded-2xl bg-neutral-900/10 text-center space-y-3">
-          <FolderGit2 className="w-12 h-12 text-neutral-600" />
-          <h3 className="text-lg font-bold text-neutral-300">Nenhum projeto cadastrado</h3>
+        <div className="flex flex-col items-center justify-center p-12 border border-dashed border-neutral-300 dark:border-neutral-800 rounded-2xl bg-neutral-50/50 dark:bg-neutral-900/10 text-center space-y-3">
+          <FolderGit2 className="w-12 h-12 text-neutral-400 dark:text-neutral-600" />
+          <h3 className="text-lg font-bold text-neutral-800 dark:text-neutral-300">Nenhum projeto cadastrado</h3>
           <p className="text-sm text-neutral-500 max-w-sm">Adicione seus primeiros projetos para começar a exibir em seu portfólio.</p>
           <Button
             onClick={openAddDialog}
@@ -217,17 +217,17 @@ export default function ProjectsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <Card key={project.id} className="bg-neutral-900/30 border-neutral-850 overflow-hidden hover:border-violet-500/20 transition-all duration-300 flex flex-col justify-between">
+            <Card key={project.id} className="bg-white dark:bg-neutral-900/30 border-neutral-200 dark:border-neutral-850 overflow-hidden hover:border-violet-500/15 dark:hover:border-violet-500/20 transition-all duration-300 flex flex-col justify-between shadow-sm">
               <div>
                 {/* Project Image Header */}
-                <div className="relative aspect-video bg-neutral-850 border-b border-neutral-800 flex items-center justify-center">
+                <div className="relative aspect-video bg-neutral-100 dark:bg-neutral-850 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-center">
                   {project.cover_image_url ? (
                     <img src={project.cover_image_url} alt={project.title} className="w-full h-full object-cover" />
                   ) : (
-                    <FolderGit2 className="w-10 h-10 text-neutral-600" />
+                    <FolderGit2 className="w-10 h-10 text-neutral-450 dark:text-neutral-600" />
                   )}
                   {project.is_featured && (
-                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 py-1 px-2 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 backdrop-blur-sm">
+                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 py-1 px-2 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 backdrop-blur-sm">
                       <Star className="w-3 h-3 fill-current" />
                       Destaque
                     </span>
@@ -235,19 +235,19 @@ export default function ProjectsPage() {
                 </div>
                 
                 <CardHeader>
-                  <CardTitle className="text-lg font-bold text-neutral-100 line-clamp-1">{project.title}</CardTitle>
-                  <CardDescription className="text-sm text-neutral-400 line-clamp-2 min-h-[40px]">{project.description}</CardDescription>
+                  <CardTitle className="text-lg font-bold text-neutral-900 dark:text-neutral-100 line-clamp-1">{project.title}</CardTitle>
+                  <CardDescription className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2 min-h-[40px]">{project.description}</CardDescription>
                 </CardHeader>
               </div>
 
-              <CardFooter className="pt-0 flex items-center justify-between gap-2 border-t border-neutral-850 mt-4 py-3">
+              <CardFooter className="pt-0 flex items-center justify-between gap-2 border-t border-neutral-100 dark:border-neutral-850/50 mt-4 py-3">
                 <div className="flex gap-1.5">
                   {project.repository_url && (
                     <a
                       href={project.repository_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 bg-neutral-850 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 rounded-lg transition-colors"
+                      className="p-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 dark:bg-neutral-850 dark:hover:bg-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 rounded-lg transition-colors"
                       title="Repositório no GitHub"
                     >
                       <GithubIcon className="w-4 h-4" />
@@ -258,7 +258,7 @@ export default function ProjectsPage() {
                       href={project.demo_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 bg-neutral-850 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-200 rounded-lg transition-colors"
+                      className="p-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 dark:bg-neutral-850 dark:hover:bg-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 rounded-lg transition-colors"
                       title="Demonstração"
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -269,14 +269,14 @@ export default function ProjectsPage() {
                 <div className="flex gap-1.5">
                   <button
                     onClick={() => openEditDialog(project)}
-                    className="p-2 bg-neutral-850 hover:bg-neutral-800 text-neutral-400 hover:text-violet-400 rounded-lg transition-colors cursor-pointer"
+                    className="p-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-violet-650 dark:bg-neutral-850 dark:hover:bg-neutral-800 dark:text-neutral-400 dark:hover:text-violet-400 rounded-lg transition-colors cursor-pointer"
                     title="Editar Projeto"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(project.id)}
-                    className="p-2 bg-neutral-850 hover:bg-neutral-800 text-neutral-400 hover:text-red-400 rounded-lg transition-colors cursor-pointer"
+                    className="p-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-red-655 dark:bg-neutral-855 dark:hover:bg-neutral-800 dark:text-neutral-400 dark:hover:text-red-400 rounded-lg transition-colors cursor-pointer"
                     title="Remover Projeto"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -290,21 +290,21 @@ export default function ProjectsPage() {
 
       {/* Add / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-neutral-900 border-neutral-850 text-neutral-200 max-w-lg overflow-y-auto max-h-[90vh]">
+        <DialogContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-850 text-neutral-850 dark:text-neutral-200 max-w-lg overflow-y-auto max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="text-neutral-100">{editingProject ? 'Editar Projeto' : 'Adicionar Novo Projeto'}</DialogTitle>
-            <DialogDescription className="text-neutral-500">Preencha os campos abaixo. Campos vazios serão removidos do portfólio.</DialogDescription>
+            <DialogTitle className="text-neutral-900 dark:text-neutral-100">{editingProject ? 'Editar Projeto' : 'Adicionar Novo Projeto'}</DialogTitle>
+            <DialogDescription className="text-neutral-500 dark:text-neutral-455">Preencha os campos abaixo. Campos vazios serão removidos do portfólio.</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
             {/* Title */}
             <div className="space-y-1.5">
-              <Label htmlFor="title" className="text-xs font-semibold text-neutral-400">Título do Projeto</Label>
+              <Label htmlFor="title" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Título do Projeto</Label>
               <Input
                 id="title"
                 {...register('title')}
                 placeholder="Ex: E-commerce Premium API"
-                className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200"
+                className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
               />
               {errors.title && (
                 <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>
@@ -313,12 +313,12 @@ export default function ProjectsPage() {
 
             {/* Description */}
             <div className="space-y-1.5">
-              <Label htmlFor="description" className="text-xs font-semibold text-neutral-400">Descrição</Label>
+              <Label htmlFor="description" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Descrição</Label>
               <Textarea
                 id="description"
                 {...register('description')}
                 placeholder="Explique o objetivo, tecnologias e seu papel no projeto..."
-                className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200 min-h-[90px]"
+                className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200 min-h-[90px]"
               />
               {errors.description && (
                 <p className="text-xs text-red-500 mt-1">{errors.description.message}</p>
@@ -327,13 +327,13 @@ export default function ProjectsPage() {
 
             {/* Cover Image Upload */}
             <div className="space-y-2">
-              <Label className="text-xs font-semibold text-neutral-400">Imagem de Capa</Label>
-              <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-lg bg-neutral-950 border border-neutral-850">
-                <div className="relative w-28 aspect-video rounded overflow-hidden bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0">
+              <Label className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Imagem de Capa</Label>
+              <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-lg bg-neutral-50 border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-850">
+                <div className="relative w-28 aspect-video rounded overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center flex-shrink-0">
                   {coverPreview ? (
                     <img src={coverPreview} alt="Capa" className="w-full h-full object-cover" />
                   ) : (
-                    <FolderGit2 className="w-8 h-8 text-neutral-700" />
+                    <FolderGit2 className="w-8 h-8 text-neutral-400 dark:text-neutral-700" />
                   )}
                   {isUploading && (
                     <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -343,7 +343,7 @@ export default function ProjectsPage() {
                 </div>
 
                 <div className="w-full">
-                  <Label htmlFor="cover-file" className="flex items-center justify-center gap-2 py-2 px-3 border border-dashed border-neutral-800 hover:border-violet-500/50 rounded-lg text-xs font-semibold cursor-pointer transition-colors text-neutral-400 hover:text-neutral-200 text-center">
+                  <Label htmlFor="cover-file" className="flex items-center justify-center gap-2 py-2 px-3 border border-dashed border-neutral-300 dark:border-neutral-800 hover:border-violet-500/50 rounded-lg text-xs font-semibold cursor-pointer transition-colors text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 text-center">
                     <UploadCloud className="w-4 h-4" />
                     Carregar Capa
                   </Label>
@@ -363,12 +363,12 @@ export default function ProjectsPage() {
             {/* Links */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="repository_url" className="text-xs font-semibold text-neutral-400">Repositório GitHub (URL)</Label>
+                <Label htmlFor="repository_url" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Repositório GitHub (URL)</Label>
                 <Input
                   id="repository_url"
                   {...register('repository_url')}
                   placeholder="https://github.com/..."
-                  className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200"
+                  className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
                 />
                 {errors.repository_url && (
                   <p className="text-xs text-red-500 mt-1">{errors.repository_url.message}</p>
@@ -376,12 +376,12 @@ export default function ProjectsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="demo_url" className="text-xs font-semibold text-neutral-400">Demonstração URL (Live Site)</Label>
+                <Label htmlFor="demo_url" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Demonstração URL (Live Site)</Label>
                 <Input
                   id="demo_url"
                   {...register('demo_url')}
                   placeholder="https://meuprojeto.com"
-                  className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200"
+                  className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
                 />
                 {errors.demo_url && (
                   <p className="text-xs text-red-500 mt-1">{errors.demo_url.message}</p>
@@ -390,9 +390,9 @@ export default function ProjectsPage() {
             </div>
 
             {/* Switch Featured */}
-            <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-950 border border-neutral-850">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-850">
               <div className="space-y-0.5">
-                <Label htmlFor="is_featured" className="text-xs font-semibold text-neutral-300">Destacar no Portfólio</Label>
+                <Label htmlFor="is_featured" className="text-xs font-semibold text-neutral-800 dark:text-neutral-350">Destacar no Portfólio</Label>
                 <p className="text-[10px] text-neutral-500">Exibir em destaque no topo do portfólio (máx. 3).</p>
               </div>
               <Switch
@@ -403,20 +403,20 @@ export default function ProjectsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="order_weight" className="text-xs font-semibold text-neutral-400">Peso de Ordenação (Menor valor aparece primeiro)</Label>
+              <Label htmlFor="order_weight" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Peso de Ordenação (Menor valor aparece primeiro)</Label>
               <Input
                 type="number"
                 id="order_weight"
                 {...register('order_weight', { valueAsNumber: true })}
-                className="bg-neutral-950 border-neutral-850 text-sm text-neutral-200"
+                className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
               />
             </div>
 
-            <DialogFooter className="pt-4 border-t border-neutral-850 gap-2">
+            <DialogFooter className="pt-4 border-t border-neutral-200 dark:border-neutral-850 gap-2">
               <Button
                 type="button"
                 onClick={() => setDialogOpen(false)}
-                className="bg-neutral-800 hover:bg-neutral-750 text-neutral-300 py-2.5 px-4 rounded-lg cursor-pointer"
+                className="bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:hover:bg-neutral-750 dark:text-neutral-300 py-2.5 px-4 rounded-lg cursor-pointer"
               >
                 Cancelar
               </Button>
