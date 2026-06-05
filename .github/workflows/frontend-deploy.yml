@@ -45,7 +45,7 @@ jobs:
       - name: Build Next.js Application
         run: |
           npm run build
-          npx @opennextjs/cloudflare build
+          npx opennextjs-cloudflare build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
 
