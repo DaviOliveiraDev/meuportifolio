@@ -19,8 +19,9 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/devfolio-backend",
-          "awslogs-region": "us-east-1",
-          "awslogs-stream-prefix": "ecs"
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "ecs",
+          "awslogs-create-group": "true"
         }
       }
     }
