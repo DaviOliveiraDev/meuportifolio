@@ -1,6 +1,8 @@
 {
   "family": "devfolio-backend",
   "networkMode": "awsvpc",
+  "executionRoleArn": "arn:aws:iam::211026994178:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::211026994178:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "backend",
