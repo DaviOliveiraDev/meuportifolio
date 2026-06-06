@@ -45,6 +45,31 @@
           "awslogs-create-group": "true"
         }
       }
+    },
+    {
+      "name": "cloudflared",
+      "image": "cloudflare/cloudflared:latest",
+      "essential": true,
+      "command": [
+        "tunnel",
+        "--no-autoupdate",
+        "run"
+      ],
+      "environment": [
+        {
+          "name": "TUNNEL_TOKEN",
+          "value": "INSERIR_TOKEN_DO_TUNNEL_AQUI"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/devfolio-backend",
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "cloudflared",
+          "awslogs-create-group": "true"
+        }
+      }
     }
   ],
   "requiresCompatibilities": [
