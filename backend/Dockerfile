@@ -47,6 +47,9 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 # Copia os arquivos da aplicação
 COPY . /var/www/html
 
+# Garante que nenhum arquivo de cache local/de testes seja copiado
+RUN rm -f bootstrap/cache/*.php
+
 # Instala as dependências do Composer para produção
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
