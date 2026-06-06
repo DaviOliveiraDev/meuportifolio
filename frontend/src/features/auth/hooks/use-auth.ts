@@ -57,9 +57,12 @@ export function useAuth() {
   // Mutation de Login
   const loginMutation = useMutation({
     mutationFn: async (data: LoginInput) => {
-      await initCsrf();
       const response = await apiClient.post('/auth/login', data);
-      return response.data.user;
+      const { token, user } = response.data;
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      }
+      return user;
     },
     onSuccess: (newUser) => {
       queryClient.setQueryData(['auth-user'], newUser);
@@ -69,9 +72,12 @@ export function useAuth() {
   // Mutation de Registro
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterInput) => {
-      await initCsrf();
       const response = await apiClient.post('/auth/register', data);
-      return response.data.user;
+      const { token, user } = response.data;
+      if (token) {
+        localStorage.setItem('auth_token', token);
+      }
+      return user;
     },
     onSuccess: (newUser) => {
       queryClient.setQueryData(['auth-user'], newUser);
@@ -84,6 +90,7 @@ export function useAuth() {
       await apiClient.post('/auth/logout');
     },
     onSuccess: () => {
+      localStorage.removeItem('auth_token');
       queryClient.setQueryData(['auth-user'], null);
       queryClient.clear(); // Limpa todo o cache de consultas para segurança
     },

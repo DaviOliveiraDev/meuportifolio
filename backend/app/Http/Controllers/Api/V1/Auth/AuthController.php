@@ -26,11 +26,12 @@ class AuthController extends Controller
         
         $user = $action->execute($dto);
         
-        // Autentica o usuário automaticamente via Cookie de Sessão Stateful
-        Auth::guard('web')->login($user);
+        // Gera o token de API do Laravel Sanctum
+        $token = $user->createToken('auth_token')->plainTextToken;
         
         return response()->json([
             'message' => 'Usuário cadastrado e autenticado com sucesso.',
+            'token' => $token,
             'user' => $user->load('profile'),
         ], 201);
     }
@@ -41,20 +42,22 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $credentials = $request->only('email', 'password');
-        $remember = $request->boolean('remember', true);
 
-        if (!Auth::guard('web')->attempt($credentials, $remember)) {
+        $user = User::where('email', $credentials['email'])->first();
+        
+        if (!$user || !\Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['As credenciais fornecidas estão incorretas.'],
             ]);
         }
 
-        // Regenera a sessão para evitar Session Fixation
-        $request->session()->regenerate();
+        // Gera o token de API do Laravel Sanctum
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login realizado com sucesso.',
-            'user' => Auth::guard('web')->user()->load('profile'),
+            'token' => $token,
+            'user' => $user->load('profile'),
         ]);
     }
 
@@ -63,11 +66,8 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        Auth::guard('web')->logout();
-
-        // Invalida a sessão e regenera o token CSRF
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        // Deleta o token de acesso atual
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json([
             'message' => 'Logout realizado com sucesso.',
@@ -167,13 +167,12 @@ class AuthController extends Controller
             return $newUser;
         });
 
-        Auth::guard('web')->login($user, true);
-
-        // Regenera sessão de segurança
-        $request->session()->regenerate();
+        // Gera o token de API do Laravel Sanctum
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Autenticação social realizada com sucesso.',
+            'token' => $token,
             'user' => $user->load('profile'),
         ]);
     }

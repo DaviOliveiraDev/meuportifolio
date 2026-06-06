@@ -10,9 +10,16 @@ export const apiClient = axios.create({
   withCredentials: true, // Crucial para permitir o compartilhamento de cookies
 });
 
-// Interceptor de Request: Lê o cookie CSRF do browser e injeta manualmente no header
+// Interceptor de Request: Lê o token de API ou o cookie CSRF e injeta no header
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
+    // 1. Lê e injeta o Token de API do localStorage se existir (Autenticação baseada em Token)
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // 2. Lê e injeta o Cookie CSRF se existir (Autenticação baseada em Cookie/Sessão)
     const getCookie = (name: string) => {
       const value = `; ${document.cookie}`;
       const parts = value.split(`; ${name}=`);
