@@ -59,5 +59,5 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Expõe a porta
 EXPOSE 80
 
-# Executa o servidor nativo do PHP Artisan
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=80"]
+# Executa as migrações e inicia o servidor nativo do PHP Artisan
+CMD ["/bin/sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=80"]
