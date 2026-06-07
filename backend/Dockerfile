@@ -44,6 +44,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
+# Instala o Puppeteer globalmente (usado pelo Spatie Browsershot para gerar PDFs)
+RUN npm install -g puppeteer
+
 # Copia os arquivos da aplicação
 COPY . /var/www/html
 
