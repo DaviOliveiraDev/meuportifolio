@@ -45,7 +45,7 @@ class ProfileController extends Controller
 
             return response()->json([
                 'message' => 'Perfil atualizado com sucesso.',
-                'profile' => $updatedProfile,
+                'profile' => $updatedProfile->load(['experiences', 'educations', 'skills']),
             ]);
         } catch (DomainException $e) {
             $statusCode = $e->getCode() === 404 ? 404 : 422;
