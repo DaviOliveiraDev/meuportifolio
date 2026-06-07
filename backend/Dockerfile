@@ -57,7 +57,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Expõe a porta
-EXPOSE 8000
+EXPOSE 80
 
 # Executa o servidor nativo do PHP Artisan
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=80"]
