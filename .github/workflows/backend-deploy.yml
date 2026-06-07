@@ -132,12 +132,11 @@ jobs:
           RECORD_NAME="api.devfolio.app.br"
           
           echo "Buscando o ID do registro DNS para $RECORD_NAME..."
-          # Obter o ID do registro DNS
-          RECORD_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?name=$RECORD_NAME" \
+          RESPONSE=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?name=$RECORD_NAME" \
             -H "Authorization: Bearer $API_TOKEN" \
-            -H "Content-Type: application/json" \
-            | jq -r '.result[0].id')
+            -H "Content-Type: application/json")
             
+          RECORD_ID=$(echo "$RESPONSE" | jq -r '.result[0].id')
           echo "Record ID encontrado: $RECORD_ID"
           
           if [ "$RECORD_ID" != "null" ] && [ -n "$RECORD_ID" ]; then
@@ -148,6 +147,10 @@ jobs:
               --data "{\"type\":\"A\",\"name\":\"api\",\"content\":\"$PUBLIC_IP\",\"ttl\":120,\"proxied\":true}"
             echo "DNS atualizado com sucesso!"
           else
-            echo "Erro: Registro DNS não encontrado na Cloudflare!"
+            echo "----------------------------------------"
+            echo "ERRO: Registro DNS não encontrado ou falha na API da Cloudflare!"
+            echo "Resposta bruta da API da Cloudflare:"
+            echo "$RESPONSE" | jq .
+            echo "----------------------------------------"
             exit 1
           fi
