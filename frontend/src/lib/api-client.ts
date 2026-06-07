@@ -7,7 +7,7 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest', // Força o Laravel a retornar JSON sob erros
   },
-  withCredentials: true, // Crucial para permitir o compartilhamento de cookies
+  withCredentials: false,
 });
 
 // Interceptor de Request: Lê o token de API ou o cookie CSRF e injeta no header
