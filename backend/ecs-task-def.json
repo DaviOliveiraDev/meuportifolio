@@ -15,6 +15,14 @@
           "protocol": "tcp"
         }
       ],
+      "environment": [
+        { "name": "APP_ENV", "value": "production" },
+        { "name": "APP_DEBUG", "value": "false" },
+        { "name": "DB_CONNECTION", "value": "pgsql" },
+        { "name": "DB_PORT", "value": "5432" },
+        { "name": "REDIS_HOST", "value": "127.0.0.1" },
+        { "name": "QUEUE_CONNECTION", "value": "redis" }
+      ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {

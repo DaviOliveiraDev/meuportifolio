@@ -79,6 +79,23 @@ jobs:
           task-definition: backend/ecs-task-def.json
           container-name: backend
           image: ${{ steps.build-image.outputs.image }}
+          environment-variables: |
+            APP_KEY=${{ secrets.APP_KEY }}
+            APP_URL=${{ secrets.APP_URL }}
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_DATABASE=${{ secrets.DB_DATABASE }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            FILESYSTEM_DISK=${{ secrets.FILESYSTEM_DISK }}
+            AWS_BUCKET=${{ secrets.AWS_BUCKET }}
+            AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }}
+            GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}
+            GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}
+            GITHUB_REDIRECT_URI=${{ secrets.GITHUB_REDIRECT_URI }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
