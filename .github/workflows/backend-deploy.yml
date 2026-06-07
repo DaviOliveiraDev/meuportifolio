@@ -92,9 +92,9 @@ jobs:
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
             AWS_BUCKET=${{ secrets.AWS_BUCKET }}
             AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }}
-            GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}
-            GITHUB_CLIENT_SECRET=${{ secrets.GITHUB_CLIENT_SECRET }}
-            GITHUB_REDIRECT_URI=${{ secrets.GITHUB_REDIRECT_URI }}
+            GITHUB_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}
+            GITHUB_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}
+            GITHUB_REDIRECT_URI=${{ secrets.GH_REDIRECT_URI }}
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
