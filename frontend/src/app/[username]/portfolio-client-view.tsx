@@ -151,7 +151,7 @@ function DetailModal({
 
             {isProject && data.cover_image_url && (
               <div className="aspect-video w-full overflow-hidden bg-[#e2e2de]/20 dark:bg-[#272725]/20 border border-[#e2e2de]/60 dark:border-[#272725]/60">
-                <img src={data.cover_image_url} alt={data.title} className="w-full h-full object-cover grayscale" />
+                <img src={data.cover_image_url} alt={data.title} className="w-full h-full object-cover" />
               </div>
             )}
 
@@ -299,7 +299,7 @@ function DetailModal({
             {isProject && data.cover_image_url && (
               <div className="aspect-video w-full overflow-hidden bg-neutral-900 border border-neutral-800 relative">
                 <div className="absolute inset-0 border border-cyan-500/10 pointer-events-none" />
-                <img src={data.cover_image_url} alt={data.title} className="w-full h-full object-cover grayscale" />
+                <img src={data.cover_image_url} alt={data.title} className="w-full h-full object-cover" />
               </div>
             )}
 

@@ -105,25 +105,22 @@ class AuthController extends Controller
     /**
      * Lida com o callback do provedor social, criando/vinculando conta e iniciando sessão.
      */
-    public function handleProviderCallback(Request $request, string $provider): JsonResponse
+    public function handleProviderCallback(Request $request, string $provider)
     {
+        $frontendUrl = env('FRONTEND_URL', 'https://devfolio.app.br');
+
         if (!in_array($provider, ['github', 'google'])) {
-            return response()->json(['message' => 'Provedor não suportado.'], 400);
+            return redirect()->away($frontendUrl . '/login?error=' . urlencode('Provedor não suportado.'));
         }
 
         try {
             $socialUser = Socialite::driver($provider)->stateless()->user();
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Não foi possível recuperar os dados de autenticação do provedor.',
-                'error' => $e->getMessage()
-            ], 422);
+            return redirect()->away($frontendUrl . '/login?error=' . urlencode('Não foi possível recuperar os dados de autenticação do provedor.'));
         }
 
         if (!$socialUser->getEmail()) {
-            return response()->json([
-                'message' => 'O provedor social não retornou um endereço de e-mail válido.'
-            ], 422);
+            return redirect()->away($frontendUrl . '/login?error=' . urlencode('O provedor social não retornou um endereço de e-mail válido.'));
         }
 
         $user = DB::transaction(function () use ($socialUser, $provider) {
@@ -170,10 +167,6 @@ class AuthController extends Controller
         // Gera o token de API do Laravel Sanctum
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'message' => 'Autenticação social realizada com sucesso.',
-            'token' => $token,
-            'user' => $user->load('profile'),
-        ]);
+        return redirect()->away($frontendUrl . '/login?token=' . $token);
     }
 }

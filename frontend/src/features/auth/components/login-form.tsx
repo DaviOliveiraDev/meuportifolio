@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, AlertCircle } from 'lucide-react';
 
@@ -17,8 +17,27 @@ import { apiClient } from '@/lib/api-client';
 
 export function LoginForm() {
   const router = useRouter();
-  const { login, isLoggingIn } = useAuth();
+  const searchParams = useSearchParams();
+  const { login, isLoggingIn, refetchUser } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const tokenParam = searchParams?.get('token');
+  const errorParam = searchParams?.get('error');
+
+  useEffect(() => {
+    if (tokenParam) {
+      localStorage.setItem('auth_token', tokenParam);
+      refetchUser().then(() => {
+        router.push('/dashboard');
+      });
+    }
+  }, [tokenParam, refetchUser, router]);
+
+  useEffect(() => {
+    if (errorParam) {
+      setErrorMessage(decodeURIComponent(errorParam));
+    }
+  }, [errorParam]);
 
   const {
     register,

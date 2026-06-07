@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { LoginForm } from '@/features/auth/components/login-form';
 import { Metadata } from 'next';
 
@@ -25,8 +26,18 @@ export default function LoginPage() {
           </span>
         </div>
 
-        <LoginForm />
+        <Suspense fallback={
+          <div className="flex flex-col items-center justify-center p-8 bg-neutral-900/60 border border-neutral-800 rounded-2xl w-full text-neutral-450 gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+            <span className="text-sm font-medium">Carregando portal de login...</span>
+          </div>
+        }>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   );
 }
+
+// Pequeno import helper necessário para o Loader no fallback do Suspense
+import { Loader2 } from 'lucide-react';

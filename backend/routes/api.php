@@ -21,7 +21,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
         Route::get('/redirect/{provider}', [AuthController::class, 'redirectToProvider']);
-        Route::post('/callback/{provider}', [AuthController::class, 'handleProviderCallback']);
+        Route::get('/callback/{provider}', [AuthController::class, 'handleProviderCallback']);
         
         // Rotas protegidas de autenticação
         Route::middleware('auth:sanctum')->group(function () {
