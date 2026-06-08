@@ -58,6 +58,11 @@ interface Profile {
   experiences: Experience[];
   educations: Education[];
   skills: Skill[];
+  ovr?: number;
+  xp?: number;
+  level?: number;
+  profile_completeness?: number;
+  badges?: any[];
 }
 
 async function getPortfolio(username: string): Promise<Profile | null> {
@@ -93,20 +98,20 @@ export async function generateMetadata({ params }: { params: Promise<{ username:
       siteName: 'DevFolio SaaS',
       type: 'profile',
       username: profile.username,
-      images: avatarUrl ? [
+      images: [
         {
-          url: avatarUrl,
+          url: `${siteUrl}/card/${profile.username}`,
           width: 800,
-          height: 800,
-          alt: `Foto de perfil de ${profile.name}`,
+          height: 600,
+          alt: `Developer Card de ${profile.name}`,
         }
-      ] : [],
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: `${profile.name} | ${profile.role || 'Desenvolvedor'}`,
       description: description,
-      images: avatarUrl ? [avatarUrl] : [],
+      images: [`${siteUrl}/card/${profile.username}`],
     },
   };
 }

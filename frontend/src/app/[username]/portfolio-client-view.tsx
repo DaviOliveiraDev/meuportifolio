@@ -14,6 +14,7 @@ import {
   X
 } from 'lucide-react';
 import React from 'react';
+import DeveloperCard, { getRarityTier } from '../../components/developer-card';
 
 interface Skill {
   id: string;
@@ -70,6 +71,11 @@ interface Profile {
   experiences: Experience[];
   educations: Education[];
   skills: Skill[];
+  ovr?: number;
+  xp?: number;
+  level?: number;
+  profile_completeness?: number;
+  badges?: any[];
 }
 
 const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -86,6 +92,29 @@ const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <circle cx="4" cy="4" r="2" />
   </svg>
 );
+
+const XIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M4 4l11.733 16h4.267l-11.733 -16z" />
+    <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" />
+  </svg>
+);
+
+const DownloadIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" x2="12" y1="15" y2="3" />
+  </svg>
+);
+
+function getRarityBorderColor(ovr: number) {
+  if (ovr >= 95) return '#ec4899';
+  if (ovr >= 85) return '#6366f1';
+  if (ovr >= 75) return '#f59e0b';
+  if (ovr >= 65) return '#94a3b8';
+  return '#b45309';
+}
 
 // ==========================================
 // THEME-SPECIFIC DETAILED MODALS
@@ -413,6 +442,29 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
   const theme = profile.theme_name || 'minimalist';
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedExperience, setSelectedExperience] = useState<Experience | null>(null);
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+
+  const getTwitterShareUrl = () => {
+    if (typeof window === 'undefined') return '';
+    const shareText = `Confira meu Developer Card no DevFolio! OVR: ${profile.ovr || 1} | Nível: ${profile.level || 1}`;
+    const shareUrl = `${window.location.origin}/${profile.username}`;
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+  };
+
+  const getLinkedinShareUrl = () => {
+    if (typeof window === 'undefined') return '';
+    const shareUrl = `${window.location.origin}/${profile.username}`;
+    return `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
+  };
+
+  const handleDownloadCard = () => {
+    const link = document.createElement('a');
+    link.href = `/card/${profile.username}`;
+    link.download = `${profile.username}-developer-card.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const trackEvent = (eventType: 'view_project' | 'click_link', targetId?: string | null) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
@@ -1142,6 +1194,96 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
           formatDate={formatDate}
           onLinkClick={handleLinkClick}
         />
+      )}
+
+      {/* FLOATING DEVELOPER CARD TRIGGER */}
+      <button
+        onClick={() => setIsCardModalOpen(true)}
+        className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-4 py-2.5 rounded-full font-bold text-xs text-white border bg-neutral-900/90 dark:bg-neutral-950/90 backdrop-blur-md transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-indigo-500/20 group cursor-pointer"
+        style={{
+          borderColor: getRarityBorderColor(profile.ovr || 1)
+        }}
+      >
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+          <span className={`relative inline-flex rounded-full h-2 w-2 bg-gradient-to-r ${getRarityTier(profile.ovr || 1).color}`}></span>
+        </span>
+        <span>OVR {profile.ovr || 1}</span>
+        <span className="text-neutral-750">|</span>
+        <span>LVL {profile.level || 1}</span>
+      </button>
+
+      {/* CARD DETAIL MODAL */}
+      {isCardModalOpen && (
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsCardModalOpen(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <div className="bg-neutral-950 border border-neutral-900 max-w-sm w-full rounded-3xl p-6 shadow-2xl relative text-white animate-in zoom-in-95 duration-200 flex flex-col items-center">
+            <button
+              onClick={() => setIsCardModalOpen(false)}
+              className="absolute top-4 right-4 text-neutral-400 hover:text-white bg-neutral-900/50 hover:bg-neutral-800 p-1.5 rounded-full transition-all cursor-pointer z-10"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="text-xs font-bold tracking-wider uppercase text-neutral-400 mb-5 font-mono">// Developer Card</h3>
+
+            <div className="w-full flex justify-center scale-95 origin-top mb-4">
+              <DeveloperCard profile={{
+                id: profile.id,
+                name: profile.name,
+                username: profile.username,
+                avatar_url: profile.avatar_url,
+                bio: profile.bio,
+                role: profile.role,
+                location: profile.location,
+                linkedin_url: profile.linkedin_url,
+                github_url: profile.github_url,
+                website_url: profile.website_url,
+                theme_name: profile.theme_name,
+                ovr: profile.ovr,
+                xp: profile.xp,
+                level: profile.level,
+                profile_completeness: profile.profile_completeness,
+                badges: profile.badges,
+              }} showDetails={true} />
+            </div>
+
+            <div className="w-full flex flex-col gap-2 mt-2">
+              <button
+                onClick={handleDownloadCard}
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-750 hover:to-indigo-750 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all duration-300 text-sm cursor-pointer"
+              >
+                <DownloadIcon className="w-4 h-4" />
+                <span>Baixar Card (PNG)</span>
+              </button>
+
+              <div className="flex gap-2 w-full">
+                <a
+                  href={getTwitterShareUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#1d9bf0] hover:bg-[#1a8cd8] text-white font-bold py-2 px-3 rounded-xl transition-all text-xs cursor-pointer"
+                >
+                  <XIcon className="w-3.5 h-3.5 fill-current" />
+                  <span>Twitter/X</span>
+                </a>
+                <a
+                  href={getLinkedinShareUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 bg-[#0077b5] hover:bg-[#006294] text-white font-bold py-2 px-3 rounded-xl transition-all text-xs cursor-pointer"
+                >
+                  <LinkedinIcon className="w-3.5 h-3.5 fill-current" />
+                  <span>LinkedIn</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
