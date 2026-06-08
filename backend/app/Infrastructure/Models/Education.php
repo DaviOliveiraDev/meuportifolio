@@ -33,6 +33,21 @@ class Education extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function ($education) {
+            if ($education->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($education->profile);
+            }
+        });
+
+        static::deleted(function ($education) {
+            if ($education->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($education->profile);
+            }
+        });
+    }
+
     /**
      * Retorna a factory correspondente ao model.
      */

@@ -33,6 +33,13 @@ class CreateProjectAction
             }
         }
 
-        return $this->projectRepository->create($dto->toArray());
+        $project = $this->projectRepository->create($dto->toArray());
+
+        if ($project->profile) {
+            $xpManager = app(\App\Domain\Services\XpManagerService::class);
+            $xpManager->awardXpForAction($project->profile, 'add_project');
+        }
+
+        return $project;
     }
 }

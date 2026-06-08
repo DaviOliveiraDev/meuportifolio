@@ -34,6 +34,21 @@ class Project extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function ($project) {
+            if ($project->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($project->profile);
+            }
+        });
+
+        static::deleted(function ($project) {
+            if ($project->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($project->profile);
+            }
+        });
+    }
+
     /**
      * Relação com o perfil.
      */

@@ -49,6 +49,8 @@ class UpdateProfileUseCase
             $profile->skills()->sync($skillIds);
         }
 
+        \App\Jobs\UpdateDeveloperCardJob::dispatch($profile);
+
         return $profile;
     }
 }

@@ -16,6 +16,13 @@ class Profile extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $attributes = [
+        'profile_completeness' => 0,
+        'xp' => 0,
+        'level' => 1,
+        'ovr' => 0,
+    ];
+
     protected $fillable = [
         'user_id',
         'username',
@@ -29,12 +36,20 @@ class Profile extends Model
         'website_url',
         'theme_name',
         'custom_styles',
+        'profile_completeness',
+        'xp',
+        'level',
+        'ovr',
     ];
 
     protected function casts(): array
     {
         return [
             'custom_styles' => 'array',
+            'profile_completeness' => 'integer',
+            'xp' => 'integer',
+            'level' => 'integer',
+            'ovr' => 'integer',
         ];
     }
 
@@ -93,5 +108,22 @@ class Profile extends Model
     public function analyticsEvents(): HasMany
     {
         return $this->hasMany(AnalyticsEvent::class);
+    }
+
+    /**
+     * Relação N:N com as conquistas (badges).
+     */
+    public function badges(): BelongsToMany
+    {
+        return $this->belongsToMany(Badge::class, 'profile_badges')
+                    ->withPivot('unlocked_at');
+    }
+
+    /**
+     * Relação 1:N com o histórico de evolução do Developer Card.
+     */
+    public function ratingsHistory(): HasMany
+    {
+        return $this->hasMany(ProfileRatingsHistory::class);
     }
 }

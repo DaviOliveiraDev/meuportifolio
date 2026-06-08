@@ -33,6 +33,21 @@ class Experience extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function ($experience) {
+            if ($experience->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($experience->profile);
+            }
+        });
+
+        static::deleted(function ($experience) {
+            if ($experience->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($experience->profile);
+            }
+        });
+    }
+
     /**
      * Retorna a factory correspondente ao model.
      */

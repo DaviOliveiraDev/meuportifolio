@@ -28,7 +28,8 @@ class PortfolioController extends Controller
                 },
                 'skills' => function ($query) {
                     $query->withPivot('proficiency_level');
-                }
+                },
+                'badges'
             ])
             ->first();
 

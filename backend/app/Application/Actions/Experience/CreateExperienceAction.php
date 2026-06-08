@@ -14,6 +14,13 @@ class CreateExperienceAction
 
     public function execute(CreateExperienceDTO $dto): Experience
     {
-        return $this->experienceRepository->create($dto->toArray());
+        $experience = $this->experienceRepository->create($dto->toArray());
+
+        if ($experience->profile) {
+            $xpManager = app(\App\Domain\Services\XpManagerService::class);
+            $xpManager->awardXpForAction($experience->profile, 'add_experience');
+        }
+
+        return $experience;
     }
 }

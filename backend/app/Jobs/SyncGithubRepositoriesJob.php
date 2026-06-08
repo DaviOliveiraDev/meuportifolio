@@ -106,6 +106,11 @@ class SyncGithubRepositoriesJob implements ShouldQueue
             Cache::put("github_sync_{$profileId}", 'completed', now()->addHours(24));
             Cache::put("github_sync_last_{$profileId}", now()->toIso8601String(), now()->addHours(24));
 
+            // Concede XP e atualiza a carta por conectar/sincronizar GitHub
+            $xpManager = app(\App\Domain\Services\XpManagerService::class);
+            $xpManager->awardXpForAction($this->profile, 'connect_github');
+            \App\Jobs\UpdateDeveloperCardJob::dispatch($this->profile);
+
         } catch (Throwable $e) {
             Log::error("Falha no Job de Sincronização do GitHub para o perfil {$profileId}: " . $e->getMessage());
             
