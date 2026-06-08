@@ -25,9 +25,17 @@ interface UserProfile {
  * Deve ser chamado antes de operações POST/PUT/DELETE em endpoints estaduais.
  */
 const initCsrf = async () => {
-  // Ajuste do path conforme o proxy reverso do Nginx
-  await apiClient.get('/../../sanctum/csrf-cookie', {
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api/v1',
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api/v1';
+  let csrfUrl = '/sanctum/csrf-cookie';
+  if (apiBaseUrl.startsWith('http')) {
+    try {
+      csrfUrl = `${new URL(apiBaseUrl).origin}/sanctum/csrf-cookie`;
+    } catch (e) {
+      // fallback
+    }
+  }
+  await apiClient.get(csrfUrl, {
+    baseURL: csrfUrl.startsWith('http') ? '' : undefined
   });
 };
 
@@ -57,6 +65,7 @@ export function useAuth() {
   // Mutation de Login
   const loginMutation = useMutation({
     mutationFn: async (data: LoginInput) => {
+      await initCsrf();
       const response = await apiClient.post('/auth/login', data);
       const { token, user } = response.data;
       if (token) {
@@ -72,6 +81,7 @@ export function useAuth() {
   // Mutation de Registro
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterInput) => {
+      await initCsrf();
       const response = await apiClient.post('/auth/register', data);
       const { token, user } = response.data;
       if (token) {
