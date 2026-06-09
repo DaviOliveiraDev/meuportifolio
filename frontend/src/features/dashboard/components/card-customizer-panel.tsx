@@ -44,8 +44,16 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
       await updateProfile({
         name: profile?.name,
         username: profile?.username,
+        avatar_url: profile?.avatar_url,
+        bio: profile?.bio,
+        role: profile?.role,
+        location: profile?.location,
+        linkedin_url: profile?.linkedin_url,
+        github_url: profile?.github_url,
+        website_url: profile?.website_url,
         theme_name: profile?.theme_name || 'minimalist',
-        custom_styles: updatedStyles
+        custom_styles: updatedStyles,
+        skills: profile?.skills ? profile.skills.map((s: any) => s.name) : []
       });
       toast.success('Estilo do card atualizado!');
     } catch (err) {
