@@ -74,16 +74,12 @@ export default function DeveloperCard({
   const gradientId = `crest-grad-${uid}`;
   const clipId = `crest-clip-${uid}`;
 
-  const ovr = profile.ovr || 1;
   const level = profile.level || 1;
   const xp = profile.xp || 0;
   const badges = profile.badges || [];
 
-  const tier = getRarityTier(ovr);
-  const progress = calculateLevelProgress(level, xp);
-
-  // Calcula sub-scores baseados nos itens reais
-  const { breakdown } = calculateOvr(
+  // Calcula sub-scores baseados nos itens reais e o OVR
+  const { ovr: calculatedOvr, breakdown } = calculateOvr(
     {
       profile_completeness: profile.profile_completeness || 0,
       github_url: profile.github_url,
@@ -94,6 +90,10 @@ export default function DeveloperCard({
     },
     educations.length > 0 ? educations.length : ((profile as any).educations?.length ?? 0)
   );
+
+  const ovr = calculatedOvr || profile.ovr || 1;
+  const tier = getRarityTier(ovr);
+  const progress = calculateLevelProgress(level, xp);
 
   // Customizações de estilo extraídas do profile
   const customStyles = profile.custom_styles || {};
