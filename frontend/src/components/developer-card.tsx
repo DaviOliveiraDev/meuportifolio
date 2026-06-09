@@ -1,9 +1,14 @@
 "use client";
 
-import { Award, Briefcase, Calendar, GraduationCap, Code } from "lucide-react";
+import React, { useRef, useState } from "react";
+import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { Award, Briefcase, Calendar, GraduationCap, Code, RefreshCw, Sparkles, LockKeyhole } from "lucide-react";
+import { getRarityTier } from "@/features/gamification/lib/calculate-tier";
+import { calculateLevelProgress } from "@/features/gamification/lib/calculate-level";
+import { calculateOvr } from "@/features/gamification/domain/calculate-ovr";
 
 const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
     <path d="M9 18c-4.51 2-5-2-7-2" />
   </svg>
@@ -33,159 +38,393 @@ export type ProfileType = {
   level?: number;
   profile_completeness?: number;
   badges?: BadgeType[];
+  custom_styles?: {
+    border_theme?: 'default' | 'neon' | 'holographic' | 'cosmic';
+    foil_effect?: 'none' | 'chrome' | 'gold' | 'diamond';
+    pinned_badges?: string[];
+  } | null;
 };
 
 interface DeveloperCardProps {
   profile: ProfileType;
   showDetails?: boolean;
+  projects?: any[];
+  experiences?: any[];
+  educations?: any[];
 }
 
-export function getRarityTier(ovr: number) {
-  if (ovr >= 95) return { name: "Legendary", color: "from-purple-600 via-pink-600 to-amber-500", text: "text-amber-300", border: "border-pink-500", bg: "bg-neutral-950/90", glow: "shadow-[0_0_25px_rgba(236,72,153,0.5)]" };
-  if (ovr >= 85) return { name: "Diamond", color: "from-cyan-400 via-indigo-500 to-purple-600", text: "text-cyan-300", border: "border-indigo-500", bg: "bg-slate-900/90", glow: "shadow-[0_0_20px_rgba(99,102,241,0.4)]" };
-  if (ovr >= 75) return { name: "Gold", color: "from-amber-400 via-yellow-500 to-amber-600", text: "text-amber-400", border: "border-amber-500", bg: "bg-neutral-900/95", glow: "shadow-[0_0_15px_rgba(245,158,11,0.3)]" };
-  if (ovr >= 65) return { name: "Silver", color: "from-slate-300 via-zinc-400 to-slate-500", text: "text-slate-300", border: "border-slate-400", bg: "bg-zinc-900/95", glow: "shadow-[0_0_10px_rgba(148,163,184,0.2)]" };
-  return { name: "Bronze", color: "from-amber-700 via-orange-800 to-amber-900", text: "text-orange-300", border: "border-amber-800", bg: "bg-stone-900/95", glow: "shadow-none" };
-}
+export default function DeveloperCard({ 
+  profile, 
+  showDetails = false,
+  projects = [],
+  experiences = [],
+  educations = []
+}: DeveloperCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isFlipped, setIsFlipped] = useState(false);
 
-export default function DeveloperCard({ profile, showDetails = false }: DeveloperCardProps) {
   const ovr = profile.ovr || 1;
   const level = profile.level || 1;
   const xp = profile.xp || 0;
   const badges = profile.badges || [];
 
   const tier = getRarityTier(ovr);
+  const progress = calculateLevelProgress(level, xp);
 
-  // Calcula o XP necessário para o próximo nível
-  // Fórmula backend: XP necessário = 100 * (Level ^ 1.5)
-  const getXpThresholds = (currentLevel: number) => {
-    let accXpForCurrent = 0;
-    for (let l = 1; l < currentLevel; l++) {
-      accXpForCurrent += Math.floor(100 * Math.pow(l, 1.5));
-    }
-    const xpForNext = Math.floor(100 * Math.pow(currentLevel, 1.5));
-    return {
-      accXpForCurrent,
-      xpForNext,
-    };
+  // Calcula sub-scores baseados nos itens reais
+  const { breakdown } = calculateOvr(
+    {
+      profile_completeness: profile.profile_completeness || 0,
+      github_url: profile.github_url,
+      experiences: experiences.length > 0 ? experiences : (profile as any).experiences || [],
+      projects: projects.length > 0 ? projects : (profile as any).projects || [],
+      skills: (profile as any).skills || [],
+      badges: badges,
+    },
+    educations.length > 0 ? educations.length : ((profile as any).educations?.length ?? 0)
+  );
+
+  // Customizações de estilo extraídas do profile
+  const customStyles = profile.custom_styles || {};
+  const borderTheme = customStyles.border_theme || 'default';
+  const foilEffect = customStyles.foil_effect || 'none';
+  const pinnedBadgeIds = customStyles.pinned_badges || [];
+
+  // Pega as medalhas fixadas ou as primeiras 3 desbloqueadas por padrão
+  const pinnedBadges = badges.filter(b => pinnedBadgeIds.includes(b.id)).slice(0, 3);
+  const displayBadges = pinnedBadges.length > 0 ? pinnedBadges : badges.slice(0, 3);
+
+  // Framer Motion 3D Hover/Tilt variables
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  // Transforma posições do mouse em graus de rotação 3D
+  const rotateX = useTransform(y, [-150, 150], [15, -15]);
+  const rotateY = useTransform(x, [-100, 100], [-15, 15]);
+
+  // Spring animations para suavizar a rotação
+  const springConfig = { damping: 25, stiffness: 200, mass: 0.8 };
+  const smoothRotateX = useSpring(rotateX, springConfig);
+  const smoothRotateY = useSpring(rotateY, springConfig);
+
+  // Posições do reflexo de brilho holográfico
+  const shineX = useTransform(x, [-100, 100], ["0%", "100%"]);
+  const shineY = useTransform(y, [-150, 150], ["0%", "100%"]);
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (!cardRef.current || isFlipped) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = event.clientX - rect.left - width / 2;
+    const mouseY = event.clientY - rect.top - height / 2;
+    x.set(mouseX);
+    y.set(mouseY);
   };
 
-  const { accXpForCurrent, xpForNext } = getXpThresholds(level);
-  const xpInCurrentLevel = xp - accXpForCurrent;
-  const xpProgressPercentage = Math.min(100, Math.max(0, (xpInCurrentLevel / xpForNext) * 100));
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  const handleCardClick = () => {
+    setIsFlipped(!isFlipped);
+    x.set(0);
+    y.set(0);
+  };
+
+  // Determina as cores de borda/gradient baseadas nas escolhas do customizer
+  const getCardBorderClass = () => {
+    switch (borderTheme) {
+      case 'neon':
+        return 'from-[#06b6d4] via-[#ec4899] to-[#a855f7]';
+      case 'holographic':
+        return 'from-[#cbd5e1] via-[#f472b6] via-[#38bdf8] via-[#fbbf24] to-[#cbd5e1] animate-pulse';
+      case 'cosmic':
+        return 'from-[#8b5cf6] via-[#d946ef] to-[#f43f5e]';
+      default:
+        return tier.color; // Padrão baseado no OVR
+    }
+  };
+
+  // Efeitos holográficos adicionais (Foil)
+  const renderFoilSheen = () => {
+    if (foilEffect === 'none') return null;
+
+    let bgStyle = '';
+    let opacity = 'opacity-30';
+
+    if (foilEffect === 'chrome') {
+      bgStyle = 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.3) 100%)';
+      opacity = 'opacity-20';
+    } else if (foilEffect === 'gold') {
+      bgStyle = 'linear-gradient(135deg, rgba(251,191,36,0.35) 0%, rgba(255,255,255,0) 60%, rgba(217,119,6,0.4) 100%)';
+      opacity = 'opacity-35';
+    } else if (foilEffect === 'diamond') {
+      bgStyle = 'radial-gradient(circle, rgba(165,243,252,0.4) 0%, rgba(99,102,241,0.1) 70%)';
+      opacity = 'opacity-40';
+    }
+
+    return (
+      <motion.div 
+        className={`absolute inset-0 pointer-events-none rounded-[22px] mix-blend-overlay transition-opacity duration-300 z-25 ${opacity}`}
+        style={{
+          background: bgStyle,
+          backgroundAttachment: 'fixed'
+        }}
+      />
+    );
+  };
+
+  const borderGradientClass = getCardBorderClass();
 
   return (
-    <div className="flex flex-col items-center gap-6 w-full max-w-sm">
-      {/* CARD FÍSICO */}
-      <div
-        className={`relative w-80 h-[450px] rounded-3xl p-1 bg-gradient-to-br ${tier.color} ${tier.glow} transition-all duration-500 hover:scale-105 select-none`}
+    <div className="flex flex-col items-center gap-6 w-full max-w-sm font-sans select-none group">
+      
+      {/* 3D Wrapper */}
+      <div 
+        className="perspective-[1000px] cursor-pointer relative"
+        onClick={handleCardClick}
       >
-        <div className={`w-full h-full rounded-[22px] ${tier.bg} flex flex-col p-6 overflow-hidden relative text-white`}>
-          {/* Luzes de Fundo para Glassmorphism */}
-          <div className={`absolute top-[-50px] right-[-50px] w-40 h-40 rounded-full bg-gradient-to-br ${tier.color} blur-[50px] opacity-30`} />
-          <div className="absolute bottom-[-50px] left-[-50px] w-40 h-40 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 blur-[50px] opacity-20" />
+        {/* DOUBLE LAYER NEON GLOW (Sombra expandida e borrada no fundo) */}
+        <div 
+          className={`absolute -inset-2 rounded-[28px] bg-gradient-to-br ${borderGradientClass} filter blur-[20px] opacity-40 transition-opacity duration-500 group-hover:opacity-60 pointer-events-none`}
+        />
 
-          {/* Cabeçalho do Card */}
-          <div className="flex justify-between items-start z-10">
-            {/* Nível e Raridade */}
-            <div className="flex flex-col">
-              <span className={`text-[10px] font-bold tracking-widest uppercase ${tier.text}`}>
-                {tier.name}
-              </span>
-              <span className="text-[12px] text-neutral-400 font-semibold mt-0.5">
+        {/* CARD FÍSICO CONTÊINER */}
+        <motion.div
+          ref={cardRef}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          animate={{ rotateY: isFlipped ? 180 : 0 }}
+          style={{
+            rotateX: isFlipped ? 0 : smoothRotateX,
+            rotateY: isFlipped ? 180 : smoothRotateY,
+            transformStyle: "preserve-3d",
+          }}
+          transition={{ type: "spring", stiffness: 150, damping: 20 }}
+          className={`relative w-80 h-[460px] rounded-3xl p-[1.5px] bg-gradient-to-br ${borderGradientClass} transition-shadow duration-500`}
+        >
+          {/* FRENTE DO CARD (FUT / TCG Centered Layout) */}
+          <div 
+            className={`absolute inset-0 rounded-[22.5px] ${tier.bg} flex flex-col items-center p-5 overflow-hidden text-white border border-white/5`}
+            style={{ 
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden"
+            }}
+          >
+            {/* Efeitos de Fundo/Aura interna do Card */}
+            <div className={`absolute top-0 right-0 w-36 h-36 rounded-full bg-gradient-to-br ${borderGradientClass} blur-[45px] opacity-20`} />
+            <div className="absolute bottom-[-20px] left-[-20px] w-36 h-36 rounded-full bg-indigo-500/10 blur-[40px] pointer-events-none" />
+
+            {/* Foil Sheen holográfica dinâmica */}
+            {renderFoilSheen()}
+
+            {/* Radial glow seguindo o ponteiro do mouse */}
+            <motion.div 
+              className="absolute inset-0 pointer-events-none rounded-[22px] opacity-0 group-hover:opacity-25 mix-blend-overlay transition-opacity duration-300 z-20"
+              style={{
+                background: `radial-gradient(circle at ${shineX} ${shineY}, rgba(255,255,255,0.45) 0%, transparent 60%)`
+              }}
+            />
+
+            {/* TOP HEADER: OVR RATING & LEVEL */}
+            <div className="flex flex-col items-center z-10 w-full mb-3 mt-1.5 relative">
+              {/* GitHub icon on the top right */}
+              <div className="absolute right-2 top-0.5 w-5 h-5 rounded-full bg-neutral-950/80 border border-white/10 flex items-center justify-center text-neutral-400">
+                <GithubIcon className="w-3 h-3" />
+              </div>
+              
+              <div className="flex items-baseline gap-1 select-none">
+                <span className="text-4xl font-black leading-none tracking-tighter bg-gradient-to-b from-white to-neutral-200 bg-clip-text text-transparent filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+                  {ovr}
+                </span>
+                <span className={`text-[10px] font-black tracking-widest ${tier.text} uppercase`}>
+                  OVR
+                </span>
+              </div>
+              <span className="text-[9px] font-bold font-mono tracking-widest text-neutral-450 uppercase mt-0.5">
                 LVL {level}
               </span>
             </div>
 
-            {/* OVR Principal */}
-            <div className="flex flex-col items-end">
-              <span className={`text-4xl font-extrabold tracking-tighter bg-gradient-to-br ${tier.color} bg-clip-text text-transparent filter drop-shadow`}>
-                {ovr}
-              </span>
-              <span className="text-[9px] uppercase tracking-wider text-neutral-400 font-bold">
-                OVR
-              </span>
-            </div>
-          </div>
-
-          {/* Corpo do Card (Avatar e Bio) */}
-          <div className="flex flex-col items-center mt-6 flex-grow z-10">
-            <div className={`relative w-28 h-28 rounded-full p-1 bg-gradient-to-br ${tier.color} ${tier.glow}`}>
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.name}
-                  className="w-full h-full rounded-full object-cover bg-neutral-900 border border-neutral-800"
-                  draggable={false}
-                />
-              ) : (
-                <div className="w-full h-full rounded-full bg-neutral-950 flex items-center justify-center text-2xl font-bold uppercase border border-neutral-800">
-                  {profile.name.substring(0, 2)}
+            {/* CENTER SHIELD: AVATAR EM SHIELD FUT */}
+            <div className="z-10 mb-4 relative">
+              <div 
+                className={`w-28 h-32 bg-gradient-to-br ${borderGradientClass} p-[1.5px] shadow-lg`}
+                style={{
+                  clipPath: "polygon(50% 0%, 100% 15%, 100% 85%, 50% 100%, 0% 85%, 0% 15%)"
+                }}
+              >
+                <div 
+                  className="w-full h-full bg-[#050508] flex items-center justify-center overflow-hidden"
+                  style={{
+                    clipPath: "polygon(50% 0%, 100% 15%, 100% 85%, 50% 100%, 0% 85%, 0% 15%)"
+                  }}
+                >
+                  {profile.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt={profile.name}
+                      className="w-full h-full object-cover"
+                      draggable={false}
+                    />
+                  ) : (
+                    <span className="text-3xl font-black text-white uppercase">{profile.name.substring(0, 2)}</span>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
 
-            <h3 className="text-xl font-bold mt-4 text-center tracking-tight truncate max-w-full">
-              {profile.name}
-            </h3>
+            {/* MIDDLE SECTION: NOME & CARGO */}
+            <div className="flex flex-col items-center text-center z-10 w-full mb-3.5">
+              <h3 className="text-base font-black tracking-wider uppercase text-white truncate max-w-full font-sans drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] leading-tight">
+                {profile.name}
+              </h3>
+              <p className={`text-[9.5px] font-extrabold tracking-widest uppercase mt-0.5 ${tier.text}`}>
+                {profile.role || "DEVELOPER"}
+              </p>
+              
+              {/* Divider Line */}
+              <div className={`w-3/4 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent mt-2`} />
+            </div>
 
-            <p className={`text-[11px] font-medium tracking-wide uppercase ${tier.text} text-center mt-1`}>
-              {profile.role || "Developer"}
-            </p>
+            {/* BOTTOM SECTION: NEAT GRID OF 6 SUB-STATS (2x3) */}
+            <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 px-4 py-2 bg-black/45 border border-white/5 rounded-xl z-10 backdrop-blur-xs mb-3.5 w-[90%]">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">EXP</span>
+                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.experience}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">GIT</span>
+                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.github}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">PRJ</span>
+                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.projects}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">EDU</span>
+                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.education}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">SKL</span>
+                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.skills_badges}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">COM</span>
+                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.completeness}</span>
+              </div>
+            </div>
 
-            <p className="text-xs text-neutral-400 text-center mt-3 line-clamp-3 px-2 leading-relaxed italic">
-              "{profile.bio || "No biography provided yet."}"
-            </p>
-          </div>
-
-          {/* Badges / Medalhas no Rodapé */}
-          <div className="mt-auto z-10 border-t border-neutral-800/60 pt-4 flex flex-col items-center">
-            <div className="flex gap-2 justify-center items-center h-8">
-              {badges.slice(0, 5).map((badge) => (
+            {/* SLOTS DE MEDALHAS NO VERSO INFERIOR */}
+            <div className="flex items-center justify-center gap-2.5 z-10 mt-auto">
+              {displayBadges.map((badge) => (
                 <div
                   key={badge.id}
-                  className="relative group cursor-help"
+                  className="w-7 h-7 rounded-full bg-neutral-950/65 border border-white/10 flex items-center justify-center text-amber-400/95 shadow-sm"
                   title={`${badge.name}: ${badge.description}`}
                 >
-                  <div className="w-7 h-7 rounded-full bg-neutral-900/80 border border-neutral-800 flex items-center justify-center transition-all hover:scale-110 hover:border-amber-500">
-                    {getBadgeIcon(badge.icon_path)}
-                  </div>
+                  {getBadgeIcon(badge.icon_path)}
                 </div>
               ))}
-              {badges.length === 0 && (
-                <span className="text-[10px] text-neutral-500 font-medium tracking-wide">
-                  No achievements unlocked
-                </span>
+              {displayBadges.length === 0 && (
+                <span className="text-[8px] font-bold text-neutral-500 uppercase tracking-widest">Sem Conquistas Fixadas</span>
               )}
             </div>
+
+            {/* Flip hint */}
+            <div className="absolute bottom-1 right-2 text-[7px] text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-0.5 z-20">
+              <RefreshCw className="w-2 h-2 animate-spin" style={{ animationDuration: '6s' }} />
+              Ver Ficha
+            </div>
           </div>
-        </div>
+
+          {/* VERSO DO CARD (Ficha de Informações Técnicas) */}
+          <div 
+            className={`absolute inset-0 rounded-[22.5px] ${tier.bg} flex flex-col p-5 text-white border border-white/5`}
+            style={{ 
+              transform: "rotateY(180deg)",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden"
+            }}
+          >
+            <div className="absolute top-[-50px] left-[-50px] w-40 h-40 rounded-full bg-gradient-to-br from-violet-600/10 to-indigo-600/10 blur-[50px]" />
+            
+            <div className="flex justify-between items-center pb-2.5 border-b border-white/10 z-10">
+              <span className="text-[9px] font-black uppercase tracking-widest text-neutral-450">Ficha do Dev</span>
+              <span className="text-[9px] font-mono text-violet-400">@{profile.username}</span>
+            </div>
+
+            {/* Verso Stats */}
+            <div className="flex-1 flex flex-col justify-center gap-4 py-3 z-10">
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs font-semibold text-neutral-400">
+                  <span>Progresso do Nível {level}</span>
+                  <span>{progress.percentage.toFixed(0)}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-neutral-950 border border-white/5 rounded-full overflow-hidden">
+                  <div className={`h-full bg-gradient-to-r ${borderGradientClass} rounded-full`} style={{ width: `${progress.percentage}%` }} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-xs font-medium border-t border-white/5 pt-3">
+                <div>
+                  <span className="text-[8px] uppercase font-bold text-neutral-500 block">XP Total</span>
+                  <span className="text-white font-extrabold">{progress.totalXp} XP</span>
+                </div>
+                <div>
+                  <span className="text-[8px] uppercase font-bold text-neutral-500 block">Nível</span>
+                  <span className="text-white font-extrabold">{progress.currentLevel}</span>
+                </div>
+                <div>
+                  <span className="text-[8px] uppercase font-bold text-neutral-500 block">Completude</span>
+                  <span className="text-violet-400 font-extrabold">{profile.profile_completeness || 0}%</span>
+                </div>
+                <div>
+                  <span className="text-[8px] uppercase font-bold text-neutral-500 block">Conquistas</span>
+                  <span className="text-amber-400 font-extrabold">{badges.length} badges</span>
+                </div>
+              </div>
+
+              <div className="text-[9px] text-neutral-450 font-light mt-1.5 italic leading-relaxed text-center">
+                *O OVR é recalculado quando novas experiências ou projetos são adicionados.
+              </div>
+            </div>
+
+            {/* Flip back hint */}
+            <div className="mt-auto pt-2.5 border-t border-white/10 flex items-center justify-center gap-1 text-[8px] text-neutral-500 font-bold uppercase tracking-wider">
+              <RefreshCw className="w-2.5 h-2.5" />
+              Clique para Virar
+            </div>
+          </div>
+        </motion.div>
       </div>
 
       {/* DETALHES DE XP & COMPLETUDE */}
       {showDetails && (
-        <div className="w-full bg-neutral-900/40 dark:bg-neutral-950/40 backdrop-blur-md border border-neutral-200/10 dark:border-neutral-800/40 rounded-2xl p-5 flex flex-col gap-4">
+        <div className="w-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850 shadow-sm rounded-2xl p-5 flex flex-col gap-4">
           {/* XP Progress */}
           <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-end text-xs font-semibold text-neutral-400">
+            <div className="flex justify-between items-end text-xs font-semibold text-neutral-450">
               <span>Nível {level}</span>
-              <span className="text-white">{xpInCurrentLevel} / {xpForNext} XP</span>
+              <span className="text-neutral-950 dark:text-neutral-50">{progress.xpInCurrentLevel} / {progress.xpForNext} XP</span>
             </div>
-            <div className="h-2 w-full bg-neutral-800 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden">
               <div
-                className={`h-full bg-gradient-to-r ${tier.color} rounded-full transition-all duration-1000`}
-                style={{ width: `${xpProgressPercentage}%` }}
+                className={`h-full bg-gradient-to-r ${borderGradientClass} rounded-full transition-all duration-1000`}
+                style={{ width: `${progress.percentage}%` }}
               />
             </div>
           </div>
 
           {/* Completude do Perfil */}
           <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-end text-xs font-semibold text-neutral-400">
-              <span>Perfil Completo</span>
-              <span className="text-violet-400">{profile.profile_completeness || 0}%</span>
+            <div className="flex justify-between items-end text-xs font-semibold text-neutral-450">
+              <span>Completude do Perfil</span>
+              <span className="text-violet-600 dark:text-violet-400">{profile.profile_completeness || 0}%</span>
             </div>
-            <div className="h-2 w-full bg-neutral-800 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-1000"
                 style={{ width: `${profile.profile_completeness || 0}%` }}

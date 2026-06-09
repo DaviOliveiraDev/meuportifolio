@@ -18,6 +18,12 @@ interface UserProfile {
     github_url: string | null;
     website_url: string | null;
     theme_name: string;
+    level?: number;
+    xp?: number;
+    ovr?: number;
+    profile_completeness?: number;
+    badges?: any[];
+    skills?: any[];
   };
 }
 

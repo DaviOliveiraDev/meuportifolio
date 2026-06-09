@@ -14,7 +14,8 @@ import {
   X
 } from 'lucide-react';
 import React from 'react';
-import DeveloperCard, { getRarityTier } from '../../components/developer-card';
+import DeveloperCard from '../../components/developer-card';
+import { getRarityTier } from '@/features/gamification/lib/calculate-tier';
 
 interface Skill {
   id: string;
@@ -1249,7 +1250,13 @@ export function PortfolioClientView({ profile }: { profile: Profile }) {
                 level: profile.level,
                 profile_completeness: profile.profile_completeness,
                 badges: profile.badges,
-              }} showDetails={true} />
+                custom_styles: (profile as any).custom_styles,
+              }} 
+              showDetails={true} 
+              projects={profile.projects}
+              experiences={profile.experiences}
+              educations={profile.educations}
+              />
             </div>
 
             <div className="w-full flex flex-col gap-2 mt-2">

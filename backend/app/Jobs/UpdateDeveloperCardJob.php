@@ -43,7 +43,12 @@ class UpdateDeveloperCardJob implements ShouldQueue
             $xpManager->awardXpForAction($this->profile, 'complete_profile');
         }
 
-        // 4. Salva o perfil após todas as alterações
+        // 4. Se atingiu no mínimo 3 habilidades, concede o XP correspondente
+        if ($this->profile->skills()->count() >= 3) {
+            $xpManager->awardXpForAction($this->profile, 'add_skills');
+        }
+
+        // 5. Salva o perfil após todas as alterações
         $this->profile->save();
 
         Log::info("Developer Card atualizado com sucesso para o perfil: {$this->profile->id}. OVR: {$this->profile->ovr}, Level: {$this->profile->level}, XP: {$this->profile->xp}");

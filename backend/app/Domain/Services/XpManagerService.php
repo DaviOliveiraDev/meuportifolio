@@ -85,6 +85,7 @@ class XpManagerService
             'add_project' => 200,
             'add_experience' => 150,
             'add_education' => 100,
+            'add_skills' => 100,
             'connect_github' => 500,
             'generate_pdf' => 300,
             'profile_view' => 10,
@@ -101,6 +102,14 @@ class XpManagerService
         switch ($action) {
             case 'complete_profile':
                 $cacheKey = "xp_awarded_complete_profile_{$profile->id}";
+                if (Cache::has($cacheKey)) {
+                    return false;
+                }
+                Cache::forever($cacheKey, true);
+                return true;
+
+            case 'add_skills':
+                $cacheKey = "xp_awarded_add_skills_{$profile->id}";
                 if (Cache::has($cacheKey)) {
                     return false;
                 }

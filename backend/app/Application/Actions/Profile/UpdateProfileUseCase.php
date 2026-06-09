@@ -47,6 +47,10 @@ class UpdateProfileUseCase
                 $skillIds[] = $skill->id;
             }
             $profile->skills()->sync($skillIds);
+
+            if ($profile->skills()->count() >= 3) {
+                app(\App\Domain\Services\XpManagerService::class)->awardXpForAction($profile, 'add_skills');
+            }
         }
 
         \App\Jobs\UpdateDeveloperCardJob::dispatch($profile);
