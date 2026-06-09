@@ -5,6 +5,7 @@ export interface TierConfig {
   border: string;  // Classe do Tailwind para a cor de borda principal
   bg: string;      // Classe do Tailwind para a cor de fundo do card
   glow: string;    // Classes CSS de sombra com brilho néon
+  stops: [string, string, string]; // Cores hex para gradientes SVG (moldura/escudo)
   hasHoloEffect: boolean; // Indica se aplica overlay de refração de luz
   hasPulseGlow: boolean;  // Indica se aplica pulsação animada da aura
 }
@@ -20,6 +21,7 @@ export function getRarityTier(ovr: number = 1): TierConfig {
       border: "border-pink-500",
       bg: "bg-[#07050a]/95",
       glow: "shadow-[0_0_35px_6px_rgba(236,72,153,0.65)]",
+      stops: ["#9333ea", "#db2777", "#f59e0b"],
       hasHoloEffect: true,
       hasPulseGlow: true,
     };
@@ -33,6 +35,7 @@ export function getRarityTier(ovr: number = 1): TierConfig {
       border: "border-indigo-500",
       bg: "bg-[#09090f]/95",
       glow: "shadow-[0_0_25px_4px_rgba(99,102,241,0.50)]",
+      stops: ["#22d3ee", "#6366f1", "#9333ea"],
       hasHoloEffect: true,
       hasPulseGlow: false,
     };
@@ -46,6 +49,7 @@ export function getRarityTier(ovr: number = 1): TierConfig {
       border: "border-amber-500",
       bg: "bg-[#12100a]/95",
       glow: "shadow-[0_0_20px_2px_rgba(245,158,11,0.35)]",
+      stops: ["#fbbf24", "#eab308", "#d97706"],
       hasHoloEffect: false,
       hasPulseGlow: false,
     };
@@ -59,6 +63,7 @@ export function getRarityTier(ovr: number = 1): TierConfig {
       border: "border-slate-400",
       bg: "bg-[#16191d]/95",
       glow: "shadow-[0_0_15px_0px_rgba(184,197,214,0.15)]",
+      stops: ["#cbd5e1", "#a1a1aa", "#64748b"],
       hasHoloEffect: false,
       hasPulseGlow: false,
     };
@@ -71,6 +76,7 @@ export function getRarityTier(ovr: number = 1): TierConfig {
     border: "border-amber-800",
     bg: "bg-[#1c1613]/95",
     glow: "shadow-none",
+    stops: ["#b45309", "#9a3412", "#78350f"],
     hasHoloEffect: false,
     hasPulseGlow: false,
   };

@@ -62,6 +62,9 @@ export default function DeveloperCard({
 }: DeveloperCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
+  const uid = React.useId().replace(/[:]/g, "");
+  const gradientId = `crest-grad-${uid}`;
+  const clipId = `crest-clip-${uid}`;
 
   const ovr = profile.ovr || 1;
   const level = profile.level || 1;
@@ -178,6 +181,10 @@ export default function DeveloperCard({
 
   const borderGradientClass = getCardBorderClass();
 
+  // Path da moldura em formato de escudo/crest (estilo FUT) - viewBox 320x460
+  const SHIELD_PATH =
+    "M160 6 L174 24 C188 30 232 24 260 44 C286 62 300 84 300 116 L300 356 C300 404 250 434 160 452 C70 434 20 404 20 356 L20 116 C20 84 34 62 60 44 C88 24 132 30 146 24 Z";
+
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-sm font-sans select-none group">
       
@@ -186,12 +193,17 @@ export default function DeveloperCard({
         className="perspective-[1000px] cursor-pointer relative"
         onClick={handleCardClick}
       >
-        {/* DOUBLE LAYER NEON GLOW (Sombra expandida e borrada no fundo) */}
-        <div 
-          className={`absolute -inset-2 rounded-[28px] bg-gradient-to-br ${borderGradientClass} filter blur-[20px] opacity-40 transition-opacity duration-500 group-hover:opacity-60 pointer-events-none`}
-        />
+        {/* GLOW NEON DO ESCUDO (atrás da moldura) */}
+        <svg
+          className="absolute -inset-1 w-[336px] h-[476px] pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity duration-500"
+          viewBox="-8 -8 336 476"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path d={SHIELD_PATH} stroke={`url(#${gradientId})`} strokeWidth="6" className="blur-[14px]" />
+        </svg>
 
-        {/* CARD FÍSICO CONTÊINER */}
+        {/* CARD FÍSICO CONTÊINER (formato de escudo) */}
         <motion.div
           ref={cardRef}
           onMouseMove={handleMouseMove}
@@ -203,125 +215,146 @@ export default function DeveloperCard({
             transformStyle: "preserve-3d",
           }}
           transition={{ type: "spring", stiffness: 150, damping: 20 }}
-          className={`relative w-80 h-[460px] rounded-3xl p-[1.5px] bg-gradient-to-br ${borderGradientClass} transition-shadow duration-500`}
+          className="relative w-80 h-[460px]"
         >
-          {/* FRENTE DO CARD (FUT / TCG Centered Layout) */}
-          <div 
-            className={`absolute inset-0 rounded-[22.5px] ${tier.bg} flex flex-col items-center p-5 overflow-hidden text-white border border-white/5`}
-            style={{ 
+          {/* SVG defs: gradiente e clip do escudo */}
+          <svg className="absolute w-0 h-0" aria-hidden="true">
+            <defs>
+              <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
+                <path d={SHIELD_PATH} />
+              </clipPath>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor={tier.stops[0]} />
+                <stop offset="50%" stopColor={tier.stops[1]} />
+                <stop offset="100%" stopColor={tier.stops[2]} />
+              </linearGradient>
+            </defs>
+          </svg>
+
+          {/* FRENTE DO CARD */}
+          <div
+            className="absolute inset-0"
+            style={{
               backfaceVisibility: "hidden",
-              WebkitBackfaceVisibility: "hidden"
+              WebkitBackfaceVisibility: "hidden",
             }}
           >
-            {/* Efeitos de Fundo/Aura interna do Card */}
-            <div className={`absolute top-0 right-0 w-36 h-36 rounded-full bg-gradient-to-br ${borderGradientClass} blur-[45px] opacity-20`} />
-            <div className="absolute bottom-[-20px] left-[-20px] w-36 h-36 rounded-full bg-indigo-500/10 blur-[40px] pointer-events-none" />
+            {/* Fundo recortado em escudo */}
+            <div
+              className={`absolute inset-0 ${tier.bg} overflow-hidden text-white`}
+              style={{ clipPath: `url(#${clipId})`, WebkitClipPath: `url(#${clipId})` }}
+            >
+              {/* Aurora de fundo */}
+              <div className={`absolute top-6 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-gradient-to-br ${borderGradientClass} blur-[55px] opacity-40 pointer-events-none`} />
+              <div className="absolute bottom-0 left-[-30px] w-40 h-40 rounded-full bg-indigo-500/15 blur-[45px] pointer-events-none" />
+              {renderFoilSheen()}
+              <motion.div
+                className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-25 mix-blend-overlay transition-opacity duration-300 z-20"
+                style={{
+                  background: `radial-gradient(circle at ${shineX} ${shineY}, rgba(255,255,255,0.45) 0%, transparent 60%)`,
+                }}
+              />
+            </div>
 
-            {/* Foil Sheen holográfica dinâmica */}
-            {renderFoilSheen()}
+            {/* Moldura dupla do escudo (linhas neon) */}
+            <svg
+              className="absolute inset-0 w-80 h-[460px] pointer-events-none z-30 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]"
+              viewBox="0 0 320 460"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path d={SHIELD_PATH} stroke={`url(#${gradientId})`} strokeWidth="3" />
+              <path
+                d="M160 22 L171 36 C184 41 224 36 248 53 C269 68 281 87 281 115 L281 352 C281 393 238 419 160 435 C82 419 39 393 39 352 L39 115 C39 87 51 68 72 53 C96 36 136 41 149 36 Z"
+                stroke={`url(#${gradientId})`}
+                strokeWidth="1.5"
+                opacity="0.7"
+              />
+            </svg>
 
-            {/* Radial glow seguindo o ponteiro do mouse */}
-            <motion.div 
-              className="absolute inset-0 pointer-events-none rounded-[22px] opacity-0 group-hover:opacity-25 mix-blend-overlay transition-opacity duration-300 z-20"
-              style={{
-                background: `radial-gradient(circle at ${shineX} ${shineY}, rgba(255,255,255,0.45) 0%, transparent 60%)`
-              }}
-            />
-
-            {/* Aurora de fundo (luz suave atrás do conteúdo) */}
-            <div className={`absolute -top-10 left-1/2 -translate-x-1/2 w-56 h-56 rounded-full bg-gradient-to-br ${borderGradientClass} blur-[60px] opacity-30 pointer-events-none`} />
-
-            {/* TOP HEADER: OVR RATING & LEVEL */}
-            <div className="flex flex-col items-center z-10 w-full mb-4 mt-3 relative">
-              {/* GitHub icon on the top right */}
-              <div className="absolute right-1 top-0 w-6 h-6 rounded-full bg-neutral-950/80 border border-white/10 flex items-center justify-center text-neutral-400">
+            {/* CONTEÚDO */}
+            <div className="absolute inset-0 flex flex-col items-center px-7 pt-8 pb-10 text-white z-40">
+              {/* GitHub icon */}
+              <div className="absolute right-9 top-9 w-6 h-6 rounded-full bg-neutral-950/70 border border-white/10 flex items-center justify-center text-neutral-400">
                 <GithubIcon className="w-3 h-3" />
               </div>
 
-              <div className="flex items-start gap-1.5 select-none">
-                <span className="text-6xl font-black leading-none tracking-tighter bg-gradient-to-b from-white to-neutral-300 bg-clip-text text-transparent filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.7)]">
+              {/* OVR */}
+              <div className="flex items-start gap-1.5 select-none shrink-0">
+                <span className="text-5xl font-black leading-none tracking-tighter bg-gradient-to-b from-white to-neutral-300 bg-clip-text text-transparent filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.7)]">
                   {ovr}
                 </span>
-                <span className={`text-[11px] font-black tracking-widest ${tier.text} uppercase mt-1.5`}>
-                  OVR
-                </span>
+                <span className="text-[11px] font-black tracking-widest text-white/90 uppercase mt-1.5">OVR</span>
               </div>
 
               {/* LVL Pill */}
-              <span className="mt-2 px-3 py-0.5 rounded-md bg-black/55 border border-white/10 text-[10px] font-black font-mono tracking-[0.2em] text-neutral-100 uppercase backdrop-blur-xs">
+              <span className="shrink-0 mt-2 px-4 py-1 rounded-md bg-black/45 border border-white/15 text-[11px] font-black font-mono tracking-[0.18em] text-neutral-100 uppercase backdrop-blur-xs">
                 LVL {level}
               </span>
-            </div>
 
-            {/* CENTER: AVATAR CIRCULAR COM ANEL */}
-            <div className="z-10 mb-4 relative">
-              <div className={`w-28 h-28 rounded-full bg-gradient-to-br ${borderGradientClass} p-[2.5px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]`}>
-                <div className="w-full h-full rounded-full bg-[#050508] flex items-center justify-center overflow-hidden border-2 border-black/40">
-                  {profile.avatar_url ? (
-                    <img
-                      src={profile.avatar_url}
-                      alt={profile.name}
-                      className="w-full h-full object-cover"
-                      draggable={false}
-                    />
-                  ) : (
-                    <span className="text-3xl font-black text-white uppercase">{profile.name.substring(0, 2)}</span>
-                  )}
+              {/* Avatar circular com anel */}
+              <div className="mt-4 mb-3 relative shrink-0">
+                <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${borderGradientClass} p-[3px] shadow-[0_8px_28px_rgba(0,0,0,0.55)]`}>
+                  <div className="w-full h-full rounded-full bg-[#050508] flex items-center justify-center overflow-hidden border-2 border-black/40">
+                    {profile.avatar_url ? (
+                      <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" draggable={false} />
+                    ) : (
+                      <span className="text-3xl font-black text-white uppercase">{profile.name.substring(0, 2)}</span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* MIDDLE SECTION: NOME & CARGO */}
-            <div className="flex flex-col items-center text-center z-10 w-full mb-3">
-              <h3 className="text-2xl font-black tracking-tight text-white truncate max-w-full font-sans drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] leading-tight">
+              {/* Nome & cargo */}
+              <h3 className="shrink-0 text-2xl font-black tracking-tight text-white max-w-full text-center drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] leading-tight px-2 truncate">
                 {profile.name}
               </h3>
-              <p className={`text-xs font-semibold tracking-wide mt-0.5 ${tier.text}`}>
+              <p className="shrink-0 text-sm font-medium tracking-wide mt-0.5 text-white/70 text-center">
                 {profile.role || "Developer"}
               </p>
-            </div>
 
-            {/* Divider Line */}
-            <div className="w-[88%] h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent z-10 mb-3" />
+              {/* Divider */}
+              <div className="shrink-0 w-[78%] h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent mt-3 mb-3" />
 
-            {/* BOTTOM SECTION: 4 STATS HORIZONTAIS COM DIVISÓRIAS */}
-            <div className="flex items-stretch justify-center z-10 w-[92%] mb-4">
-              {[
-                { label: "EXP", value: breakdown.experience },
-                { label: "PRJ", value: breakdown.projects },
-                { label: "GIT", value: breakdown.github },
-                { label: "COM", value: breakdown.completeness },
-              ].map((stat, i) => (
-                <React.Fragment key={stat.label}>
-                  {i > 0 && <div className="w-[1px] bg-white/15 self-stretch my-1" />}
-                  <div className="flex-1 flex flex-col items-center px-1">
-                    <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">{stat.label}</span>
-                    <span className="text-lg font-black text-white font-mono leading-tight mt-0.5">{stat.value}</span>
+              {/* 4 STATS HORIZONTAIS */}
+              <div className="shrink-0 flex items-stretch justify-center w-[78%] mb-3">
+                {[
+                  { label: "EXP", value: breakdown.experience },
+                  { label: "PRJ", value: breakdown.projects },
+                  { label: "GIT", value: breakdown.github },
+                  { label: "COM", value: breakdown.completeness },
+                ].map((stat, i) => (
+                  <React.Fragment key={stat.label}>
+                    {i > 0 && <div className="w-[1px] bg-white/15 self-stretch my-0.5" />}
+                    <div className="flex-1 flex flex-col items-center px-1.5">
+                      <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{stat.label}</span>
+                      <span className="text-xl font-black text-white font-mono leading-tight mt-0.5">{stat.value}</span>
+                    </div>
+                  </React.Fragment>
+                ))}
+              </div>
+
+              {/* SLOTS DE MEDALHAS */}
+              <div className="shrink-0 flex items-center justify-center gap-2.5 mt-auto">
+                {displayBadges.map((badge) => (
+                  <div
+                    key={badge.id}
+                    className="w-9 h-9 rounded-xl bg-neutral-950/55 border border-white/10 flex items-center justify-center text-amber-400/95 shadow-sm"
+                    title={`${badge.name}: ${badge.description}`}
+                  >
+                    {getBadgeIcon(badge.icon_path)}
                   </div>
-                </React.Fragment>
-              ))}
-            </div>
+                ))}
+                {displayBadges.length === 0 && (
+                  <span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Sem Conquistas Fixadas</span>
+                )}
+              </div>
 
-            {/* SLOTS DE MEDALHAS */}
-            <div className="flex items-center justify-center gap-2.5 z-10 mt-auto pb-0.5">
-              {displayBadges.map((badge) => (
-                <div
-                  key={badge.id}
-                  className="w-9 h-9 rounded-xl bg-neutral-950/65 border border-white/10 flex items-center justify-center text-amber-400/95 shadow-sm"
-                  title={`${badge.name}: ${badge.description}`}
-                >
-                  {getBadgeIcon(badge.icon_path)}
-                </div>
-              ))}
-              {displayBadges.length === 0 && (
-                <span className="text-[8px] font-bold text-neutral-500 uppercase tracking-widest">Sem Conquistas Fixadas</span>
-              )}
-            </div>
-
-            {/* Flip hint */}
-            <div className="absolute bottom-1 right-2 text-[7px] text-neutral-500 font-bold uppercase tracking-wider flex items-center gap-0.5 z-20">
-              <RefreshCw className="w-2 h-2 animate-spin" style={{ animationDuration: '6s' }} />
-              Ver Ficha
+              {/* Flip hint */}
+              <div className="absolute bottom-2 right-7 text-[7px] text-white/40 font-bold uppercase tracking-wider flex items-center gap-0.5">
+                <RefreshCw className="w-2 h-2 animate-spin" style={{ animationDuration: "6s" }} />
+                Ver Ficha
+              </div>
             </div>
           </div>
 
