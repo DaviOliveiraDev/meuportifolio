@@ -18,6 +18,8 @@ import { AchievementsPreview } from '@/features/dashboard/components/achievement
 import { OvrBreakdown } from '@/features/dashboard/components/ovr-breakdown';
 import { ShareCardPanel } from '@/features/dashboard/components/share-card-panel';
 import { CardCustomizerPanel } from '@/features/dashboard/components/card-customizer-panel';
+import { calculateOvr } from '@/features/gamification/domain/calculate-ovr';
+import { TierEvolutionModal } from '@/features/dashboard/components/tier-evolution-modal';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -29,6 +31,7 @@ export default function DashboardPage() {
   const username = profile?.username || '';
   
   const [portfolioUrl, setPortfolioUrl] = useState('');
+  const [isTierModalOpen, setIsTierModalOpen] = useState(false);
   
   useEffect(() => {
     if (typeof window !== 'undefined' && username) {
@@ -42,6 +45,19 @@ export default function DashboardPage() {
       toast.success('Link do portfólio copiado!');
     }
   };
+
+  // Calcula o OVR real do usuário no cliente para sincronizar com o modal de evolução
+  const { ovr: calculatedOvr } = calculateOvr(
+    {
+      profile_completeness: profile?.profile_completeness || 0,
+      github_url: profile?.github_url,
+      experiences: experiences || [],
+      projects: projects || [],
+      skills: profile?.skills || [],
+      badges: profile?.badges || [],
+    },
+    educations?.length || 0
+  );
 
   // Carregamento inicial de dados
   const loading = projectsLoading || experiencesLoading || educationsLoading;
@@ -135,6 +151,7 @@ export default function DashboardPage() {
               badges: profile?.badges || []
             }}
             educationsCount={educations.length}
+            onOpenTierModal={() => setIsTierModalOpen(true)}
           />
         </div>
 
@@ -156,7 +173,13 @@ export default function DashboardPage() {
           </div>
 
           {/* Customização de Estilo do Card */}
-          {profile && <CardCustomizerPanel profile={profile} className="w-full" />}
+          {profile && (
+            <CardCustomizerPanel 
+              profile={profile} 
+              className="w-full" 
+              onOpenTierModal={() => setIsTierModalOpen(true)}
+            />
+          )}
 
           {/* Painel de Compartilhamento Viral */}
           <ShareCardPanel profile={profile} className="w-full" />
@@ -183,6 +206,18 @@ export default function DashboardPage() {
         </div>
 
       </div>
+
+      {profile && (
+        <TierEvolutionModal
+          isOpen={isTierModalOpen}
+          onClose={() => setIsTierModalOpen(false)}
+          currentOvr={calculatedOvr}
+          profile={profile}
+          projects={projects}
+          experiences={experiences}
+          educations={educations}
+        />
+      )}
     </div>
   );
 }

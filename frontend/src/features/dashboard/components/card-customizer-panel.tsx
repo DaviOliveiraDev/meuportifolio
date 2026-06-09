@@ -9,9 +9,10 @@ import { toast } from 'sonner';
 interface CardCustomizerPanelProps {
   profile?: any;
   className?: string;
+  onOpenTierModal?: () => void;
 }
 
-export function CardCustomizerPanel({ profile, className }: CardCustomizerPanelProps) {
+export function CardCustomizerPanel({ profile, className, onOpenTierModal }: CardCustomizerPanelProps) {
   const { updateProfile, isUpdating } = useProfile();
   
   const level = profile?.level || 1;
@@ -85,10 +86,21 @@ export function CardCustomizerPanel({ profile, className }: CardCustomizerPanelP
 
   return (
     <div className={`p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850 shadow-sm ${className}`}>
-      <h3 className="font-extrabold text-neutral-850 dark:text-neutral-200 text-xs flex items-center gap-1.5 mb-4 uppercase tracking-wider">
-        <Palette className="w-4.5 h-4.5 text-violet-500" />
-        Estilo & Prestígio do Card
-      </h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-extrabold text-neutral-850 dark:text-neutral-200 text-xs flex items-center gap-1.5 uppercase tracking-wider">
+          <Palette className="w-4.5 h-4.5 text-violet-500" />
+          Estilo & Prestígio do Card
+        </h3>
+        {onOpenTierModal && (
+          <button
+            onClick={onOpenTierModal}
+            className="text-[9px] font-extrabold text-violet-650 dark:text-violet-400 hover:text-violet-500 flex items-center gap-0.5 cursor-pointer uppercase tracking-widest hover:underline"
+          >
+            <Sparkles className="w-2.5 h-2.5 text-amber-550 animate-pulse" />
+            Guia de Elos
+          </button>
+        )}
+      </div>
 
       <div className="space-y-4">
         {/* Temas da Borda */}

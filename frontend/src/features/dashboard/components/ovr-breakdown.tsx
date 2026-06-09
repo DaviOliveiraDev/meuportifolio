@@ -29,9 +29,10 @@ interface OvrBreakdownProps {
   } | null;
   educationsCount?: number;
   className?: string;
+  onOpenTierModal?: () => void;
 }
 
-export function OvrBreakdown({ profile, educationsCount = 0, className }: OvrBreakdownProps) {
+export function OvrBreakdown({ profile, educationsCount = 0, className, onOpenTierModal }: OvrBreakdownProps) {
   // Realiza o cálculo do OVR e do detalhamento
   const { ovr, breakdown } = calculateOvr(profile || {}, educationsCount);
 
@@ -50,7 +51,7 @@ export function OvrBreakdown({ profile, educationsCount = 0, className }: OvrBre
     skills_badges: {
       label: 'Habilidades',
       tip: 'Adicione mais competências técnicas e conquiste badges no perfil.',
-      color: 'bg-amber-500 text-amber-600 dark:text-amber-400',
+      color: 'bg-amber-500 text-amber-600 dark:text-amber-450',
     },
     github: {
       label: 'GitHub Sync',
@@ -200,12 +201,23 @@ export function OvrBreakdown({ profile, educationsCount = 0, className }: OvrBre
           </p>
         </div>
 
-        {/* Badge do OVR */}
-        <div className="flex flex-col items-center">
-          <div className="text-2xl font-black bg-gradient-to-tr from-amber-500 to-yellow-400 bg-clip-text text-transparent leading-none">
-            {ovr}
+        {/* Badge do OVR & Ver Elos Button */}
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="flex flex-col items-center">
+            <div className="text-2xl font-black bg-gradient-to-tr from-amber-500 to-yellow-400 bg-clip-text text-transparent leading-none">
+              {ovr}
+            </div>
+            <span className="text-[8px] font-bold text-neutral-450 uppercase tracking-widest mt-0.5">OVR</span>
           </div>
-          <span className="text-[8px] font-bold text-neutral-450 uppercase tracking-widest mt-0.5">OVR</span>
+          {onOpenTierModal && (
+            <button
+              onClick={onOpenTierModal}
+              className="text-[9px] font-extrabold text-violet-600 dark:text-violet-400 hover:text-violet-500 flex items-center gap-0.5 cursor-pointer uppercase tracking-widest hover:underline whitespace-nowrap"
+            >
+              <Sparkles className="w-2.5 h-2.5 text-amber-550 animate-pulse" />
+              Ver Elos
+            </button>
+          )}
         </div>
       </div>
 

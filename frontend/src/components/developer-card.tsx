@@ -59,6 +59,7 @@ interface DeveloperCardProps {
   projects?: any[];
   experiences?: any[];
   educations?: any[];
+  ovrOverride?: number;
 }
 
 export default function DeveloperCard({ 
@@ -66,7 +67,8 @@ export default function DeveloperCard({
   showDetails = false,
   projects = [],
   experiences = [],
-  educations = []
+  educations = [],
+  ovrOverride
 }: DeveloperCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -91,7 +93,7 @@ export default function DeveloperCard({
     educations.length > 0 ? educations.length : ((profile as any).educations?.length ?? 0)
   );
 
-  const ovr = calculatedOvr || profile.ovr || 1;
+  const ovr = ovrOverride || calculatedOvr || profile.ovr || 1;
   const tier = getRarityTier(ovr);
   const progress = calculateLevelProgress(level, xp);
 
