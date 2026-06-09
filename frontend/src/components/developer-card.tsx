@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
-import { Award, Briefcase, Calendar, GraduationCap, Code, RefreshCw, Sparkles, LockKeyhole } from "lucide-react";
+import { Award, Briefcase, Calendar, GraduationCap, Code, RefreshCw, Sparkles, LockKeyhole, Globe } from "lucide-react";
 import { getRarityTier } from "@/features/gamification/lib/calculate-tier";
 import { calculateLevelProgress } from "@/features/gamification/lib/calculate-level";
 import { calculateOvr } from "@/features/gamification/domain/calculate-ovr";
@@ -11,6 +11,14 @@ const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
     <path d="M9 18c-4.51 2-5-2-7-2" />
+  </svg>
+);
+
+const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect width="4" height="12" x="2" y="9" />
+    <circle cx="4" cy="4" r="2" />
   </svg>
 );
 
@@ -270,6 +278,23 @@ export default function DeveloperCard({
                 strokeWidth="1.5"
                 opacity="0.7"
               />
+
+              {/* Luz viajante percorrendo a moldura (tiers holográficos) */}
+              {tier.hasHoloEffect && (
+                <motion.path
+                  d={SHIELD_PATH}
+                  stroke="#ffffff"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  pathLength={1}
+                  strokeDasharray="0.12 0.88"
+                  initial={{ strokeDashoffset: 1 }}
+                  animate={{ strokeDashoffset: [1, 0] }}
+                  transition={{ duration: 3.5, ease: "linear", repeat: Infinity }}
+                  className="drop-shadow-[0_0_6px_rgba(255,255,255,0.9)]"
+                  style={{ opacity: 0.85 }}
+                />
+              )}
             </svg>
 
             {/* CONTEÚDO */}
@@ -317,7 +342,7 @@ export default function DeveloperCard({
               <div className="shrink-0 w-[78%] h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent mt-3 mb-3" />
 
               {/* 4 STATS HORIZONTAIS */}
-              <div className="shrink-0 flex items-stretch justify-center w-[78%] mb-3">
+              <div className="shrink-0 flex items-stretch justify-center w-[82%] mb-3">
                 {[
                   { label: "EXP", value: breakdown.experience },
                   { label: "PRJ", value: breakdown.projects },
@@ -329,6 +354,14 @@ export default function DeveloperCard({
                     <div className="flex-1 flex flex-col items-center px-1.5">
                       <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{stat.label}</span>
                       <span className="text-xl font-black text-white font-mono leading-tight mt-0.5">{stat.value}</span>
+                      <div className="mt-1 w-full h-[3px] rounded-full bg-white/10 overflow-hidden">
+                        <motion.div
+                          className={`h-full rounded-full bg-gradient-to-r ${borderGradientClass}`}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, stat.value)}%` }}
+                          transition={{ duration: 0.9, ease: "easeOut", delay: 0.15 + i * 0.1 }}
+                        />
+                      </div>
                     </div>
                   </React.Fragment>
                 ))}
@@ -360,24 +393,43 @@ export default function DeveloperCard({
 
           {/* VERSO DO CARD (Ficha de Informações Técnicas) */}
           <div 
-            className={`absolute inset-0 rounded-[22.5px] ${tier.bg} flex flex-col p-5 text-white border border-white/5`}
+            className="absolute inset-0"
             style={{ 
               transform: "rotateY(180deg)",
               backfaceVisibility: "hidden",
               WebkitBackfaceVisibility: "hidden"
             }}
           >
-            <div className="absolute top-[-50px] left-[-50px] w-40 h-40 rounded-full bg-gradient-to-br from-violet-600/10 to-indigo-600/10 blur-[50px]" />
-            
+            {/* Fundo recortado em escudo */}
+            <div
+              className={`absolute inset-0 ${tier.bg}`}
+              style={{ clipPath: `url(#${clipId})`, WebkitClipPath: `url(#${clipId})` }}
+            >
+              <div className="absolute top-[-40px] left-[-40px] w-40 h-40 rounded-full bg-gradient-to-br from-violet-600/10 to-indigo-600/10 blur-[50px]" />
+            </div>
+
+            {/* Moldura neon do escudo */}
+            <svg
+              className="absolute inset-0 w-80 h-[460px] pointer-events-none z-30 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]"
+              viewBox="0 0 320 460"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path d={SHIELD_PATH} stroke={`url(#${gradientId})`} strokeWidth="3" />
+            </svg>
+
+            {/* Conteúdo do verso */}
+            <div className="absolute inset-0 flex flex-col px-7 pt-9 pb-10 text-white z-40">
             <div className="flex justify-between items-center pb-2.5 border-b border-white/10 z-10">
               <span className="text-[9px] font-black uppercase tracking-widest text-neutral-450">Ficha do Dev</span>
               <span className="text-[9px] font-mono text-violet-400">@{profile.username}</span>
             </div>
 
             {/* Verso Stats */}
-            <div className="flex-1 flex flex-col justify-center gap-4 py-3 z-10">
+            <div className="flex-1 flex flex-col justify-start gap-3 py-3 z-10 overflow-hidden">
+              {/* Progresso do nível */}
               <div className="space-y-1">
-                <div className="flex justify-between text-xs font-semibold text-neutral-400">
+                <div className="flex justify-between text-[11px] font-semibold text-neutral-300">
                   <span>Progresso do Nível {level}</span>
                   <span>{progress.percentage.toFixed(0)}%</span>
                 </div>
@@ -386,18 +438,34 @@ export default function DeveloperCard({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-xs font-medium border-t border-white/5 pt-3">
+              {/* Breakdown completo do OVR */}
+              <div className="border-t border-white/5 pt-2.5">
+                <span className="text-[8px] uppercase font-black text-neutral-500 tracking-widest block mb-1.5">Composição do OVR</span>
+                <div className="flex flex-col gap-1.5">
+                  {[
+                    { label: "Experiência", value: breakdown.experience },
+                    { label: "Projetos", value: breakdown.projects },
+                    { label: "GitHub", value: breakdown.github },
+                    { label: "Skills & Badges", value: breakdown.skills_badges },
+                    { label: "Formação", value: breakdown.education },
+                    { label: "Completude", value: breakdown.completeness },
+                  ].map((s) => (
+                    <div key={s.label} className="flex items-center gap-2">
+                      <span className="text-[9px] font-semibold text-neutral-400 w-24 shrink-0">{s.label}</span>
+                      <div className="flex-1 h-1.5 bg-neutral-950 border border-white/5 rounded-full overflow-hidden">
+                        <div className={`h-full bg-gradient-to-r ${borderGradientClass} rounded-full`} style={{ width: `${Math.min(100, s.value)}%` }} />
+                      </div>
+                      <span className="text-[9px] font-mono font-bold text-white w-6 text-right shrink-0">{s.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Resumo + links */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-medium border-t border-white/5 pt-2.5">
                 <div>
                   <span className="text-[8px] uppercase font-bold text-neutral-500 block">XP Total</span>
                   <span className="text-white font-extrabold">{progress.totalXp} XP</span>
-                </div>
-                <div>
-                  <span className="text-[8px] uppercase font-bold text-neutral-500 block">Nível</span>
-                  <span className="text-white font-extrabold">{progress.currentLevel}</span>
-                </div>
-                <div>
-                  <span className="text-[8px] uppercase font-bold text-neutral-500 block">Completude</span>
-                  <span className="text-violet-400 font-extrabold">{profile.profile_completeness || 0}%</span>
                 </div>
                 <div>
                   <span className="text-[8px] uppercase font-bold text-neutral-500 block">Conquistas</span>
@@ -405,15 +473,36 @@ export default function DeveloperCard({
                 </div>
               </div>
 
-              <div className="text-[9px] text-neutral-450 font-light mt-1.5 italic leading-relaxed text-center">
-                *O OVR é recalculado quando novas experiências ou projetos são adicionados.
-              </div>
+              {/* Links sociais */}
+              {(profile.github_url || profile.linkedin_url || profile.website_url) && (
+                <div className="flex items-center gap-2 border-t border-white/5 pt-2.5">
+                  {profile.github_url && (
+                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                      className="w-8 h-8 rounded-lg bg-neutral-950/60 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white hover:border-white/30 transition-colors" aria-label="GitHub">
+                      <GithubIcon className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  {profile.linkedin_url && (
+                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                      className="w-8 h-8 rounded-lg bg-neutral-950/60 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white hover:border-white/30 transition-colors" aria-label="LinkedIn">
+                      <LinkedinIcon className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  {profile.website_url && (
+                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
+                      className="w-8 h-8 rounded-lg bg-neutral-950/60 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white hover:border-white/30 transition-colors" aria-label="Website">
+                      <Globe className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Flip back hint */}
             <div className="mt-auto pt-2.5 border-t border-white/10 flex items-center justify-center gap-1 text-[8px] text-neutral-500 font-bold uppercase tracking-wider">
               <RefreshCw className="w-2.5 h-2.5" />
               Clique para Virar
+            </div>
             </div>
           </div>
         </motion.div>
