@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+        $middleware->validateCsrfTokens(except: [
+            'api/*',
+        ]);
         $middleware->alias([
             'track.portfolio' => \App\Http\Middleware\TrackPortfolioAnalytics::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
