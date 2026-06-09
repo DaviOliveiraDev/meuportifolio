@@ -126,6 +126,13 @@ export function TierEvolutionModal({
   
   // Estado para controlar qual Elo está selecionado para visualização detalhada
   const [selectedTierIndex, setSelectedTierIndex] = useState<number>(activeTierIndex);
+
+  // Sincroniza o elo selecionado com o elo atual do jogador sempre que o modal abrir ou o elo mudar
+  React.useEffect(() => {
+    if (isOpen) {
+      setSelectedTierIndex(activeTierIndex);
+    }
+  }, [activeTierIndex, isOpen]);
   
   const currentTier = TIERS_DATA[activeTierIndex];
   const selectedTier = TIERS_DATA[selectedTierIndex];
