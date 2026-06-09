@@ -41,6 +41,9 @@ export function CardCustomizerPanel({ profile, className }: CardCustomizerPanelP
       };
       
       await updateProfile({
+        name: profile?.name,
+        username: profile?.username,
+        theme_name: profile?.theme_name || 'minimalist',
         custom_styles: updatedStyles
       });
       toast.success('Estilo do card atualizado!');
