@@ -14,6 +14,10 @@ class ScoringConfig extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected $attributes = [
+        'xp_rules' => '[]',
+    ];
+
     protected $fillable = [
         'weights',
         'xp_rules',

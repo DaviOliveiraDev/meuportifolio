@@ -5,6 +5,7 @@ import { LoginInput, RegisterInput } from '../schemas/auth-schema';
 interface UserProfile {
   id: string;
   email: string;
+  is_admin?: boolean;
   profile?: {
     id: string;
     username: string;

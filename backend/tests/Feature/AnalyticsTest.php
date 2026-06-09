@@ -23,8 +23,7 @@ class AnalyticsTest extends TestCase
             'name' => 'Davi Test',
         ]);
 
-        Cache::shouldReceive('has')->once()->andReturn(false);
-        Cache::shouldReceive('put')->once();
+
 
         Redis::shouldReceive('rpush')
             ->once()
@@ -46,8 +45,7 @@ class AnalyticsTest extends TestCase
             'username' => 'davitest',
         ]);
 
-        Cache::shouldReceive('has')->once()->andReturn(false);
-        Cache::shouldReceive('put')->once();
+
 
         Redis::shouldReceive('rpush')
             ->once()

@@ -8,7 +8,9 @@ import {
   FolderGit2, 
   Briefcase, 
   GraduationCap, 
-  Globe
+  Globe,
+  Sliders,
+  ShieldAlert
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/use-auth';
@@ -25,10 +27,18 @@ export function Sidebar() {
     { name: 'Formação', href: '/dashboard/educations', icon: GraduationCap },
   ];
 
+  // Se o usuário for administrador, adiciona links de admin na navegação lateral
+  if (user?.is_admin) {
+    menuItems.push(
+      { name: 'Pesos OVR', href: '/admin/scoring', icon: Sliders },
+      { name: 'Moderação', href: '/admin/moderation', icon: ShieldAlert }
+    );
+  }
+
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-850 p-6 flex-shrink-0">
+    <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-850 p-6 flex-shrink-0 animate-in slide-in-from-left duration-300">
       <div className="flex items-center gap-2 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center font-bold text-white text-lg">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center font-bold text-white text-lg shadow-md">
           D
         </div>
         <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-400 dark:to-indigo-400 bg-clip-text text-transparent">
@@ -45,7 +55,7 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-250",
                 isActive 
                   ? "bg-violet-600/10 text-violet-600 dark:bg-violet-600/15 dark:text-violet-400 border border-violet-500/10 dark:border-violet-500/20" 
                   : "text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800/50"
@@ -64,7 +74,7 @@ export function Sidebar() {
             href={`/${user.profile.username}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-850 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-300 text-xs font-semibold transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-850 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-350 text-xs font-semibold transition-colors"
           >
             <Globe className="w-4 h-4" />
             Ver Portfólio Público

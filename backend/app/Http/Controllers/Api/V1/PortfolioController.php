@@ -16,6 +16,7 @@ class PortfolioController extends Controller
     public function show(string $username): JsonResponse
     {
         $profile = Profile::where('username', strtolower($username))
+            ->where('is_active', true)
             ->with([
                 'projects' => function ($query) {
                     $query->orderBy('order_weight')->orderBy('created_at', 'desc');

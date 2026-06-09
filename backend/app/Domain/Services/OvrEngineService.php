@@ -198,4 +198,19 @@ class OvrEngineService
 
         return (int) min(100, $educationsCount * 50);
     }
+
+    /**
+     * Retorna a distribuição detalhada dos sub-scores do OVR.
+     */
+    public function getOvrBreakdown(Profile $profile): array
+    {
+        return [
+            'experience' => $this->calculateExperienceScore($profile),
+            'projects' => $this->calculateProjectsScore($profile),
+            'skills_badges' => $this->calculateSkillsBadgesScore($profile),
+            'github' => $this->calculateGithubScore($profile),
+            'education' => $this->calculateEducationScore($profile),
+            'completeness' => $profile->profile_completeness ?? 0,
+        ];
+    }
 }

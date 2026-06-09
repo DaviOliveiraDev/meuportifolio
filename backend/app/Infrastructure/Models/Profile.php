@@ -40,6 +40,7 @@ class Profile extends Model
         'xp',
         'level',
         'ovr',
+        'is_active',
     ];
 
     protected function casts(): array
@@ -50,6 +51,7 @@ class Profile extends Model
             'xp' => 'integer',
             'level' => 'integer',
             'ovr' => 'integer',
+            'is_active' => 'boolean',
         ];
     }
 
