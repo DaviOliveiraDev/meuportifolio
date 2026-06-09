@@ -228,40 +228,35 @@ export default function DeveloperCard({
               }}
             />
 
+            {/* Aurora de fundo (luz suave atrás do conteúdo) */}
+            <div className={`absolute -top-10 left-1/2 -translate-x-1/2 w-56 h-56 rounded-full bg-gradient-to-br ${borderGradientClass} blur-[60px] opacity-30 pointer-events-none`} />
+
             {/* TOP HEADER: OVR RATING & LEVEL */}
-            <div className="flex flex-col items-center z-10 w-full mb-3 mt-1.5 relative">
+            <div className="flex flex-col items-center z-10 w-full mb-4 mt-3 relative">
               {/* GitHub icon on the top right */}
-              <div className="absolute right-2 top-0.5 w-5 h-5 rounded-full bg-neutral-950/80 border border-white/10 flex items-center justify-center text-neutral-400">
+              <div className="absolute right-1 top-0 w-6 h-6 rounded-full bg-neutral-950/80 border border-white/10 flex items-center justify-center text-neutral-400">
                 <GithubIcon className="w-3 h-3" />
               </div>
-              
-              <div className="flex items-baseline gap-1 select-none">
-                <span className="text-4xl font-black leading-none tracking-tighter bg-gradient-to-b from-white to-neutral-200 bg-clip-text text-transparent filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+
+              <div className="flex items-start gap-1.5 select-none">
+                <span className="text-6xl font-black leading-none tracking-tighter bg-gradient-to-b from-white to-neutral-300 bg-clip-text text-transparent filter drop-shadow-[0_3px_6px_rgba(0,0,0,0.7)]">
                   {ovr}
                 </span>
-                <span className={`text-[10px] font-black tracking-widest ${tier.text} uppercase`}>
+                <span className={`text-[11px] font-black tracking-widest ${tier.text} uppercase mt-1.5`}>
                   OVR
                 </span>
               </div>
-              <span className="text-[9px] font-bold font-mono tracking-widest text-neutral-450 uppercase mt-0.5">
+
+              {/* LVL Pill */}
+              <span className="mt-2 px-3 py-0.5 rounded-md bg-black/55 border border-white/10 text-[10px] font-black font-mono tracking-[0.2em] text-neutral-100 uppercase backdrop-blur-xs">
                 LVL {level}
               </span>
             </div>
 
-            {/* CENTER SHIELD: AVATAR EM SHIELD FUT */}
+            {/* CENTER: AVATAR CIRCULAR COM ANEL */}
             <div className="z-10 mb-4 relative">
-              <div 
-                className={`w-28 h-32 bg-gradient-to-br ${borderGradientClass} p-[1.5px] shadow-lg`}
-                style={{
-                  clipPath: "polygon(50% 0%, 100% 15%, 100% 85%, 50% 100%, 0% 85%, 0% 15%)"
-                }}
-              >
-                <div 
-                  className="w-full h-full bg-[#050508] flex items-center justify-center overflow-hidden"
-                  style={{
-                    clipPath: "polygon(50% 0%, 100% 15%, 100% 85%, 50% 100%, 0% 85%, 0% 15%)"
-                  }}
-                >
+              <div className={`w-28 h-28 rounded-full bg-gradient-to-br ${borderGradientClass} p-[2.5px] shadow-[0_8px_24px_rgba(0,0,0,0.5)]`}>
+                <div className="w-full h-full rounded-full bg-[#050508] flex items-center justify-center overflow-hidden border-2 border-black/40">
                   {profile.avatar_url ? (
                     <img
                       src={profile.avatar_url}
@@ -277,52 +272,42 @@ export default function DeveloperCard({
             </div>
 
             {/* MIDDLE SECTION: NOME & CARGO */}
-            <div className="flex flex-col items-center text-center z-10 w-full mb-3.5">
-              <h3 className="text-base font-black tracking-wider uppercase text-white truncate max-w-full font-sans drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] leading-tight">
+            <div className="flex flex-col items-center text-center z-10 w-full mb-3">
+              <h3 className="text-2xl font-black tracking-tight text-white truncate max-w-full font-sans drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] leading-tight">
                 {profile.name}
               </h3>
-              <p className={`text-[9.5px] font-extrabold tracking-widest uppercase mt-0.5 ${tier.text}`}>
-                {profile.role || "DEVELOPER"}
+              <p className={`text-xs font-semibold tracking-wide mt-0.5 ${tier.text}`}>
+                {profile.role || "Developer"}
               </p>
-              
-              {/* Divider Line */}
-              <div className={`w-3/4 h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent mt-2`} />
             </div>
 
-            {/* BOTTOM SECTION: NEAT GRID OF 6 SUB-STATS (2x3) */}
-            <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 px-4 py-2 bg-black/45 border border-white/5 rounded-xl z-10 backdrop-blur-xs mb-3.5 w-[90%]">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">EXP</span>
-                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.experience}</span>
-              </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">GIT</span>
-                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.github}</span>
-              </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">PRJ</span>
-                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.projects}</span>
-              </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">EDU</span>
-                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.education}</span>
-              </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">SKL</span>
-                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.skills_badges}</span>
-              </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-[9px] font-bold text-neutral-450 uppercase tracking-wide">COM</span>
-                <span className="font-extrabold text-neutral-100 font-mono">{breakdown.completeness}</span>
-              </div>
+            {/* Divider Line */}
+            <div className="w-[88%] h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent z-10 mb-3" />
+
+            {/* BOTTOM SECTION: 4 STATS HORIZONTAIS COM DIVISÓRIAS */}
+            <div className="flex items-stretch justify-center z-10 w-[92%] mb-4">
+              {[
+                { label: "EXP", value: breakdown.experience },
+                { label: "PRJ", value: breakdown.projects },
+                { label: "GIT", value: breakdown.github },
+                { label: "COM", value: breakdown.completeness },
+              ].map((stat, i) => (
+                <React.Fragment key={stat.label}>
+                  {i > 0 && <div className="w-[1px] bg-white/15 self-stretch my-1" />}
+                  <div className="flex-1 flex flex-col items-center px-1">
+                    <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">{stat.label}</span>
+                    <span className="text-lg font-black text-white font-mono leading-tight mt-0.5">{stat.value}</span>
+                  </div>
+                </React.Fragment>
+              ))}
             </div>
 
-            {/* SLOTS DE MEDALHAS NO VERSO INFERIOR */}
-            <div className="flex items-center justify-center gap-2.5 z-10 mt-auto">
+            {/* SLOTS DE MEDALHAS */}
+            <div className="flex items-center justify-center gap-2.5 z-10 mt-auto pb-0.5">
               {displayBadges.map((badge) => (
                 <div
                   key={badge.id}
-                  className="w-7 h-7 rounded-full bg-neutral-950/65 border border-white/10 flex items-center justify-center text-amber-400/95 shadow-sm"
+                  className="w-9 h-9 rounded-xl bg-neutral-950/65 border border-white/10 flex items-center justify-center text-amber-400/95 shadow-sm"
                   title={`${badge.name}: ${badge.description}`}
                 >
                   {getBadgeIcon(badge.icon_path)}
