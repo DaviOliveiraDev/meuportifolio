@@ -132,14 +132,13 @@ export default function DashboardPage() {
             hasPdfResume={profile?.profile_completeness ? profile.profile_completeness >= 80 : false}
           />
 
-          {/* Quest Log (Missões Diárias & Jornada) */}
+          {/* Quest Log (Jornada do Desenvolvedor) */}
           <QuestLog 
             profile={profile}
             projectsCount={projects.length}
             experiencesCount={experiences.length}
             educationsCount={educations.length}
             hasPdfResume={profile?.profile_completeness ? profile.profile_completeness >= 80 : false}
-            streakDays={3} // Simula 3 dias de ofensiva do Duolingo
           />
 
           {/* OVR Breakdown (Radar Chart & Tips) */}
