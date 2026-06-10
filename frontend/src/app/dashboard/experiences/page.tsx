@@ -39,7 +39,7 @@ const experienceSchema = zod.object({
   end_date: zod.string().nullable().optional(),
   is_current: zod.boolean(),
   description: zod.string().max(2000).nullable().optional(),
-  technologies: zod.array(zod.string()).default([]),
+  technologies: zod.array(zod.string()),
 });
 
 type ExperienceFormValues = zod.infer<typeof experienceSchema>;
@@ -164,8 +164,8 @@ export default function ExperiencesPage() {
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-500">
       <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-850">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Experiências Profissionais</h1>
-          <p className="text-sm text-neutral-550">Organize sua trajetória profissional e as tecnologias utilizadas.</p>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Experiências & Projetos</h1>
+          <p className="text-sm text-neutral-550">Organize sua trajetória profissional (cargos, projetos práticos de cursos ou freelances) e as tecnologias utilizadas.</p>
         </div>
         <Button
           onClick={openAddDialog}
@@ -255,19 +255,19 @@ export default function ExperiencesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-850 text-neutral-850 dark:text-neutral-200 max-w-lg overflow-y-auto max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="text-neutral-900 dark:text-neutral-100">{editingExperience ? 'Editar Experiência' : 'Adicionar Experiência'}</DialogTitle>
-            <DialogDescription className="text-neutral-500 dark:text-neutral-450">Insira as informações do cargo ocupado e tecnologias associadas.</DialogDescription>
+            <DialogTitle className="text-neutral-900 dark:text-neutral-100">{editingExperience ? 'Editar Experiência / Projeto' : 'Adicionar Experiência / Projeto'}</DialogTitle>
+            <DialogDescription className="text-neutral-500 dark:text-neutral-450">Insira as informações do cargo ocupado, bootcamp ou projeto prático e as tecnologias associadas.</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Cargo */}
               <div className="space-y-1.5">
-                <Label htmlFor="role" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Cargo</Label>
+                <Label htmlFor="role" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Cargo / Função / Atividade</Label>
                 <Input
                   id="role"
                   {...register('role')}
-                  placeholder="Ex: Engenheiro de Software"
+                  placeholder="Ex: Engenheiro de Software, Aluno de Bootcamp..."
                   className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
                 />
                 {errors.role && (
@@ -277,11 +277,11 @@ export default function ExperiencesPage() {
 
               {/* Empresa */}
               <div className="space-y-1.5">
-                <Label htmlFor="company" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Empresa</Label>
+                <Label htmlFor="company" className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Empresa / Instituição / Bootcamp</Label>
                 <Input
                   id="company"
                   {...register('company')}
-                  placeholder="Ex: Google"
+                  placeholder="Ex: Google, Rocketseat, Autônomo..."
                   className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
                 />
                 {errors.company && (

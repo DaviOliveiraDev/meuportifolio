@@ -9,6 +9,11 @@ export interface EducationData {
   start_date: string;
   end_date: string | null;
   is_current: boolean;
+  technologies?: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
 }
 
 export function useEducations() {
