@@ -102,6 +102,9 @@ jobs:
             SANCTUM_STATEFUL_DOMAINS=devfolio.app.br,api.devfolio.app.br
             SESSION_DOMAIN=.devfolio.app.br
             SESSION_SECURE_COOKIE=true
+            REVERB_PORT=8443
+            REVERB_SCHEME=https
+            REVERB_HOST=api.devfolio.app.br
 
       - name: Deploy Amazon ECS task definition
         id: deploy-task
