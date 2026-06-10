@@ -125,7 +125,7 @@ export function RegisterForm() {
             <Input
               id="name"
               type="text"
-              placeholder="Davi Oliveira"
+              placeholder="Digite seu nome"
               {...register('name')}
               className="border-neutral-800 bg-neutral-950/50 text-neutral-100 placeholder-neutral-600 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200"
             />
@@ -141,7 +141,7 @@ export function RegisterForm() {
               <Input
                 id="username"
                 type="text"
-                placeholder="davi"
+                placeholder="seu-usuario"
                 {...register('username')}
                 className="pl-27 border-neutral-800 bg-neutral-950/50 text-neutral-100 placeholder-neutral-600 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all duration-200"
               />
