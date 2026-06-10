@@ -1,7 +1,17 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `http://${hostname}:8000/api/v1`;
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+};
+
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api/v1',
+  baseURL: getBaseURL(),
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
