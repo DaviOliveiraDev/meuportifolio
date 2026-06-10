@@ -98,6 +98,10 @@ jobs:
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }}
+            ALLOWED_ORIGINS=https://devfolio.app.br,https://api.devfolio.app.br
+            SANCTUM_STATEFUL_DOMAINS=devfolio.app.br,api.devfolio.app.br
+            SESSION_DOMAIN=.devfolio.app.br
+            SESSION_SECURE_COOKIE=true
 
       - name: Deploy Amazon ECS task definition
         id: deploy-task
