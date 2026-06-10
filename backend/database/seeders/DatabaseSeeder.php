@@ -21,6 +21,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // 0. Registrar módulo de gamificação
+        $this->call(GamificationSeeder::class);
+
         // 1. Criar habilidades globais
         $skillsList = [
             ['name' => 'PHP', 'category' => 'Backend'],

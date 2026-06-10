@@ -3,11 +3,18 @@
 namespace App\Domain\Services;
 
 use App\Infrastructure\Models\Profile;
+use App\Domain\Gamification\Services\XpManagerService as NewXpManager;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class XpManagerService
 {
+    protected NewXpManager $newXpManager;
+
+    public function __construct()
+    {
+        $this->newXpManager = app(NewXpManager::class);
+    }
+
     /**
      * Adiciona XP ao perfil do desenvolvedor por uma ação específica.
      */
@@ -18,12 +25,11 @@ class XpManagerService
             return;
         }
 
-        // Verifica limites/regras anti-abuso para ações específicas
         if (!$this->canAwardXpForAction($profile, $action)) {
             return;
         }
 
-        $this->addXp($profile, $xpAmount);
+        $this->newXpManager->awardXp($profile, $action, $xpAmount);
     }
 
     /**
@@ -31,67 +37,15 @@ class XpManagerService
      */
     public function addXp(Profile $profile, int $amount): void
     {
-        if ($amount <= 0) {
-            return;
-        }
-
-        $oldXp = $profile->xp;
-        $newXp = $oldXp + $amount;
-        
-        $levelData = $this->determineLevel($newXp);
-        
-        $profile->xp = $newXp;
-        $oldLevel = $profile->level;
-        $profile->level = $levelData['level'];
-        $profile->save();
-
-        Log::info("XP adicionado ao perfil {$profile->id}: +{$amount} XP. Novo total: {$newXp}. Nível antigo: {$oldLevel}, Novo nível: {$profile->level}");
+        $this->newXpManager->awardXp($profile, 'manual', $amount);
     }
 
     /**
      * Determina o nível e XP residual baseado no XP total.
-     *
-     * Fórmula: XP necessário para o próximo nível = 100 * (Level ^ 1.5)
      */
     public function determineLevel(int $totalXp): array
     {
-        $level = 1;
-        $xpInCurrentLevel = $totalXp;
-
-        while (true) {
-            $xpRequired = (int) floor(100 * pow($level, 1.5));
-            if ($xpInCurrentLevel >= $xpRequired) {
-                $xpInCurrentLevel -= $xpRequired;
-                $level++;
-            } else {
-                break;
-            }
-        }
-
-        return [
-            'level' => $level,
-            'xp_in_level' => $xpInCurrentLevel,
-            'xp_required_for_next' => (int) floor(100 * pow($level, 1.5))
-        ];
-    }
-
-    /**
-     * Retorna o valor de XP para cada ação.
-     */
-    private function getXpAmountForAction(string $action): int
-    {
-        return match ($action) {
-            'complete_profile' => 1000,
-            'add_project' => 200,
-            'add_experience' => 150,
-            'add_education' => 100,
-            'add_skills' => 100,
-            'connect_github' => 500,
-            'generate_pdf' => 300,
-            'profile_view' => 10,
-            'unlock_badge' => 300,
-            default => 0,
-        };
+        return $this->newXpManager->determineLevel($totalXp);
     }
 
     /**
@@ -174,5 +128,24 @@ class XpManagerService
         }
 
         return true;
+    }
+
+    /**
+     * Retorna o valor de XP para cada ação.
+     */
+    private function getXpAmountForAction(string $action): int
+    {
+        return match ($action) {
+            'complete_profile' => 1000,
+            'add_project' => 200,
+            'add_experience' => 150,
+            'add_education' => 100,
+            'add_skills' => 100,
+            'connect_github' => 500,
+            'generate_pdf' => 300,
+            'profile_view' => 10,
+            'unlock_badge' => 300,
+            default => 0,
+        };
     }
 }

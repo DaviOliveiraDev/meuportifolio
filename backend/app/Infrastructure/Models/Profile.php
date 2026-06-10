@@ -128,4 +128,54 @@ class Profile extends Model
     {
         return $this->hasMany(ProfileRatingsHistory::class);
     }
+
+    /**
+     * Relação 1:1 com as estatísticas do perfil (telemetria/cache).
+     */
+    public function stats(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ProfileStat::class);
+    }
+
+    /**
+     * Relação N:N com títulos desbloqueados.
+     */
+    public function titles(): BelongsToMany
+    {
+        return $this->belongsToMany(Title::class, 'profile_titles')
+                    ->withPivot('is_equipped', 'unlocked_at');
+    }
+
+    /**
+     * Relação N:N com cosméticos (bordas/efeitos) do card.
+     */
+    public function cosmetics(): BelongsToMany
+    {
+        return $this->belongsToMany(Cosmetic::class, 'profile_cosmetics')
+                    ->withPivot('is_equipped', 'unlocked_at');
+    }
+
+    /**
+     * Relação 1:N com progresso de conquistas.
+     */
+    public function badgeProgress(): HasMany
+    {
+        return $this->hasMany(ProfileBadgeProgress::class);
+    }
+
+    /**
+     * Relação 1:N com estatísticas de temporadas.
+     */
+    public function seasonStats(): HasMany
+    {
+        return $this->hasMany(ProfileSeasonStat::class);
+    }
+
+    /**
+     * Relação 1:N com histórico de transações de XP.
+     */
+    public function xpHistory(): HasMany
+    {
+        return $this->hasMany(ProfileXpHistory::class);
+    }
 }

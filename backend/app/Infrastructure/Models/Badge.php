@@ -17,6 +17,11 @@ class Badge extends Model
     protected $fillable = [
         'name',
         'description',
+        'category',
+        'rarity',
+        'xp_reward',
+        'is_secret',
+        'parent_badge_id',
         'icon_path',
         'rules_criteria',
         'is_active',
@@ -27,6 +32,8 @@ class Badge extends Model
         return [
             'rules_criteria' => 'array',
             'is_active' => 'boolean',
+            'is_secret' => 'boolean',
+            'xp_reward' => 'integer',
         ];
     }
 
@@ -37,5 +44,21 @@ class Badge extends Model
     {
         return $this->belongsToMany(Profile::class, 'profile_badges')
                     ->withPivot('unlocked_at');
+    }
+
+    /**
+     * Conquista pai (no caso de conquistas progressivas).
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Badge::class, 'parent_badge_id');
+    }
+
+    /**
+     * Conquistas filhas (níveis subsequentes da mesma progressão).
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(Badge::class, 'parent_badge_id');
     }
 }
