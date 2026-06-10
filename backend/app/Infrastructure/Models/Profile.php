@@ -97,6 +97,48 @@ class Profile extends Model
     }
 
     /**
+     * Relação N:N com as tecnologias (autodeclaradas).
+     */
+    public function technologies(): BelongsToMany
+    {
+        return $this->belongsToMany(Technology::class, 'profile_technologies')
+                    ->withPivot('self_proficiency', 'is_featured')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Relação 1:N com scores de tecnologias.
+     */
+    public function technologyScores(): HasMany
+    {
+        return $this->hasMany(TechnologyScore::class, 'profile_id');
+    }
+
+    /**
+     * Relação 1:N com histórico de scores técnicos.
+     */
+    public function technologyScoreHistories(): HasMany
+    {
+        return $this->hasMany(TechnologyScoreHistory::class, 'profile_id');
+    }
+
+    /**
+     * Relação 1:N com as evidências de reputação técnica.
+     */
+    public function technologyEvidences(): HasMany
+    {
+        return $this->hasMany(TechnologyEvidence::class, 'profile_id');
+    }
+
+    /**
+     * Relação 1:N com os rankings do desenvolvedor.
+     */
+    public function technologyRankings(): HasMany
+    {
+        return $this->hasMany(TechnologyRanking::class, 'profile_id');
+    }
+
+    /**
      * Retorna a factory correspondente ao model.
      */
     protected static function newFactory()
