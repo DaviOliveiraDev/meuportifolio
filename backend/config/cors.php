@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost', 'http://localhost:3000', 'http://127.0.0.1', 'http://127.0.0.1:3000'],
+    'allowed_origins' => array_map('trim', explode(',', env('ALLOWED_ORIGINS', 'http://localhost,http://localhost:3000,http://127.0.0.1,http://127.0.0.1:3000'))),
 
     'allowed_origins_patterns' => [],
 
