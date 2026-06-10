@@ -33,7 +33,12 @@ class UpdateProfileUseCase
             throw new DomainException('O nome de usuário já está sendo utilizado por outra pessoa.');
         }
 
+        $oldTheme = $profile->theme_name;
         $profile->update($dto->toArray());
+
+        if ($oldTheme !== $profile->theme_name) {
+            \Illuminate\Support\Facades\Cache::increment("profile_theme_changes_count_{$profile->id}");
+        }
 
         if ($dto->skills !== null) {
             $skillIds = [];

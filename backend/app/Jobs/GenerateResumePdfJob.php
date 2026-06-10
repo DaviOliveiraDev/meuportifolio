@@ -122,6 +122,8 @@ class GenerateResumePdfJob implements ShouldQueue
                 'updated_at' => now()->toIso8601String(),
             ], now()->addHours(24));
 
+            Cache::increment("profile_pdf_exports_count_{$profileId}");
+
             // Concede XP e atualiza a carta por gerar PDF
             $xpManager = app(\App\Domain\Services\XpManagerService::class);
             $xpManager->awardXpForAction($profile, 'generate_pdf');

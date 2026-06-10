@@ -79,10 +79,10 @@ class BadgeEvaluatorService
     {
         switch ($criteria['type']) {
             case 'completeness':
-                return $profile->profile_completeness ?? 0;
+                return (int) ($profile->profile_completeness ?? 0);
 
             case 'bio_filled':
-                return !empty($profile->bio) && strlen($profile->bio) >= 30 ? 1 : 0;
+                return (!empty($profile->bio) && strlen($profile->bio) >= 30) ? 1 : 0;
 
             case 'location_filled':
                 return !empty($profile->location) ? 1 : 0;
@@ -98,46 +98,46 @@ class BadgeEvaluatorService
                 return $profile->is_active ? 1 : 0;
 
             case 'projects_count':
-                return $stats->total_projects;
+                return (int) ($stats->total_projects ?? 0);
 
             case 'featured_projects':
-                return $profile->projects()->where('is_featured', true)->count();
+                return (int) $profile->projects()->where('is_featured', true)->count();
 
             case 'experiences_count':
-                return $stats->total_experiences;
+                return (int) ($stats->total_experiences ?? 0);
 
             case 'educations_count':
-                return $stats->total_educations;
+                return (int) ($stats->total_educations ?? 0);
 
             case 'skills_count':
-                return $stats->total_skills;
+                return (int) ($stats->total_skills ?? 0);
 
             case 'github_connected':
-                return $stats->github_connected ? 1 : 0;
+                return ($stats->github_connected ?? false) ? 1 : 0;
 
             case 'github_commits':
-                return $stats->github_commits;
+                return (int) ($stats->github_commits ?? 0);
 
             case 'github_repos':
-                return $stats->github_repositories;
+                return (int) ($stats->github_repositories ?? 0);
 
             case 'github_stars':
-                return $stats->github_stars;
+                return (int) ($stats->github_stars ?? 0);
 
             case 'streak':
-                return $stats->streak_days;
+                return (int) ($stats->streak_days ?? 0);
 
             case 'views':
-                return $stats->profile_views;
+                return (int) ($stats->profile_views ?? 0);
 
             case 'shares':
-                return $stats->profile_shares;
+                return (int) ($stats->profile_shares ?? 0);
 
             case 'ovr':
-                return $stats->current_ovr;
+                return (int) ($stats->current_ovr ?? 0);
 
             case 'level':
-                return $stats->current_level;
+                return (int) ($stats->current_level ?? 0);
 
             case 'tech_skill':
                 // rules_criteria = {"type": "tech_skill", "skill": "Laravel", "value": 80}
@@ -146,7 +146,7 @@ class BadgeEvaluatorService
                 return $skill ? (int) $skill->pivot->proficiency_level : 0;
 
             case 'docker_projects':
-                return $profile->projects()->where(function($q) {
+                return (int) $profile->projects()->where(function($q) {
                     $q->where('title', 'like', '%Docker%')
                       ->orWhere('description', 'like', '%Docker%');
                 })->count();
@@ -158,29 +158,140 @@ class BadgeEvaluatorService
                 return $profile->projects()->where('description', 'like', '%gitflow%')->count() > 0 ? 1 : 0;
 
             case 'github_actions':
-                return $profile->projects()->where(function($q) {
+                return (int) $profile->projects()->where(function($q) {
                     $q->where('description', 'like', '%github-actions%')
                       ->orWhere('description', 'like', '%ci/cd%');
                 })->count();
 
             case 'cloud_deploy':
-                return $profile->projects()->where(function($q) {
+                return (int) $profile->projects()->where(function($q) {
                     $q->where('description', 'like', '%aws%')
                       ->orWhere('description', 'like', '%cloudflare%');
                 })->count();
 
             case 'polyglot':
-                return $profile->skills()->count();
+                return (int) $profile->skills()->count();
 
             case 'saas_tag':
-                return $profile->projects()->where('description', 'like', '%saas%')->count();
+                return (int) $profile->projects()->where('description', 'like', '%saas%')->count();
 
             case 'pdf_exports':
-                return $stats->pdf_resume_exports_count;
+                return (int) \Illuminate\Support\Facades\Cache::get("profile_pdf_exports_count_{$profile->id}", 0);
+
+            case 'pdf_generated':
+                $exports = (int) \Illuminate\Support\Facades\Cache::get("profile_pdf_exports_count_{$profile->id}", 0);
+                if ($exports > 0) {
+                    return 1;
+                }
+                $pdfCache = \Illuminate\Support\Facades\Cache::get("pdf_resume_{$profile->id}");
+                $generated = ($pdfCache && isset($pdfCache['status']) && $pdfCache['status'] === 'completed');
+                return $generated ? 1 : 0;
+
+            case 'pdf_ats_score':
+                return (int) \Illuminate\Support\Facades\Cache::get("profile_pdf_ats_score_{$profile->id}", 85);
+
+            case 'secret_pdf_no_bio':
+                $pdfCache = \Illuminate\Support\Facades\Cache::get("pdf_resume_{$profile->id}");
+                $generated = ($pdfCache && isset($pdfCache['status']) && $pdfCache['status'] === 'completed');
+                return ($generated && empty($profile->bio)) ? 1 : 0;
+
+            case 'secret_theme_spam':
+                return (int) \Illuminate\Support\Facades\Cache::get("profile_theme_changes_count_{$profile->id}", 0);
+
+            case 'theme_changed':
+                return (int) \Illuminate\Support\Facades\Cache::get("profile_theme_changes_count_{$profile->id}", 0) >= 1 ? 1 : 0;
+
+            case 'dark_mode':
+                return $profile->theme_name === 'dark' ? 1 : 0;
+
+            case 'completeness_30_days':
+                return (int) ($profile->profile_completeness ?? 0) >= 100 ? 1 : 0;
+
+            case 'networks_filled':
+                $filledCount = 0;
+                if (!empty($profile->linkedin_url)) $filledCount++;
+                if (!empty($profile->github_url)) $filledCount++;
+                if (!empty($profile->website_url)) $filledCount++;
+                return $filledCount;
+
+            case 'cover_image_count':
+                return (int) $profile->projects()->whereNotNull('cover_image_url')->where('cover_image_url', '!=', '')->count();
+
+            case 'demo_url_count':
+                return (int) $profile->projects()->whereNotNull('demo_url')->where('demo_url', '!=', '')->count();
+
+            case 'detailed_projects_count':
+                return (int) $profile->projects()->whereRaw('LENGTH(description) >= 100')->count();
+
+            case 'complete_projects_count':
+                return (int) $profile->projects()
+                    ->whereNotNull('repository_url')->where('repository_url', '!=', '')
+                    ->whereNotNull('demo_url')->where('demo_url', '!=', '')
+                    ->whereNotNull('cover_image_url')->where('cover_image_url', '!=', '')
+                    ->count();
+
+            case 'project_versions_count':
+                return (int) \Illuminate\Support\Facades\Cache::get("profile_project_versions_count_{$profile->id}", 0);
+
+            case 'github_webhook':
+                return (int) \Illuminate\Support\Facades\Cache::get("profile_github_webhook_active_{$profile->id}", 0);
+
+            case 'full_cycle':
+                $hasDocker = $profile->projects()->where(function($q) {
+                    $q->where('title', 'like', '%Docker%')
+                      ->orWhere('description', 'like', '%Docker%');
+                })->count() > 0;
+                $hasCI = $profile->projects()->where(function($q) {
+                    $q->where('description', 'like', '%github-actions%')
+                      ->orWhere('description', 'like', '%ci/cd%');
+                })->count() > 0;
+                return ($hasDocker && $hasCI) ? 1 : 0;
+
+            case 'experience_months':
+            case 'experience_years':
+                $totalMonths = 0;
+                foreach ($profile->experiences as $exp) {
+                    $start = $exp->start_date ? \Carbon\Carbon::parse($exp->start_date) : null;
+                    if (!$start) continue;
+                    $end = $exp->is_current ? now() : ($exp->end_date ? \Carbon\Carbon::parse($exp->end_date) : now());
+                    $totalMonths += $start->diffInMonths($end);
+                }
+                if ($criteria['type'] === 'experience_years') {
+                    return (int) floor($totalMonths / 12);
+                }
+                return (int) $totalMonths;
+
+            case 'leadership_role':
+                $leadershipWords = ['lead', 'manager', 'coordenador', 'diretor', 'director', 'principal', 'lider', 'líder', 'head', 'gerente'];
+                foreach ($profile->experiences as $exp) {
+                    $roleLower = mb_strtolower($exp->role ?? '');
+                    foreach ($leadershipWords as $word) {
+                        if (str_contains($roleLower, $word)) {
+                            return 1;
+                        }
+                    }
+                }
+                return 0;
+
+            case 'international_experience':
+                $intlWords = ['international', 'remoto internacional', 'remote international', 'foreign', 'english speaking', 'global', 'eua', 'usa', 'europe', 'europa', 'uk', 'reino unido'];
+                foreach ($profile->experiences as $exp) {
+                    $descLower = mb_strtolower($exp->description ?? '');
+                    foreach ($intlWords as $word) {
+                        if (str_contains($descLower, $word)) {
+                            return 1;
+                        }
+                    }
+                }
+                return 0;
+
+            case 'resume_completed':
+                $hasExp = $profile->experiences()->count() > 0;
+                $hasEdu = $profile->educations()->count() > 0;
+                return (($profile->profile_completeness ?? 0) >= 100 && $hasExp && $hasEdu) ? 1 : 0;
 
             case 'secret_clicks':
-                // Simulado via contador de visualizações/shares para teste
-                return $stats->profile_views >= 10 ? 10 : $stats->profile_views;
+                return (int) ($stats->profile_views ?? 0) >= 10 ? 10 : (int) ($stats->profile_views ?? 0);
 
             default:
                 return 0;
