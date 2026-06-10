@@ -62,5 +62,5 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Expõe a porta
 EXPOSE 80
 
-# Executa as migrações, cria o link simbólico de storage, inicia o processador de filas em background e inicia o servidor do PHP
-CMD ["/bin/sh", "-c", "php artisan migrate --force && php artisan storage:link --force && php artisan queue:work --queue=github,pdf,default --tries=3 --timeout=120 & php artisan serve --host=0.0.0.0 --port=80"]
+# Executa as migrações, cria o link simbólico de storage, inicia o Reverb, o processador de filas em background e o servidor do PHP
+CMD ["/bin/sh", "-c", "php artisan migrate --force && php artisan storage:link --force && php artisan reverb:start --host=0.0.0.0 --port=${REVERB_PORT:-8080} & php artisan queue:work --queue=github,pdf,default --tries=3 --timeout=120 & php artisan serve --host=0.0.0.0 --port=80"]

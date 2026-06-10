@@ -39,10 +39,22 @@ export function initEcho(): Echo<any> | null {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const host = process.env.NEXT_PUBLIC_REVERB_HOST || 'localhost';
+  let defaultHost = 'localhost';
+  let defaultScheme = 'http';
+  try {
+    if (apiBaseUrl && apiBaseUrl.startsWith('http')) {
+      const url = new URL(apiBaseUrl);
+      defaultHost = url.hostname;
+      defaultScheme = url.protocol.replace(':', '');
+    }
+  } catch (e) {
+    // fallback
+  }
+
+  const host = process.env.NEXT_PUBLIC_REVERB_HOST || defaultHost;
   const port = process.env.NEXT_PUBLIC_REVERB_PORT || '8080';
   const key = process.env.NEXT_PUBLIC_REVERB_APP_KEY || 'rgd6wmzwwmo8oo5rvjc4';
-  const scheme = process.env.NEXT_PUBLIC_REVERB_SCHEME || 'http';
+  const scheme = process.env.NEXT_PUBLIC_REVERB_SCHEME || defaultScheme;
 
   window.Echo = new Echo({
     broadcaster: 'reverb',
