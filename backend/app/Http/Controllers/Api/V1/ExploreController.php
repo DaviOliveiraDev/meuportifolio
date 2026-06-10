@@ -149,7 +149,7 @@ class ExploreController extends Controller
     public function technologies(): JsonResponse
     {
         $technologies = Cache::remember('technologies:list', 3600, function () {
-            return Technology::with('category')->orderBy('name')->get();
+            return Technology::with('category')->orderBy('name')->get()->toArray();
         });
 
         return response()->json($technologies);
