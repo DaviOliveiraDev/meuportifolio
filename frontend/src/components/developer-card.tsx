@@ -29,6 +29,27 @@ export type BadgeType = {
   icon_path: string;
 };
 
+export type TechnologyScoreType = {
+  technology_id: string;
+  score: number;
+  confidence_level: 'Declared' | 'Verified' | 'Proven' | 'Expert';
+  evidence_count: number;
+  technology?: {
+    name: string;
+    slug: string;
+  };
+};
+
+export type TechnologyType = {
+  id: string;
+  name: string;
+  slug: string;
+  pivot?: {
+    self_proficiency: number;
+    is_featured: boolean;
+  };
+};
+
 export type ProfileType = {
   id: string;
   name: string;
@@ -48,10 +69,19 @@ export type ProfileType = {
   badges?: BadgeType[];
   titles?: Array<{ name: string; pivot?: { is_equipped: boolean } }>;
   cosmetics?: Array<{ name: string; type: string; value: string; pivot?: { is_equipped: boolean } }>;
+  technology_scores?: TechnologyScoreType[];
+  technologies?: TechnologyType[];
   custom_styles?: {
     border_theme?: 'default' | 'neon' | 'holographic' | 'cosmic';
     foil_effect?: 'none' | 'chrome' | 'gold' | 'diamond';
     pinned_badges?: string[];
+    card_slots?: {
+      slot_1?: 'top_technology' | 'radar_chart';
+      slot_2?: 'top_3_technologies' | 'primary_framework';
+      slot_3?: 'experience_years' | 'projects_count';
+      slot_4?: 'education_degree' | 'certification';
+      slot_5?: 'github_combined' | 'views_shares';
+    } | null;
   } | null;
 };
 
@@ -104,6 +134,7 @@ export default function DeveloperCard({
   const borderTheme = customStyles.border_theme || 'default';
   const foilEffect = customStyles.foil_effect || 'none';
   const pinnedBadgeIds = customStyles.pinned_badges || [];
+  const cardSlots = customStyles.card_slots || null;
 
   // Títulos e Cosméticos Equipados via Relacionamento
   const equippedTitleObj = profile.titles?.find((t: any) => t.pivot?.is_equipped);
@@ -435,6 +466,88 @@ export default function DeveloperCard({
   const attrs = getAttributes();
   const borderGradientClass = getCardBorderClass();
 
+  // --- CÁLCULO DINÂMICO DE SLOTS (TECH DNA) ---
+  const techScores = profile.technology_scores || [];
+  const sortedTechScores = [...techScores].sort((a, b) => b.score - a.score);
+  const hasScores = sortedTechScores.length > 0;
+
+  // Slot 1: Foco de Skill
+  const slot1Option = cardSlots?.slot_1 || 'top_technology';
+  let slot1Text = '';
+  if (slot1Option === 'top_technology') {
+    const topTech = sortedTechScores[0];
+    if (topTech) {
+      slot1Text = `${topTech.technology?.name || 'Tech'} ${topTech.score} (${topTech.confidence_level})`;
+    } else {
+      slot1Text = profile.role || 'Developer';
+    }
+  } else {
+    slot1Text = profile.role || 'Generalist Developer';
+  }
+
+  // Slot 2: Stack Principal
+  const slot2Option = cardSlots?.slot_2 || 'top_3_technologies';
+  let slot2Text = '';
+  if (slot2Option === 'top_3_technologies') {
+    const top3 = sortedTechScores.slice(0, 3);
+    if (top3.length > 0) {
+      slot2Text = top3.map(t => `${t.technology?.name || 'Tech'} ${t.score}`).join(' | ');
+    } else {
+      const legacySkills = (profile as any).skills || [];
+      slot2Text = legacySkills.slice(0, 3).map((s: any) => s.name).join(' | ') || 'Full Stack';
+    }
+  } else {
+    const topTech = sortedTechScores[0];
+    slot2Text = topTech ? `${topTech.technology?.name || 'Tech'} Specialist` : 'Software Developer';
+  }
+
+  // Slot 3: Métricas de Experiência
+  const slot3Option = cardSlots?.slot_3 || 'experience_years';
+  let slot3Text = '';
+  const expList = experiences.length > 0 ? experiences : (profile as any).experiences || [];
+  let expTotalMonths = 0;
+  expList.forEach((exp: any) => {
+    const start = new Date(exp.start_date);
+    const end = exp.is_current || !exp.end_date ? new Date() : new Date(exp.end_date);
+    const diff = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+    expTotalMonths += Math.max(1, diff);
+  });
+  const expYears = (expTotalMonths / 12).toFixed(1);
+  if (slot3Option === 'experience_years') {
+    slot3Text = parseFloat(expYears) > 0 ? `${expYears} Anos Verificados` : 'Iniciante no Mercado';
+  } else {
+    const projCount = projects.length > 0 ? projects.length : (profile as any).projects?.length || 0;
+    slot3Text = `${projCount} Projetos Entregues`;
+  }
+
+  // Slot 4: Credenciais
+  const slot4Option = cardSlots?.slot_4 || 'education_degree';
+  let slot4Text = '';
+  const eduList = educations.length > 0 ? educations : (profile as any).educations || [];
+  if (slot4Option === 'education_degree') {
+    slot4Text = eduList[0]?.course || 'Formação Autodidata';
+  } else {
+    slot4Text = eduList[0]?.institution || 'Certificações Diversas';
+  }
+
+  // Slot 5: Indicadores Sociais
+  const slot5Option = cardSlots?.slot_5 || 'github_combined';
+  let slot5Text = '';
+  const stats = (profile as any).stats;
+  if (slot5Option === 'github_combined') {
+    if (stats?.github_connected || profile.github_url) {
+      const commits = stats?.github_commits || 0;
+      const stars = stats?.github_stars || 0;
+      slot5Text = `${commits >= 1000 ? (commits/1000).toFixed(1) + 'k' : commits} Commits / ${stars} Stars`;
+    } else {
+      slot5Text = 'GitHub Não Conectado';
+    }
+  } else {
+    const views = stats?.profile_views || 0;
+    const shares = stats?.profile_shares || 0;
+    slot5Text = `${views} Visualizações / ${shares} Shares`;
+  }
+
   // Path da moldura em formato de escudo/crest (estilo FUT) - viewBox 320x460
   const SHIELD_PATH =
     "M160 6 L174 24 C188 30 232 24 260 44 C286 62 300 84 300 116 L300 356 C300 404 250 434 160 452 C70 434 20 404 20 356 L20 116 C20 84 34 62 60 44 C88 24 132 30 146 24 Z";
@@ -596,37 +709,62 @@ export default function DeveloperCard({
               {/* Divider */}
               <div className="shrink-0 w-[78%] h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent mt-3 mb-2.5" />
 
-              {/* GRID DOS 7 ATRIBUTOS TÉCNICOS (TCG STYLE) */}
-              <div className="shrink-0 grid grid-cols-2 gap-x-4 gap-y-1 w-[82%] bg-black/35 backdrop-blur-xs border border-white/5 rounded-xl p-2 mb-2 text-[10px] font-mono select-none">
-                <div className="flex justify-between items-center px-1">
-                  <span className="text-white/40 font-bold tracking-wider">BCK</span>
-                  <span className="font-extrabold text-white">{attrs.bck}</span>
+              {/* SLOTS TÉCNICOS OU GRID DE ATRIBUTOS (DEPENDENDO DO SCORE) */}
+              {hasScores ? (
+                <div className="shrink-0 flex flex-col gap-1.5 w-[82%] bg-black/35 backdrop-blur-xs border border-white/5 rounded-xl p-2.5 mb-2 text-[9.5px] font-mono select-none text-left justify-center min-h-[128px]">
+                  <div className="flex items-center gap-1.5 text-white">
+                    <span className="text-white/40 font-bold shrink-0">FOCUS:</span>
+                    <span className="font-extrabold truncate text-amber-300" title={slot1Text}>{slot1Text}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-white">
+                    <span className="text-white/40 font-bold shrink-0">STACK:</span>
+                    <span className="font-extrabold truncate text-cyan-400" title={slot2Text}>{slot2Text}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-white">
+                    <span className="text-white/40 font-bold shrink-0">WORK :</span>
+                    <span className="font-extrabold truncate text-indigo-200" title={slot3Text}>{slot3Text}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-white">
+                    <span className="text-white/40 font-bold shrink-0">CRED :</span>
+                    <span className="font-extrabold truncate text-emerald-300" title={slot4Text}>{slot4Text}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-white">
+                    <span className="text-white/40 font-bold shrink-0">STATS:</span>
+                    <span className="font-extrabold truncate text-pink-300" title={slot5Text}>{slot5Text}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center px-1">
-                  <span className="text-white/40 font-bold tracking-wider">EXP</span>
-                  <span className="font-extrabold text-white">{attrs.exp}</span>
+              ) : (
+                <div className="shrink-0 grid grid-cols-2 gap-x-4 gap-y-1 w-[82%] bg-black/35 backdrop-blur-xs border border-white/5 rounded-xl p-2 mb-2 text-[10px] font-mono select-none min-h-[128px]">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-white/40 font-bold tracking-wider">BCK</span>
+                    <span className="font-extrabold text-white">{attrs.bck}</span>
+                  </div>
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-white/40 font-bold tracking-wider">EXP</span>
+                    <span className="font-extrabold text-white">{attrs.exp}</span>
+                  </div>
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-white/40 font-bold tracking-wider">FRT</span>
+                    <span className="font-extrabold text-white">{attrs.frt}</span>
+                  </div>
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-white/40 font-bold tracking-wider">EDU</span>
+                    <span className="font-extrabold text-white">{attrs.edu}</span>
+                  </div>
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-white/40 font-bold tracking-wider">DAT</span>
+                    <span className="font-extrabold text-white">{attrs.dat}</span>
+                  </div>
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-white/40 font-bold tracking-wider">COM</span>
+                    <span className="font-extrabold text-white">{attrs.com}</span>
+                  </div>
+                  <div className="flex justify-between items-center col-span-2 border-t border-white/5 pt-1 mt-0.5 px-1">
+                    <span className="text-white/40 font-bold tracking-wider">OSS (OPEN SOURCE)</span>
+                    <span className="font-extrabold text-cyan-400">{attrs.oss}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center px-1">
-                  <span className="text-white/40 font-bold tracking-wider">FRT</span>
-                  <span className="font-extrabold text-white">{attrs.frt}</span>
-                </div>
-                <div className="flex justify-between items-center px-1">
-                  <span className="text-white/40 font-bold tracking-wider">EDU</span>
-                  <span className="font-extrabold text-white">{attrs.edu}</span>
-                </div>
-                <div className="flex justify-between items-center px-1">
-                  <span className="text-white/40 font-bold tracking-wider">DAT</span>
-                  <span className="font-extrabold text-white">{attrs.dat}</span>
-                </div>
-                <div className="flex justify-between items-center px-1">
-                  <span className="text-white/40 font-bold tracking-wider">COM</span>
-                  <span className="font-extrabold text-white">{attrs.com}</span>
-                </div>
-                <div className="flex justify-between items-center col-span-2 border-t border-white/5 pt-1 mt-0.5 px-1">
-                  <span className="text-white/40 font-bold tracking-wider">OSS (OPEN SOURCE)</span>
-                  <span className="font-extrabold text-cyan-400">{attrs.oss}</span>
-                </div>
-              </div>
+              )}
 
               {/* SLOTS DE MEDALHAS */}
               <div className="shrink-0 flex items-center justify-center gap-2.5 mt-auto">

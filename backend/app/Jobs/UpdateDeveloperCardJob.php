@@ -20,13 +20,6 @@ class UpdateDeveloperCardJob implements ShouldQueue, ShouldBeUnique
     public $tries = 3;
 
     /**
-     * O tempo de atraso (debounce) antes do job começar a rodar.
-     * 10 segundos garante que múltiplos salvamentos rápidos em sequência
-     * sejam descartados pela chave única do lock da fila.
-     */
-    public $delay = 10;
-
-    /**
      * Quantidade de tempo (em segundos) que a trava de fila única permanece ativa.
      */
     public $uniqueFor = 60;
@@ -34,6 +27,7 @@ class UpdateDeveloperCardJob implements ShouldQueue, ShouldBeUnique
     public function __construct(public Profile $profile)
     {
         $this->onQueue('default');
+        $this->delay = 10;
     }
 
     /**

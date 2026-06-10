@@ -36,6 +36,12 @@ class PortfolioController extends Controller
                 },
                 'cosmetics' => function ($query) {
                     $query->wherePivot('is_equipped', true);
+                },
+                'technologies' => function ($query) {
+                    $query->withPivot('self_proficiency', 'is_featured');
+                },
+                'technologyScores' => function ($query) {
+                    $query->with('technology');
                 }
             ])
             ->first();

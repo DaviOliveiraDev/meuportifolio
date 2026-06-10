@@ -25,6 +25,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/explore', [ExploreController::class, 'explore']);
     Route::get('/leaderboard', [ExploreController::class, 'leaderboard']);
     Route::get('/compare', [CompareController::class, 'compare']);
+    Route::get('/technologies', [ExploreController::class, 'technologies']);
     
     // Rotas públicas de autenticação
     Route::prefix('auth')->group(function () {

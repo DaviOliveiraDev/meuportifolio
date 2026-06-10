@@ -3,7 +3,7 @@
 import { useProfile } from '@/features/profile/hooks/use-profile';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Lock, Palette, CheckCircle2, Pin } from 'lucide-react';
+import { Sparkles, Lock, Palette, CheckCircle2, Pin, Sliders } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CardCustomizerPanelProps {
@@ -22,6 +22,13 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
   const [borderTheme, setBorderTheme] = useState<'default' | 'neon' | 'holographic' | 'cosmic'>('default');
   const [foilEffect, setFoilEffect] = useState<'none' | 'chrome' | 'gold' | 'diamond'>('none');
   const [pinnedBadges, setPinnedBadges] = useState<string[]>([]);
+  const [cardSlots, setCardSlots] = useState<any>({
+    slot_1: 'top_technology',
+    slot_2: 'top_3_technologies',
+    slot_3: 'experience_years',
+    slot_4: 'education_degree',
+    slot_5: 'github_combined',
+  });
 
   useEffect(() => {
     if (profile?.custom_styles) {
@@ -29,6 +36,7 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
       if (styles.border_theme) setBorderTheme(styles.border_theme);
       if (styles.foil_effect) setFoilEffect(styles.foil_effect);
       if (styles.pinned_badges) setPinnedBadges(styles.pinned_badges);
+      if (styles.card_slots) setCardSlots(styles.card_slots);
     }
   }, [profile]);
 
@@ -38,6 +46,7 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
         border_theme: borderTheme,
         foil_effect: foilEffect,
         pinned_badges: pinnedBadges,
+        card_slots: cardSlots,
         ...newStyles
       };
       
@@ -233,6 +242,102 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
                 Desbloqueie conquistas para fixá-las no seu Developer Card!
               </p>
             )}
+          </div>
+        </div>
+
+        {/* Customização de Slots de Identidade Técnica */}
+        <div className="space-y-3 border-t border-neutral-100 dark:border-neutral-850 pt-4">
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-[10px] font-bold font-mono text-neutral-450 uppercase tracking-wider flex items-center gap-1">
+              <Sliders className="w-3 h-3 text-violet-400" /> Slots do Developer Card (DNA 2.0)
+            </span>
+          </div>
+
+          <div className="space-y-3 text-xs">
+            {/* Slot 1 */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+              <span className="text-neutral-500 dark:text-neutral-400 font-medium font-mono text-[10px] uppercase">Slot 1 (Foco):</span>
+              <select
+                value={cardSlots?.slot_1 || 'top_technology'}
+                onChange={(e) => {
+                  const updated = { ...cardSlots, slot_1: e.target.value };
+                  setCardSlots(updated);
+                  handleUpdateStyle({ card_slots: updated });
+                }}
+                className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-lg px-2.5 py-1.5 text-[11px] outline-none w-full sm:max-w-[170px] cursor-pointer focus:border-violet-500 transition-colors"
+              >
+                <option value="top_technology">Top Tecnologia + Score</option>
+                <option value="radar_chart">Cargo de Foco (Role)</option>
+              </select>
+            </div>
+
+            {/* Slot 2 */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+              <span className="text-neutral-500 dark:text-neutral-400 font-medium font-mono text-[10px] uppercase">Slot 2 (Stack):</span>
+              <select
+                value={cardSlots?.slot_2 || 'top_3_technologies'}
+                onChange={(e) => {
+                  const updated = { ...cardSlots, slot_2: e.target.value };
+                  setCardSlots(updated);
+                  handleUpdateStyle({ card_slots: updated });
+                }}
+                className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-lg px-2.5 py-1.5 text-[11px] outline-none w-full sm:max-w-[170px] cursor-pointer focus:border-violet-500 transition-colors"
+              >
+                <option value="top_3_technologies">Top 3 Tecnologias</option>
+                <option value="primary_framework">Especialista na Stack</option>
+              </select>
+            </div>
+
+            {/* Slot 3 */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+              <span className="text-neutral-500 dark:text-neutral-400 font-medium font-mono text-[10px] uppercase">Slot 3 (Trabalho):</span>
+              <select
+                value={cardSlots?.slot_3 || 'experience_years'}
+                onChange={(e) => {
+                  const updated = { ...cardSlots, slot_3: e.target.value };
+                  setCardSlots(updated);
+                  handleUpdateStyle({ card_slots: updated });
+                }}
+                className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-lg px-2.5 py-1.5 text-[11px] outline-none w-full sm:max-w-[170px] cursor-pointer focus:border-violet-500 transition-colors"
+              >
+                <option value="experience_years">Anos de Experiência</option>
+                <option value="projects_count">Projetos Entregues</option>
+              </select>
+            </div>
+
+            {/* Slot 4 */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+              <span className="text-neutral-500 dark:text-neutral-400 font-medium font-mono text-[10px] uppercase">Slot 4 (Credenciais):</span>
+              <select
+                value={cardSlots?.slot_4 || 'education_degree'}
+                onChange={(e) => {
+                  const updated = { ...cardSlots, slot_4: e.target.value };
+                  setCardSlots(updated);
+                  handleUpdateStyle({ card_slots: updated });
+                }}
+                className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-lg px-2.5 py-1.5 text-[11px] outline-none w-full sm:max-w-[170px] cursor-pointer focus:border-violet-500 transition-colors"
+              >
+                <option value="education_degree">Curso Acadêmico</option>
+                <option value="certification">Instituição Acadêmica</option>
+              </select>
+            </div>
+
+            {/* Slot 5 */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2">
+              <span className="text-neutral-500 dark:text-neutral-400 font-medium font-mono text-[10px] uppercase">Slot 5 (Sociais):</span>
+              <select
+                value={cardSlots?.slot_5 || 'github_combined'}
+                onChange={(e) => {
+                  const updated = { ...cardSlots, slot_5: e.target.value };
+                  setCardSlots(updated);
+                  handleUpdateStyle({ card_slots: updated });
+                }}
+                className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-lg px-2.5 py-1.5 text-[11px] outline-none w-full sm:max-w-[170px] cursor-pointer focus:border-violet-500 transition-colors"
+              >
+                <option value="github_combined">Métricas de Commits/Stars</option>
+                <option value="views_shares">Perfil Views/Shares</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

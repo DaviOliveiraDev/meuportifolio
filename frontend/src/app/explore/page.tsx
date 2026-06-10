@@ -14,7 +14,9 @@ import {
   MapPin, 
   Sliders, 
   Briefcase,
-  AlertTriangle
+  AlertTriangle,
+  Code,
+  ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +43,11 @@ export default function ExplorePage() {
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
 
+  // Novos filtros da Fase 3
+  const [technologies, setTechnologies] = useState<any[]>([]);
+  const [selectedTech, setSelectedTech] = useState('');
+  const [selectedConfidence, setSelectedConfidence] = useState('');
+
   // Estados de Dados
   const [profiles, setProfiles] = useState<ProfileType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +73,9 @@ export default function ExplorePage() {
           max_ovr: maxOvr,
           sort,
           page,
-          per_page: 8
+          per_page: 8,
+          technology: selectedTech,
+          confidence_level: selectedConfidence
         }
       });
       setProfiles(response.data.data || []);
@@ -80,6 +89,19 @@ export default function ExplorePage() {
     }
   };
 
+  // Carrega lista de tecnologias no mount
+  useEffect(() => {
+    const loadTechnologies = async () => {
+      try {
+        const response = await apiClient.get('/technologies');
+        setTechnologies(response.data || []);
+      } catch (err) {
+        console.error('Erro ao buscar catálogo de tecnologias:', err);
+      }
+    };
+    loadTechnologies();
+  }, []);
+
   useEffect(() => {
     // Debounce na busca de texto
     const delayDebounce = setTimeout(() => {
@@ -87,12 +109,12 @@ export default function ExplorePage() {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [q, role, location, minOvr, maxOvr, sort, page]);
+  }, [q, role, location, minOvr, maxOvr, sort, page, selectedTech, selectedConfidence]);
 
   // Resetar página quando filtros mudam
   useEffect(() => {
     setPage(1);
-  }, [q, role, location, minOvr, maxOvr, sort]);
+  }, [q, role, location, minOvr, maxOvr, sort, selectedTech, selectedConfidence]);
 
   // Lógica de Envio de Denúncia
   const handleOpenReport = (username: string) => {
@@ -186,7 +208,7 @@ export default function ExplorePage() {
 
         {/* Filtros Avançados Expansíveis */}
         {showFilters && (
-          <div className="bg-neutral-900/40 border border-neutral-850/60 rounded-2xl p-6 mb-8 grid grid-cols-1 md:grid-cols-4 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="bg-neutral-900/40 border border-neutral-850/60 rounded-2xl p-6 mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
             {/* Cargo */}
             <div className="flex flex-col gap-2">
               <Label htmlFor="role-filter" className="text-xs font-semibold text-neutral-450 uppercase tracking-wider">Cargo Especialidade</Label>
@@ -219,8 +241,49 @@ export default function ExplorePage() {
               </div>
             </div>
 
+            {/* Tecnologia Dropdown */}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="tech-filter" className="text-xs font-semibold text-neutral-450 uppercase tracking-wider">Tecnologia</Label>
+              <div className="relative">
+                <Code className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-550" />
+                <select
+                  id="tech-filter"
+                  value={selectedTech}
+                  onChange={(e) => setSelectedTech(e.target.value)}
+                  className="w-full bg-neutral-955 border border-neutral-850 text-neutral-400 focus:text-white text-xs rounded-lg pl-9 pr-3 py-2 outline-none hover:border-neutral-700 focus:border-violet-500 transition-all cursor-pointer appearance-none"
+                >
+                  <option value="">Todas as Techs</option>
+                  {technologies.map((tech) => (
+                    <option key={tech.id} value={tech.slug} className="text-white bg-neutral-950">
+                      {tech.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Nivel de Confianca Dropdown */}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="confidence-filter" className="text-xs font-semibold text-neutral-450 uppercase tracking-wider">Nível Confiança</Label>
+              <div className="relative">
+                <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-550" />
+                <select
+                  id="confidence-filter"
+                  value={selectedConfidence}
+                  onChange={(e) => setSelectedConfidence(e.target.value)}
+                  className="w-full bg-neutral-955 border border-neutral-850 text-neutral-400 focus:text-white text-xs rounded-lg pl-9 pr-3 py-2 outline-none hover:border-neutral-700 focus:border-violet-500 transition-all cursor-pointer appearance-none"
+                >
+                  <option value="">Qualquer Nível</option>
+                  <option value="Declared">Declared (Aprendendo)</option>
+                  <option value="Verified">Verified (Validada)</option>
+                  <option value="Proven">Proven (Comprovada)</option>
+                  <option value="Expert">Expert (Especialista)</option>
+                </select>
+              </div>
+            </div>
+
             {/* OVR Mínimo Slider */}
-            <div className="flex flex-col gap-2 col-span-1 md:col-span-2">
+            <div className="flex flex-col gap-2 col-span-1 sm:col-span-2">
               <div className="flex justify-between items-end">
                 <Label className="text-xs font-semibold text-neutral-450 uppercase tracking-wider">Faixa de OVR ({minOvr} - {maxOvr})</Label>
               </div>
@@ -264,7 +327,7 @@ export default function ExplorePage() {
             <p className="text-xs text-neutral-450 mt-2">
               Tente alterar os termos da busca ou limpar os filtros para encontrar perfis correspondentes.
             </p>
-            {(q || role || location || minOvr !== '0' || maxOvr !== '100') && (
+            {(q || role || location || minOvr !== '0' || maxOvr !== '100' || selectedTech || selectedConfidence) && (
               <Button
                 variant="outline"
                 onClick={() => {
@@ -273,6 +336,8 @@ export default function ExplorePage() {
                   setLocation('');
                   setMinOvr('0');
                   setMaxOvr('100');
+                  setSelectedTech('');
+                  setSelectedConfidence('');
                 }}
                 className="mt-6 border-neutral-800 text-xs text-neutral-400 hover:text-white"
               >

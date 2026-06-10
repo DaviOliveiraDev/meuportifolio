@@ -11,6 +11,8 @@ use App\Infrastructure\Models\TechnologyRanking;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Str;
 
 class TechDnaEngineService
 {
@@ -404,5 +406,20 @@ class TechDnaEngineService
         }
 
         Log::info("TechDNA: Recálculo global de rankings concluído.");
+
+        // 3. Limpar caches de leaderboards no Redis para forçar recriação
+        try {
+            $redisKeys = Redis::keys('leaderboard:*');
+            if (!empty($redisKeys)) {
+                $prefix = config('database.redis.options.prefix', '');
+                foreach ($redisKeys as $redisKey) {
+                    $cleanKey = Str::after($redisKey, $prefix);
+                    Redis::del($cleanKey);
+                }
+            }
+            Log::info("TechDNA: Caches de leaderboard no Redis foram invalidados.");
+        } catch (\Exception $e) {
+            Log::warning("TechDNA: Falha ao invalidar cache do Redis no recálculo de rankings: " . $e->getMessage());
+        }
     }
 }
