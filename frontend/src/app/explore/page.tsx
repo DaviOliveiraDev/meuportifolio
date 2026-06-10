@@ -93,8 +93,8 @@ export default function ExplorePage() {
   useEffect(() => {
     const loadTechnologies = async () => {
       try {
-        const response = await apiClient.get('/technologies');
-        setTechnologies(response.data || []);
+        const response = await apiClient.get('/technologies?cb=' + Date.now());
+        setTechnologies(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Erro ao buscar catálogo de tecnologias:', err);
       }
@@ -253,7 +253,7 @@ export default function ExplorePage() {
                   className="w-full bg-neutral-955 border border-neutral-850 text-neutral-400 focus:text-white text-xs rounded-lg pl-9 pr-3 py-2 outline-none hover:border-neutral-700 focus:border-violet-500 transition-all cursor-pointer appearance-none"
                 >
                   <option value="">Todas as Techs</option>
-                  {technologies.map((tech) => (
+                  {Array.isArray(technologies) && technologies.map((tech) => (
                     <option key={tech.id} value={tech.slug} className="text-white bg-neutral-950">
                       {tech.name}
                     </option>

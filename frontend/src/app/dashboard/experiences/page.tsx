@@ -74,7 +74,7 @@ export default function ExperiencesPage() {
   useEffect(() => {
     const loadTechnologies = async () => {
       try {
-        const response = await apiClient.get('/technologies');
+        const response = await apiClient.get('/technologies?cb=' + Date.now());
         setAllTechnologies(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Erro ao carregar catálogo de tecnologias:', err);
