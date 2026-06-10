@@ -36,21 +36,36 @@ class OvrEngineService
         $completeness = $this->completenessCalculator->calculate($profile);
         $profile->profile_completeness = $completeness;
 
-        // 2. Calcula sub-scores do OVR 2.0
-        $techDnaScore = $this->calculateTechDnaScore($profile);
-        $projScore = $this->calculateProjectsScore($profile, $stats);
-        $githubScore = $this->calculateOpenSourceScore($profile, $stats);
-        $eduScore = $this->calculateEducationScore($profile, $stats);
-        $commScore = $this->calculateCommunityScore($profile, $stats);
+        // 2. Busca configuração de pesos ativa ou usa padrões
+        $config = ScoringConfig::where('is_active', true)->first();
+        $weights = $config?->weights ?? $this->getDefaultWeights();
 
-        // 3. OVR 2.0 Ponderado: Tech DNA (35%), Projects (25%), GitHub (20%), Education (15%), Community (5%)
-        $ovr = (int) round(
-            ($techDnaScore * 0.35) +
-            ($projScore * 0.25) +
-            ($githubScore * 0.20) +
-            ($eduScore * 0.15) +
-            ($commScore * 0.05)
-        );
+        // 3. Calcula sub-scores
+        $expScore = $this->calculateExperienceScore($profile, $stats);
+        $projScore = $this->calculateProjectsScore($profile, $stats);
+        $skillBadgeScore = max($this->calculateSkillsBadgesScore($profile, $stats), $this->calculateTechDnaScore($profile));
+        $githubScore = !empty($profile->github_url) ? max(25, $this->calculateOpenSourceScore($profile, $stats)) : 0;
+        $eduScore = max($this->calculateEducationScore($profile, $stats), $this->calculateLegacyEducationScore($profile, $stats));
+        $completeScore = $profile->profile_completeness;
+
+        // 4. Calcula OVR final ponderado com base nas configurações
+        $weightedSum = 
+            ($expScore * ($weights['experience'] ?? 30)) +
+            ($projScore * ($weights['projects'] ?? 25)) +
+            ($skillBadgeScore * ($weights['skills_badges'] ?? 15)) +
+            ($githubScore * ($weights['github'] ?? 15)) +
+            ($eduScore * ($weights['education'] ?? 10)) +
+            ($completeScore * ($weights['completeness'] ?? 5));
+
+        $totalWeight = 
+            ($weights['experience'] ?? 30) +
+            ($weights['projects'] ?? 25) +
+            ($weights['skills_badges'] ?? 15) +
+            ($weights['github'] ?? 15) +
+            ($weights['education'] ?? 10) +
+            ($weights['completeness'] ?? 5);
+
+        $ovr = $totalWeight > 0 ? (int) round($weightedSum / $totalWeight) : 1;
 
         // Garante que o OVR fica entre 1 e 99 (estilo FIFA/TCG)
         $ovr = max(1, min(99, $ovr));
