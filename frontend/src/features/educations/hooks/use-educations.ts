@@ -30,6 +30,7 @@ export function useEducations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['educations'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
     },
   });
 
@@ -41,6 +42,7 @@ export function useEducations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['educations'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
     },
   });
 
@@ -51,6 +53,7 @@ export function useEducations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['educations'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
     },
   });
 

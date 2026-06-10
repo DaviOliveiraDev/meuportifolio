@@ -31,6 +31,7 @@ export function useExperiences() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['experiences'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
     },
   });
 
@@ -42,6 +43,7 @@ export function useExperiences() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['experiences'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
     },
   });
 
@@ -52,6 +54,7 @@ export function useExperiences() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['experiences'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
     },
   });
 
