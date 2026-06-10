@@ -56,8 +56,12 @@ class ExploreController extends Controller
         if ($tech) {
             $query->whereHas('technologyScores', function ($subQuery) use ($tech, $confidence) {
                 $subQuery->whereHas('technology', function ($techQuery) use ($tech) {
-                    $techQuery->where('id', $tech)
-                        ->orWhere('slug', $tech);
+                    if (Str::isUuid($tech)) {
+                        $techQuery->where('id', $tech)
+                            ->orWhere('slug', $tech);
+                    } else {
+                        $techQuery->where('slug', $tech);
+                    }
                 });
 
                 if ($confidence) {
