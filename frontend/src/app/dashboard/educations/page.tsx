@@ -71,7 +71,7 @@ export default function EducationsPage() {
     const loadTechnologies = async () => {
       try {
         const response = await apiClient.get('/technologies');
-        setAllTechnologies(response.data || []);
+        setAllTechnologies(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
         console.error('Erro ao carregar catálogo de tecnologias:', err);
       }
@@ -376,7 +376,7 @@ export default function EducationsPage() {
               {/* Lista filtrada de correspondências */}
               {techQuery.trim().length > 0 && (
                 <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg max-h-36 overflow-y-auto bg-white dark:bg-neutral-950 p-1 divide-y divide-neutral-100 dark:divide-neutral-850 shadow-sm relative z-50">
-                  {allTechnologies
+                  {Array.isArray(allTechnologies) && allTechnologies
                     .filter(t => t.name.toLowerCase().includes(techQuery.toLowerCase()) && !selectedTechIds.includes(t.id))
                     .slice(0, 10)
                     .map((tech) => (
@@ -392,7 +392,7 @@ export default function EducationsPage() {
                         + {tech.name} <span className="text-[10px] text-neutral-450 ml-1 font-medium">({tech.category?.name})</span>
                       </button>
                     ))}
-                  {allTechnologies.filter(t => t.name.toLowerCase().includes(techQuery.toLowerCase()) && !selectedTechIds.includes(t.id)).length === 0 && (
+                  {(!Array.isArray(allTechnologies) || allTechnologies.filter(t => t.name.toLowerCase().includes(techQuery.toLowerCase()) && !selectedTechIds.includes(t.id)).length === 0) && (
                     <p className="text-[10px] text-neutral-500 italic p-2 text-center">Nenhuma tecnologia encontrada.</p>
                   )}
                 </div>
