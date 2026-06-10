@@ -72,9 +72,14 @@ class ProfileCompletenessCalculator
         }
 
         // 8. Currículo PDF gerado com sucesso (+10%)
-        $pdfCache = Cache::get("pdf_resume_{$profile->id}");
-        if ($pdfCache && isset($pdfCache['status']) && $pdfCache['status'] === 'completed') {
+        $exports = (int) Cache::get("profile_pdf_exports_count_{$profile->id}", 0);
+        if ($exports > 0) {
             $percentage += 10;
+        } else {
+            $pdfCache = Cache::get("pdf_resume_{$profile->id}");
+            if ($pdfCache && isset($pdfCache['status']) && $pdfCache['status'] === 'completed') {
+                $percentage += 10;
+            }
         }
 
         return min(100, $percentage);

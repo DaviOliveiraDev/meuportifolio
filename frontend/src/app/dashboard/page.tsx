@@ -129,7 +129,11 @@ export default function DashboardPage() {
             projectsCount={projects.length}
             experiencesCount={experiences.length}
             educationsCount={educations.length}
-            hasPdfResume={profile?.profile_completeness ? profile.profile_completeness >= 80 : false}
+            hasPdfResume={
+              profile?.badges 
+                ? profile.badges.some((b: any) => b.name === 'Currículo Exportado' || b.icon_path === 'pdf') 
+                : false
+            }
           />
 
           {/* Quest Log (Jornada do Desenvolvedor) */}
@@ -138,7 +142,11 @@ export default function DashboardPage() {
             projectsCount={projects.length}
             experiencesCount={experiences.length}
             educationsCount={educations.length}
-            hasPdfResume={profile?.profile_completeness ? profile.profile_completeness >= 80 : false}
+            hasPdfResume={
+              profile?.badges 
+                ? profile.badges.some((b: any) => b.name === 'Currículo Exportado' || b.icon_path === 'pdf') 
+                : false
+            }
           />
 
           {/* OVR Breakdown (Radar Chart & Tips) */}
@@ -190,7 +198,11 @@ export default function DashboardPage() {
             projectsCount={projects.length}
             experiencesCount={experiences.length}
             educationsCount={educations.length}
-            hasPdfResume={profile?.profile_completeness ? profile.profile_completeness >= 80 : false}
+            hasPdfResume={
+              profile?.badges 
+                ? profile.badges.some((b: any) => b.name === 'Currículo Exportado' || b.icon_path === 'pdf') 
+                : false
+            }
             className="w-full"
           />
 
