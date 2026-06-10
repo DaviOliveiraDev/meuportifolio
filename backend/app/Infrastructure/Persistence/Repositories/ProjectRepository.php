@@ -10,12 +10,12 @@ class ProjectRepository implements ProjectRepositoryInterface
 {
     public function findById(string $id): ?Project
     {
-        return Project::with('images')->find($id);
+        return Project::with(['images', 'technologies'])->find($id);
     }
 
     public function allForProfile(string $profileId): Collection
     {
-        return Project::where('profile_id', $profileId)
+        return Project::with('technologies')->where('profile_id', $profileId)
             ->orderBy('order_weight')
             ->orderBy('created_at', 'desc')
             ->get();

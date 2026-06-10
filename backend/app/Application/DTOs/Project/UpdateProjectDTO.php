@@ -13,7 +13,8 @@ class UpdateProjectDTO
         public readonly ?string $repositoryUrl = null,
         public readonly ?string $demoUrl = null,
         public readonly bool $isFeatured = false,
-        public readonly int $orderWeight = 0
+        public readonly int $orderWeight = 0,
+        public readonly ?array $technologies = null
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -25,7 +26,8 @@ class UpdateProjectDTO
             repositoryUrl: $request->input('repository_url'),
             demoUrl: $request->input('demo_url'),
             isFeatured: $request->boolean('is_featured', false),
-            orderWeight: $request->integer('order_weight', 0)
+            orderWeight: $request->integer('order_weight', 0),
+            technologies: $request->input('technologies')
         );
     }
 

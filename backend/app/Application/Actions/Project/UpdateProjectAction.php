@@ -41,6 +41,16 @@ class UpdateProjectAction
             }
         }
 
-        return $this->projectRepository->update($projectId, $dto->toArray());
+        $updatedProject = $this->projectRepository->update($projectId, $dto->toArray());
+
+        if ($dto->technologies !== null) {
+            $updatedProject->technologies()->sync($dto->technologies);
+        }
+
+        if ($updatedProject->profile) {
+            \App\Jobs\UpdateDeveloperCardJob::dispatch($updatedProject->profile);
+        }
+
+        return $updatedProject;
     }
 }

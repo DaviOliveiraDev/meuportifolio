@@ -23,6 +23,7 @@ class CreateExperienceAction
         if ($experience->profile) {
             $xpManager = app(\App\Domain\Services\XpManagerService::class);
             $xpManager->awardXpForAction($experience->profile, 'add_experience');
+            \App\Jobs\UpdateDeveloperCardJob::dispatch($experience->profile);
         }
 
         return $experience;

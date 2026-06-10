@@ -27,6 +27,10 @@ class UpdateExperienceAction
             $updatedExperience->technologies()->sync($dto->technologies);
         }
 
+        if ($updatedExperience->profile) {
+            \App\Jobs\UpdateDeveloperCardJob::dispatch($updatedExperience->profile);
+        }
+
         return $updatedExperience;
     }
 }

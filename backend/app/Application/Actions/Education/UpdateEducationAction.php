@@ -27,6 +27,10 @@ class UpdateEducationAction
             $updatedEducation->technologies()->sync($dto->technologies);
         }
 
+        if ($updatedEducation->profile) {
+            \App\Jobs\UpdateDeveloperCardJob::dispatch($updatedEducation->profile);
+        }
+
         return $updatedEducation;
     }
 }

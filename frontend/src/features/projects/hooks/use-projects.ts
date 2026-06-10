@@ -11,6 +11,11 @@ export interface ProjectData {
   demo_url: string | null;
   is_featured: boolean;
   order_weight: number;
+  technologies?: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
 }
 
 export function useProjects() {

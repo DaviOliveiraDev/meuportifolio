@@ -35,9 +35,14 @@ class CreateProjectAction
 
         $project = $this->projectRepository->create($dto->toArray());
 
+        if ($dto->technologies !== null) {
+            $project->technologies()->sync($dto->technologies);
+        }
+
         if ($project->profile) {
             $xpManager = app(\App\Domain\Services\XpManagerService::class);
             $xpManager->awardXpForAction($project->profile, 'add_project');
+            \App\Jobs\UpdateDeveloperCardJob::dispatch($project->profile);
         }
 
         return $project;

@@ -31,6 +31,8 @@ class CreateProjectRequest extends FormRequest
             'demo_url' => ['nullable', 'url', 'max:2048'],
             'is_featured' => ['nullable', 'boolean'],
             'order_weight' => ['nullable', 'integer', 'min:0'],
+            'technologies' => ['nullable', 'array'],
+            'technologies.*' => ['exists:technologies,id'],
         ];
     }
 }

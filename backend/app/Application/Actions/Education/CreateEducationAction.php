@@ -23,6 +23,7 @@ class CreateEducationAction
         if ($education->profile) {
             $xpManager = app(\App\Domain\Services\XpManagerService::class);
             $xpManager->awardXpForAction($education->profile, 'add_education');
+            \App\Jobs\UpdateDeveloperCardJob::dispatch($education->profile);
         }
 
         return $education;
