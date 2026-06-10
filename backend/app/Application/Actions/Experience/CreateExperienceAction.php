@@ -16,6 +16,10 @@ class CreateExperienceAction
     {
         $experience = $this->experienceRepository->create($dto->toArray());
 
+        if ($dto->technologies !== null) {
+            $experience->technologies()->sync($dto->technologies);
+        }
+
         if ($experience->profile) {
             $xpManager = app(\App\Domain\Services\XpManagerService::class);
             $xpManager->awardXpForAction($experience->profile, 'add_experience');

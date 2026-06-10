@@ -27,7 +27,7 @@ class EducationController extends Controller
             return response()->json(['message' => 'Perfil profissional não inicializado.'], 404);
         }
 
-        $educations = $this->educationRepository->allForProfile($profile->id);
+        $educations = $this->educationRepository->allForProfile($profile->id)->load('technologies');
 
         return response()->json([
             'educations' => $educations,
@@ -47,7 +47,7 @@ class EducationController extends Controller
 
             return response()->json([
                 'message' => 'Formação acadêmica adicionada com sucesso.',
-                'education' => $education,
+                'education' => $education->load('technologies'),
             ], 201);
         } catch (DomainException $e) {
             return response()->json([
@@ -69,7 +69,7 @@ class EducationController extends Controller
         }
 
         return response()->json([
-            'education' => $education,
+            'education' => $education->load('technologies'),
         ]);
     }
 
@@ -91,7 +91,7 @@ class EducationController extends Controller
 
             return response()->json([
                 'message' => 'Formação acadêmica atualizada com sucesso.',
-                'education' => $updatedEducation,
+                'education' => $updatedEducation->load('technologies'),
             ]);
         } catch (DomainException $e) {
             $statusCode = $e->getCode() === 404 ? 404 : 422;

@@ -21,6 +21,12 @@ class UpdateExperienceAction
             throw new DomainException('Experiência não encontrada.', 404);
         }
 
-        return $this->experienceRepository->update($id, $dto->toArray());
+        $updatedExperience = $this->experienceRepository->update($id, $dto->toArray());
+
+        if ($dto->technologies !== null) {
+            $updatedExperience->technologies()->sync($dto->technologies);
+        }
+
+        return $updatedExperience;
     }
 }

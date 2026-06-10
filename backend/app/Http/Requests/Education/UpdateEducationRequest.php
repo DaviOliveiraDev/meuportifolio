@@ -19,6 +19,8 @@ class UpdateEducationRequest extends FormRequest
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'is_current' => ['required', 'boolean'],
+            'technologies' => ['nullable', 'array'],
+            'technologies.*' => ['exists:technologies,id'],
         ];
     }
 }

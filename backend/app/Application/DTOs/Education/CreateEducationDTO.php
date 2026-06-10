@@ -12,7 +12,8 @@ class CreateEducationDTO
         public readonly string $course,
         public readonly string $startDate,
         public readonly ?string $endDate = null,
-        public readonly bool $isCurrent = false
+        public readonly bool $isCurrent = false,
+        public readonly ?array $technologies = null
     ) {}
 
     public static function fromRequest(Request $request, string $profileId): self
@@ -23,7 +24,8 @@ class CreateEducationDTO
             course: $request->input('course'),
             startDate: $request->input('start_date'),
             endDate: $request->input('end_date'),
-            isCurrent: $request->boolean('is_current', false)
+            isCurrent: $request->boolean('is_current', false),
+            technologies: $request->input('technologies')
         );
     }
 

@@ -16,6 +16,10 @@ class CreateEducationAction
     {
         $education = $this->educationRepository->create($dto->toArray());
 
+        if ($dto->technologies !== null) {
+            $education->technologies()->sync($dto->technologies);
+        }
+
         if ($education->profile) {
             $xpManager = app(\App\Domain\Services\XpManagerService::class);
             $xpManager->awardXpForAction($education->profile, 'add_education');

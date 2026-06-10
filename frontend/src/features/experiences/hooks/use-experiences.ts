@@ -10,6 +10,11 @@ export interface ExperienceData {
   end_date: string | null;
   is_current: boolean;
   description: string | null;
+  technologies?: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
 }
 
 export function useExperiences() {

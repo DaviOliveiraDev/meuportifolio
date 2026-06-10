@@ -4,7 +4,7 @@ import { useExperiences, ExperienceData } from '@/features/experiences/hooks/use
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as zod from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { 
   Briefcase, 
@@ -13,7 +13,8 @@ import {
   Trash2, 
   Calendar, 
   Loader2, 
-  Building2 
+  Building2,
+  Code
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +30,7 @@ import {
   DialogHeader, 
   DialogTitle 
 } from '@/components/ui/dialog';
+import { apiClient } from '@/lib/api-client';
 
 const experienceSchema = zod.object({
   company: zod.string().min(1, 'A empresa é obrigatória.').max(255),
@@ -37,6 +39,7 @@ const experienceSchema = zod.object({
   end_date: zod.string().nullable().optional(),
   is_current: zod.boolean(),
   description: zod.string().max(2000).nullable().optional(),
+  technologies: zod.array(zod.string()).default([]),
 });
 
 type ExperienceFormValues = zod.infer<typeof experienceSchema>;
@@ -46,6 +49,10 @@ export default function ExperiencesPage() {
   
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingExperience, setEditingExperience] = useState<ExperienceData | null>(null);
+  
+  // Catálogo de tecnologias e busca interna do formulário
+  const [allTechnologies, setAllTechnologies] = useState<any[]>([]);
+  const [techQuery, setTechQuery] = useState('');
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<ExperienceFormValues>({
     resolver: zodResolver(experienceSchema),
@@ -56,13 +63,29 @@ export default function ExperiencesPage() {
       end_date: '',
       is_current: false,
       description: '',
+      technologies: [],
     }
   });
 
   const isCurrentValue = watch('is_current');
+  const selectedTechIds = watch('technologies') || [];
+
+  // Carrega catálogo de tecnologias no mount
+  useEffect(() => {
+    const loadTechnologies = async () => {
+      try {
+        const response = await apiClient.get('/technologies');
+        setAllTechnologies(response.data || []);
+      } catch (err) {
+        console.error('Erro ao carregar catálogo de tecnologias:', err);
+      }
+    };
+    loadTechnologies();
+  }, []);
 
   const openAddDialog = () => {
     setEditingExperience(null);
+    setTechQuery('');
     reset({
       company: '',
       role: '',
@@ -70,19 +93,22 @@ export default function ExperiencesPage() {
       end_date: '',
       is_current: false,
       description: '',
+      technologies: [],
     });
     setDialogOpen(true);
   };
 
   const openEditDialog = (exp: ExperienceData) => {
     setEditingExperience(exp);
+    setTechQuery('');
     reset({
       company: exp.company,
       role: exp.role,
-      start_date: exp.start_date,
-      end_date: exp.end_date || '',
+      start_date: exp.start_date ? new Date(exp.start_date).toISOString().split('T')[0] : '',
+      end_date: exp.end_date ? new Date(exp.end_date).toISOString().split('T')[0] : '',
       is_current: exp.is_current,
       description: exp.description || '',
+      technologies: exp.technologies ? exp.technologies.map((t: any) => t.id) : [],
     });
     setDialogOpen(true);
   };
@@ -93,7 +119,7 @@ export default function ExperiencesPage() {
         ...values,
         end_date: values.is_current ? null : (values.end_date || null),
         description: values.description || null,
-      } as Omit<ExperienceData, 'id' | 'profile_id'>;
+      } as any;
 
       if (editingExperience) {
         await updateExperience({ id: editingExperience.id, data: payload });
@@ -139,7 +165,7 @@ export default function ExperiencesPage() {
       <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-850">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Experiências Profissionais</h1>
-          <p className="text-sm text-neutral-500">Organize sua trajetória profissional cronologicamente.</p>
+          <p className="text-sm text-neutral-550">Organize sua trajetória profissional e as tecnologias utilizadas.</p>
         </div>
         <Button
           onClick={openAddDialog}
@@ -203,9 +229,21 @@ export default function ExperiencesPage() {
                   </div>
                 </div>
               </CardHeader>
-              {exp.description && (
-                <CardContent className="pt-0 border-t border-neutral-100 dark:border-neutral-850/50 mt-3 py-4">
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-pre-line leading-relaxed">{exp.description}</p>
+              
+              {(exp.description || (exp.technologies && exp.technologies.length > 0)) && (
+                <CardContent className="pt-0 border-t border-neutral-100 dark:border-neutral-850/50 mt-3 py-4 flex flex-col gap-3">
+                  {exp.description && (
+                    <p className="text-sm text-neutral-600 dark:text-neutral-400 whitespace-pre-line leading-relaxed">{exp.description}</p>
+                  )}
+                  {exp.technologies && exp.technologies.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {exp.technologies.map((tech: any) => (
+                        <span key={tech.id} className="inline-flex items-center px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-850 text-neutral-600 dark:text-neutral-450 text-[10px] font-mono border border-neutral-250 dark:border-neutral-800">
+                          {tech.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               )}
             </Card>
@@ -218,7 +256,7 @@ export default function ExperiencesPage() {
         <DialogContent className="bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-850 text-neutral-850 dark:text-neutral-200 max-w-lg overflow-y-auto max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="text-neutral-900 dark:text-neutral-100">{editingExperience ? 'Editar Experiência' : 'Adicionar Experiência'}</DialogTitle>
-            <DialogDescription className="text-neutral-500 dark:text-neutral-450">Insira as informações do cargo ocupado.</DialogDescription>
+            <DialogDescription className="text-neutral-500 dark:text-neutral-450">Insira as informações do cargo ocupado e tecnologias associadas.</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
@@ -287,7 +325,7 @@ export default function ExperiencesPage() {
             <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50 border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-850">
               <div className="space-y-0.5">
                 <Label htmlFor="is_current" className="text-xs font-semibold text-neutral-800 dark:text-neutral-300">Trabalho Atual</Label>
-                <p className="text-[10px] text-neutral-500">Marque se você está trabalhando nesta empresa atualmente.</p>
+                <p className="text-[10px] text-neutral-550">Marque se você está trabalhando nesta empresa atualmente.</p>
               </div>
               <Switch
                 id="is_current"
@@ -299,6 +337,78 @@ export default function ExperiencesPage() {
                   }
                 }}
               />
+            </div>
+
+            {/* Seleção de Tecnologias */}
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Tecnologias Utilizadas (Opcional)</Label>
+              
+              {/* Selected tech tags */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {selectedTechIds.map((id: string) => {
+                  const tech = allTechnologies.find(t => t.id === id);
+                  if (!tech) return null;
+                  return (
+                    <span 
+                      key={id} 
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-violet-500/10 text-violet-650 border border-violet-500/20 dark:text-violet-400 dark:bg-violet-500/10"
+                    >
+                      {tech.name}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = selectedTechIds.filter((tId: string) => tId !== id);
+                          setValue('technologies', updated);
+                        }}
+                        className="hover:text-red-500 focus:outline-none ml-1 font-bold text-[10px] cursor-pointer"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  );
+                })}
+                {selectedTechIds.length === 0 && (
+                  <p className="text-[11px] text-neutral-500 italic mt-0.5 leading-tight">
+                    Nenhuma tecnologia selecionada.
+                  </p>
+                )}
+              </div>
+
+              {/* Input de Busca */}
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="Pesquise tecnologias para adicionar (ex: PHP, React, Docker)..."
+                  value={techQuery}
+                  onChange={(e) => setTechQuery(e.target.value)}
+                  className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
+                />
+              </div>
+
+              {/* Lista filtrada de correspondências */}
+              {techQuery.trim().length > 0 && (
+                <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg max-h-36 overflow-y-auto bg-white dark:bg-neutral-950 p-1 divide-y divide-neutral-100 dark:divide-neutral-850 shadow-sm relative z-50">
+                  {allTechnologies
+                    .filter(t => t.name.toLowerCase().includes(techQuery.toLowerCase()) && !selectedTechIds.includes(t.id))
+                    .slice(0, 10)
+                    .map((tech) => (
+                      <button
+                        key={tech.id}
+                        type="button"
+                        onClick={() => {
+                          setValue('technologies', [...selectedTechIds, tech.id]);
+                          setTechQuery('');
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-violet-500/5 hover:text-violet-500 dark:hover:bg-violet-500/10 dark:hover:text-violet-400 font-semibold transition-colors cursor-pointer"
+                      >
+                        + {tech.name} <span className="text-[10px] text-neutral-450 ml-1 font-medium">({tech.category?.name})</span>
+                      </button>
+                    ))}
+                  {allTechnologies.filter(t => t.name.toLowerCase().includes(techQuery.toLowerCase()) && !selectedTechIds.includes(t.id)).length === 0 && (
+                    <p className="text-[10px] text-neutral-500 italic p-2 text-center">Nenhuma tecnologia encontrada.</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Descrição */}

@@ -20,6 +20,8 @@ class UpdateExperienceRequest extends FormRequest
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'is_current' => ['required', 'boolean'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'technologies' => ['nullable', 'array'],
+            'technologies.*' => ['exists:technologies,id'],
         ];
     }
 }

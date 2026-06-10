@@ -27,7 +27,7 @@ class ExperienceController extends Controller
             return response()->json(['message' => 'Perfil profissional não inicializado.'], 404);
         }
 
-        $experiences = $this->experienceRepository->allForProfile($profile->id);
+        $experiences = $this->experienceRepository->allForProfile($profile->id)->load('technologies');
 
         return response()->json([
             'experiences' => $experiences,
@@ -47,7 +47,7 @@ class ExperienceController extends Controller
 
             return response()->json([
                 'message' => 'Experiência profissional adicionada com sucesso.',
-                'experience' => $experience,
+                'experience' => $experience->load('technologies'),
             ], 201);
         } catch (DomainException $e) {
             return response()->json([
@@ -69,7 +69,7 @@ class ExperienceController extends Controller
         }
 
         return response()->json([
-            'experience' => $experience,
+            'experience' => $experience->load('technologies'),
         ]);
     }
 
@@ -91,7 +91,7 @@ class ExperienceController extends Controller
 
             return response()->json([
                 'message' => 'Experiência profissional atualizada com sucesso.',
-                'experience' => $updatedExperience,
+                'experience' => $updatedExperience->load('technologies'),
             ]);
         } catch (DomainException $e) {
             $statusCode = $e->getCode() === 404 ? 404 : 422;

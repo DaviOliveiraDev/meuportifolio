@@ -13,7 +13,8 @@ class CreateExperienceDTO
         public readonly string $startDate,
         public readonly ?string $endDate = null,
         public readonly bool $isCurrent = false,
-        public readonly ?string $description = null
+        public readonly ?string $description = null,
+        public readonly ?array $technologies = null
     ) {}
 
     public static function fromRequest(Request $request, string $profileId): self
@@ -25,7 +26,8 @@ class CreateExperienceDTO
             startDate: $request->input('start_date'),
             endDate: $request->input('end_date'),
             isCurrent: $request->boolean('is_current', false),
-            description: $request->input('description')
+            description: $request->input('description'),
+            technologies: $request->input('technologies')
         );
     }
 
