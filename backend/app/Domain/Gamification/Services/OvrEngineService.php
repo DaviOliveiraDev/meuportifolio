@@ -36,36 +36,21 @@ class OvrEngineService
         $completeness = $this->completenessCalculator->calculate($profile);
         $profile->profile_completeness = $completeness;
 
-        // 2. Busca configuração de pesos ativa do banco ou usa padrões
-        $config = ScoringConfig::where('is_active', true)->first();
-        $weights = $config?->weights ?? $this->getDefaultWeights();
-
-        // 3. Calcula sub-scores legado
-        $expScore = $this->calculateExperienceScore($profile, $stats);
+        // 2. Calcula sub-scores do OVR 2.0
+        $techDnaScore = $this->calculateTechDnaScore($profile);
         $projScore = $this->calculateProjectsScore($profile, $stats);
-        $skillBadgeScore = $this->calculateSkillsBadgesScore($profile, $stats);
-        $githubScore = $this->calculateLegacyGithubScore($profile, $stats);
-        $eduScore = $this->calculateLegacyEducationScore($profile, $stats);
-        $completeScore = $completeness;
+        $githubScore = $this->calculateOpenSourceScore($profile, $stats);
+        $eduScore = $this->calculateEducationScore($profile, $stats);
+        $commScore = $this->calculateCommunityScore($profile, $stats);
 
-        // 4. Calcula OVR final ponderado (conforme configurações do banco e testes legados)
-        $weightedSum = 
-            ($expScore * ($weights['experience'] ?? 30)) +
-            ($projScore * ($weights['projects'] ?? 25)) +
-            ($skillBadgeScore * ($weights['skills_badges'] ?? 15)) +
-            ($githubScore * ($weights['github'] ?? 15)) +
-            ($eduScore * ($weights['education'] ?? 10)) +
-            ($completeScore * ($weights['completeness'] ?? 5));
-
-        $totalWeight = 
-            ($weights['experience'] ?? 30) +
-            ($weights['projects'] ?? 25) +
-            ($weights['skills_badges'] ?? 15) +
-            ($weights['github'] ?? 15) +
-            ($weights['education'] ?? 10) +
-            ($weights['completeness'] ?? 5);
-
-        $ovr = $totalWeight > 0 ? (int) round($weightedSum / $totalWeight) : 1;
+        // 3. OVR 2.0 Ponderado: Tech DNA (35%), Projects (25%), GitHub (20%), Education (15%), Community (5%)
+        $ovr = (int) round(
+            ($techDnaScore * 0.35) +
+            ($projScore * 0.25) +
+            ($githubScore * 0.20) +
+            ($eduScore * 0.15) +
+            ($commScore * 0.05)
+        );
 
         // Garante que o OVR fica entre 1 e 99 (estilo FIFA/TCG)
         $ovr = max(1, min(99, $ovr));
@@ -407,5 +392,32 @@ class OvrEngineService
     {
         $educationsCount = $profile->educations()->count();
         return (int) min(100, $educationsCount * 50);
+    }
+
+    /**
+     * Calcula o score de Tech DNA (média harmônica dos top 3 scores de tecnologia).
+     */
+    public function calculateTechDnaScore(Profile $profile): int
+    {
+        $topScores = \Illuminate\Support\Facades\DB::table('technology_scores')
+            ->where('profile_id', $profile->id)
+            ->orderBy('score', 'desc')
+            ->limit(3)
+            ->pluck('score')
+            ->toArray();
+
+        $validScores = array_filter($topScores, fn($s) => $s > 0);
+        $n = count($validScores);
+
+        if ($n === 0) {
+            return 0;
+        }
+
+        $sumReciprocals = 0;
+        foreach ($validScores as $score) {
+            $sumReciprocals += 1.0 / $score;
+        }
+
+        return (int) round($n / $sumReciprocals);
     }
 }
