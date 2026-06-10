@@ -46,6 +46,8 @@ export type ProfileType = {
   level?: number;
   profile_completeness?: number;
   badges?: BadgeType[];
+  titles?: Array<{ name: string; pivot?: { is_equipped: boolean } }>;
+  cosmetics?: Array<{ name: string; type: string; value: string; pivot?: { is_equipped: boolean } }>;
   custom_styles?: {
     border_theme?: 'default' | 'neon' | 'holographic' | 'cosmic';
     foil_effect?: 'none' | 'chrome' | 'gold' | 'diamond';
@@ -103,6 +105,14 @@ export default function DeveloperCard({
   const foilEffect = customStyles.foil_effect || 'none';
   const pinnedBadgeIds = customStyles.pinned_badges || [];
 
+  // Títulos e Cosméticos Equipados via Relacionamento
+  const equippedTitleObj = profile.titles?.find((t: any) => t.pivot?.is_equipped);
+  const equippedTitle = equippedTitleObj ? equippedTitleObj.name : null;
+
+  const equippedBorder = profile.cosmetics?.find((c: any) => c.type === 'border' && c.pivot?.is_equipped)?.value;
+  const equippedBg = profile.cosmetics?.find((c: any) => c.type === 'background' && c.pivot?.is_equipped)?.value;
+  const equippedEffect = profile.cosmetics?.find((c: any) => c.type === 'effect' && c.pivot?.is_equipped)?.value;
+
   // Pega as medalhas fixadas ou as primeiras 3 desbloqueadas por padrão
   const pinnedBadges = badges.filter(b => pinnedBadgeIds.includes(b.id)).slice(0, 3);
   const displayBadges = pinnedBadges.length > 0 ? pinnedBadges : badges.slice(0, 3);
@@ -146,8 +156,20 @@ export default function DeveloperCard({
     y.set(0);
   };
 
-  // Determina as cores de borda/gradient baseadas nas escolhas do customizer
+  // Determina as cores de borda/gradient baseadas nas escolhas do customizer ou cosmético equipado
   const getCardBorderClass = () => {
+    if (equippedBorder) {
+      switch (equippedBorder) {
+        case 'border-amber-800': return 'from-[#78350f] to-[#b45309]';
+        case 'border-slate-400': return 'from-[#64748b] to-[#cbd5e1]';
+        case 'border-yellow-500': return 'from-[#eab308] via-[#f59e0b] to-[#d97706]';
+        case 'border-sky-500': return 'from-[#0ea5e9] via-[#3b82f6] to-[#6366f1]';
+        case 'border-purple-600': return 'from-[#7c3aed] via-[#a855f7] to-[#ec4899]';
+        case 'border-neon-cyber': return 'from-[#06b6d4] via-[#ec4899] via-[#a855f7] to-[#06b6d4] animate-pulse';
+        default: return equippedBorder;
+      }
+    }
+
     switch (borderTheme) {
       case 'neon':
         return 'from-[#06b6d4] via-[#ec4899] to-[#a855f7]';
@@ -158,6 +180,35 @@ export default function DeveloperCard({
       default:
         return tier.color; // Padrão baseado no OVR
     }
+  };
+
+  // Determina o fundo recortado baseado no cosmético equipado
+  const getCardBgClass = () => {
+    if (equippedBg) {
+      switch (equippedBg) {
+        case 'bg-nebula':
+          return 'bg-gradient-to-br from-[#0c0a24] via-[#1c0d3a] to-black';
+        case 'bg-cyber-city':
+          return 'bg-gradient-to-br from-slate-950 via-[#1e0735] to-black';
+        case 'bg-matrix-core':
+          return 'bg-gradient-to-b from-[#010903] via-[#041d08] to-[#010702]';
+        case 'bg-dark-matter':
+          return 'bg-gradient-to-br from-neutral-950 via-[#0d0d0f] to-neutral-950';
+        case 'bg-space-station':
+          return 'bg-gradient-to-br from-[#0b0f19] via-[#0d1627] to-black';
+        case 'bg-terminal-hacker':
+          return 'bg-black border border-emerald-900/10';
+        case 'bg-aurora':
+          return 'bg-gradient-to-br from-[#031c15] via-[#0c223a] to-[#12082b]';
+        case 'bg-volcanic':
+          return 'bg-gradient-to-br from-[#270c0c] via-[#241503] to-neutral-950';
+        case 'bg-quantum':
+          return 'bg-gradient-to-br from-[#031d24] via-[#1a0f30] to-black';
+        default:
+          return equippedBg;
+      }
+    }
+    return tier.bg;
   };
 
   // Efeitos holográficos adicionais (Foil)
@@ -189,6 +240,199 @@ export default function DeveloperCard({
     );
   };
 
+  // Efeitos visuais adicionais (Glow/Particles/Lightning/Flame)
+  const renderCardEffect = () => {
+    if (!equippedEffect) return null;
+
+    switch (equippedEffect) {
+      case 'effect-glow':
+        return (
+          <div className="absolute inset-0 rounded-[22px] pointer-events-none z-30 ring-2 ring-violet-500/40 animate-pulse shadow-[0_0_30px_rgba(139,92,246,0.35)]" />
+        );
+      case 'effect-particles':
+        return (
+          <div className="absolute inset-0 rounded-[22px] pointer-events-none overflow-hidden z-25 opacity-40">
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 rounded-full bg-white"
+                initial={{ x: Math.random() * 260 + 30, y: 440, scale: Math.random() * 0.8 + 0.4 }}
+                animate={{ y: -20, opacity: [0, 1, 1, 0] }}
+                transition={{ duration: Math.random() * 3 + 2, repeat: Infinity, delay: i * 0.5, ease: "linear" }}
+              />
+            ))}
+          </div>
+        );
+      case 'effect-lightning':
+        return (
+          <div className="absolute inset-0 rounded-[22px] pointer-events-none overflow-hidden z-25 opacity-25 bg-gradient-to-t from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 mix-blend-color-dodge animate-pulse" />
+        );
+      case 'effect-floating-code':
+        const codeChars = ['{ }', '< />', '=>', '01', 'git', 'JS', 'PHP'];
+        return (
+          <div className="absolute inset-0 rounded-[22px] pointer-events-none overflow-hidden z-25 opacity-20 font-mono text-[9px] text-emerald-400 select-none">
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute"
+                initial={{ x: Math.random() * 260 + 30, y: 440 }}
+                animate={{ y: -20, opacity: [0, 0.8, 0.8, 0] }}
+                transition={{ duration: Math.random() * 4 + 3, repeat: Infinity, delay: i * 0.7, ease: "linear" }}
+              >
+                {codeChars[i % codeChars.length]}
+              </motion.div>
+            ))}
+          </div>
+        );
+      case 'effect-hologram':
+        return (
+          <div className="absolute inset-0 rounded-[22px] pointer-events-none overflow-hidden z-25 opacity-30 mix-blend-overlay bg-gradient-to-b from-indigo-500/10 via-cyan-500/20 to-pink-500/10 animate-pulse" />
+        );
+      case 'effect-fire-aura':
+        return (
+          <div className="absolute inset-0 rounded-[22px] pointer-events-none overflow-hidden z-25 opacity-40">
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1.5 h-1.5 rounded-full bg-amber-500"
+                initial={{ x: Math.random() * 260 + 30, y: 440, scale: Math.random() * 1.2 + 0.4 }}
+                animate={{ y: -20, opacity: [0, 1, 1, 0], scale: [1, 1.5, 0.5] }}
+                transition={{ duration: Math.random() * 2.5 + 1.5, repeat: Infinity, delay: i * 0.4, ease: "linear" }}
+              />
+            ))}
+          </div>
+        );
+      case 'effect-ice-aura':
+        return (
+          <div className="absolute inset-0 rounded-[22px] pointer-events-none overflow-hidden z-25 opacity-40">
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1.5 h-1.5 rounded-sm rotate-45 bg-cyan-200"
+                initial={{ x: Math.random() * 260 + 30, y: -10, scale: Math.random() * 0.8 + 0.4 }}
+                animate={{ y: 470, opacity: [0, 1, 1, 0] }}
+                transition={{ duration: Math.random() * 4 + 2, repeat: Infinity, delay: i * 0.6, ease: "linear" }}
+              />
+            ))}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  // Efeito extra para terminal CRT hacker
+  const renderThemeOverlay = () => {
+    if (equippedBg === 'bg-terminal-hacker') {
+      return (
+        <div className="absolute inset-0 pointer-events-none z-20 opacity-15 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%)] bg-[size:100%_4px]" />
+      );
+    }
+    return null;
+  };
+
+  // Calcula a pontuação detalhada dos 7 Atributos técnicos do portfólio
+  const getAttributes = () => {
+    const stats = (profile as any).stats;
+    const skills = (profile as any).skills || [];
+    const projectsList = projects.length > 0 ? projects : (profile as any).projects || [];
+    const expList = experiences.length > 0 ? experiences : (profile as any).experiences || [];
+    const eduList = educations.length > 0 ? educations : (profile as any).educations || [];
+
+    // Mapeamento de Skills
+    const bckSkillNames = ['PHP', 'Laravel', 'Node.js', 'Go', 'Python', 'Ruby', 'C#', 'Java', 'NestJS', 'Express', 'SQL'];
+    const frtSkillNames = ['React', 'Next.js', 'TypeScript', 'JavaScript', 'TailwindCSS', 'CSS', 'HTML', 'Vue', 'Angular', 'Svelte'];
+    const datSkillNames = ['Docker', 'AWS', 'Cloudflare', 'GitHub Actions', 'Nginx', 'PostgreSQL', 'Redis', 'MySQL', 'MongoDB', 'CI/CD', 'Kubernetes'];
+
+    const bckSkills = skills.filter((s: any) => bckSkillNames.includes(s.name));
+    const frtSkills = skills.filter((s: any) => frtSkillNames.includes(s.name));
+    const datSkills = skills.filter((s: any) => datSkillNames.includes(s.name));
+
+    // BCK Score
+    const bckBase = bckSkills.length === 0 ? 10 : bckSkills.reduce((acc: number, curr: any) => acc + (curr.pivot?.proficiency_level ?? curr.proficiency_level ?? 0), 0) / bckSkills.length;
+    let bckProjCount = 0;
+    projectsList.forEach((p: any) => {
+      const match = bckSkillNames.some(term => 
+        (p.title && p.title.toLowerCase().includes(term.toLowerCase())) || 
+        (p.description && p.description.toLowerCase().includes(term.toLowerCase()))
+      );
+      if (match) bckProjCount++;
+    });
+    const bckScore = Math.min(100, Math.round(bckBase + Math.min(30, bckProjCount * 5)));
+
+    // FRT Score
+    const frtBase = frtSkills.length === 0 ? 10 : frtSkills.reduce((acc: number, curr: any) => acc + (curr.pivot?.proficiency_level ?? curr.proficiency_level ?? 0), 0) / frtSkills.length;
+    let frtProjCount = 0;
+    projectsList.forEach((p: any) => {
+      const match = frtSkillNames.some(term => 
+        (p.title && p.title.toLowerCase().includes(term.toLowerCase())) || 
+        (p.description && p.description.toLowerCase().includes(term.toLowerCase()))
+      );
+      if (match) frtProjCount++;
+    });
+    const frtScore = Math.min(100, Math.round(frtBase + Math.min(30, frtProjCount * 5)));
+
+    // DAT Score
+    const datBase = datSkills.length === 0 ? 10 : datSkills.reduce((acc: number, curr: any) => acc + (curr.pivot?.proficiency_level ?? curr.proficiency_level ?? 0), 0) / datSkills.length;
+    let dockerCount = 0;
+    projectsList.forEach((p: any) => {
+      const desc = (p.description || '').toLowerCase();
+      if (desc.includes('docker') || desc.includes('k8s') || desc.includes('kubernetes')) {
+        dockerCount++;
+      }
+    });
+    const datBonus = Math.min(15, dockerCount * 5) + (profile.github_url ? 15 : 0);
+    const datScore = Math.min(100, Math.round(datBase + datBonus));
+
+    // OSS Score (Open Source / GitHub activity)
+    let ossScore = 0;
+    if (profile.github_url) {
+      const commits = stats?.github_commits || 0;
+      const repos = stats?.github_repositories || 0;
+      const stars = stats?.github_stars || 0;
+      ossScore = Math.min(100, 20 + Math.min(40, Math.floor(commits / 10)) + Math.min(20, repos * 5) + Math.min(20, stars * 2));
+      if (ossScore === 20) {
+        const ghProjects = projectsList.filter((p: any) => p.repository_url && p.repository_url.includes('github.com')).length;
+        ossScore = Math.min(100, 25 + (ghProjects * 15));
+      }
+    } else {
+      ossScore = Math.min(100, projectsList.filter((p: any) => p.repository_url).length * 10);
+    }
+
+    // COM Score (Community / Views)
+    const views = stats?.profile_views || 0;
+    const shares = stats?.profile_shares || 0;
+    const points = stats?.community_points || 0;
+    let comScore = Math.min(100, 10 + Math.min(40, Math.floor(views / 15)) + Math.min(30, shares * 10) + Math.min(20, points));
+    if (comScore === 10) {
+      comScore = Math.round((profile.profile_completeness || 0) * 0.8 + 20);
+    }
+
+    // EXP Score
+    let totalMonths = 0;
+    expList.forEach((exp: any) => {
+      const start = new Date(exp.start_date);
+      const end = exp.is_current || !exp.end_date ? new Date() : new Date(exp.end_date);
+      const diff = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      totalMonths += Math.max(1, diff);
+    });
+    const expScore = Math.min(100, Math.round((totalMonths / 60) * 100));
+
+    // EDU Score
+    const eduScore = Math.min(100, eduList.length * 40);
+
+    return {
+      bck: bckScore,
+      frt: frtScore,
+      dat: datScore,
+      oss: ossScore,
+      com: comScore,
+      exp: expScore,
+      edu: eduScore
+    };
+  };
+
+  const attrs = getAttributes();
   const borderGradientClass = getCardBorderClass();
 
   // Path da moldura em formato de escudo/crest (estilo FUT) - viewBox 320x460
@@ -251,13 +495,15 @@ export default function DeveloperCard({
           >
             {/* Fundo recortado em escudo */}
             <div
-              className={`absolute inset-0 ${tier.bg} overflow-hidden text-white`}
+              className={`absolute inset-0 ${getCardBgClass()} overflow-hidden text-white`}
               style={{ clipPath: `url(#${clipId})`, WebkitClipPath: `url(#${clipId})` }}
             >
               {/* Aurora de fundo */}
               <div className={`absolute top-6 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-gradient-to-br ${borderGradientClass} blur-[55px] opacity-40 pointer-events-none`} />
               <div className="absolute bottom-0 left-[-30px] w-40 h-40 rounded-full bg-indigo-500/15 blur-[45px] pointer-events-none" />
               {renderFoilSheen()}
+              {renderCardEffect()}
+              {renderThemeOverlay()}
               <motion.div
                 className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-25 mix-blend-overlay transition-opacity duration-300 z-20"
                 style={{
@@ -332,41 +578,54 @@ export default function DeveloperCard({
                 </div>
               </div>
 
-              {/* Nome & cargo */}
-              <h3 className="shrink-0 text-2xl font-black tracking-tight text-white max-w-full text-center drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] leading-tight px-2 truncate">
-                {profile.name}
-              </h3>
-              <p className="shrink-0 text-sm font-medium tracking-wide mt-0.5 text-white/70 text-center">
-                {profile.role || "Developer"}
-              </p>
+              {/* Nome, Título Equipado & Cargo */}
+              <div className="shrink-0 flex flex-col items-center max-w-full text-center">
+                <h3 className="text-2xl font-black tracking-tight text-white max-w-full truncate drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] leading-tight px-2">
+                  {profile.name}
+                </h3>
+                {equippedTitle && (
+                  <span className="text-[8px] font-black tracking-[0.18em] text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full uppercase mt-1 shadow-[0_0_10px_rgba(245,158,11,0.15)] animate-pulse">
+                    ★ {equippedTitle} ★
+                  </span>
+                )}
+                <p className="text-xs font-semibold tracking-wide mt-1 text-white/60">
+                  {profile.role || "Developer"}
+                </p>
+              </div>
 
               {/* Divider */}
-              <div className="shrink-0 w-[78%] h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent mt-3 mb-3" />
+              <div className="shrink-0 w-[78%] h-[1px] bg-gradient-to-r from-transparent via-white/25 to-transparent mt-3 mb-2.5" />
 
-              {/* 4 STATS HORIZONTAIS */}
-              <div className="shrink-0 flex items-stretch justify-center w-[82%] mb-3">
-                {[
-                  { label: "EXP", value: breakdown.experience },
-                  { label: "PRJ", value: breakdown.projects },
-                  { label: "GIT", value: breakdown.github },
-                  { label: "COM", value: breakdown.completeness },
-                ].map((stat, i) => (
-                  <React.Fragment key={stat.label}>
-                    {i > 0 && <div className="w-[1px] bg-white/15 self-stretch my-0.5" />}
-                    <div className="flex-1 flex flex-col items-center px-1.5">
-                      <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">{stat.label}</span>
-                      <span className="text-xl font-black text-white font-mono leading-tight mt-0.5">{stat.value}</span>
-                      <div className="mt-1 w-full h-[3px] rounded-full bg-white/10 overflow-hidden">
-                        <motion.div
-                          className={`h-full rounded-full bg-gradient-to-r ${borderGradientClass}`}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(100, stat.value)}%` }}
-                          transition={{ duration: 0.9, ease: "easeOut", delay: 0.15 + i * 0.1 }}
-                        />
-                      </div>
-                    </div>
-                  </React.Fragment>
-                ))}
+              {/* GRID DOS 7 ATRIBUTOS TÉCNICOS (TCG STYLE) */}
+              <div className="shrink-0 grid grid-cols-2 gap-x-4 gap-y-1 w-[82%] bg-black/35 backdrop-blur-xs border border-white/5 rounded-xl p-2 mb-2 text-[10px] font-mono select-none">
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-white/40 font-bold tracking-wider">BCK</span>
+                  <span className="font-extrabold text-white">{attrs.bck}</span>
+                </div>
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-white/40 font-bold tracking-wider">EXP</span>
+                  <span className="font-extrabold text-white">{attrs.exp}</span>
+                </div>
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-white/40 font-bold tracking-wider">FRT</span>
+                  <span className="font-extrabold text-white">{attrs.frt}</span>
+                </div>
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-white/40 font-bold tracking-wider">EDU</span>
+                  <span className="font-extrabold text-white">{attrs.edu}</span>
+                </div>
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-white/40 font-bold tracking-wider">DAT</span>
+                  <span className="font-extrabold text-white">{attrs.dat}</span>
+                </div>
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-white/40 font-bold tracking-wider">COM</span>
+                  <span className="font-extrabold text-white">{attrs.com}</span>
+                </div>
+                <div className="flex justify-between items-center col-span-2 border-t border-white/5 pt-1 mt-0.5 px-1">
+                  <span className="text-white/40 font-bold tracking-wider">OSS (OPEN SOURCE)</span>
+                  <span className="font-extrabold text-cyan-400">{attrs.oss}</span>
+                </div>
               </div>
 
               {/* SLOTS DE MEDALHAS */}
@@ -404,10 +663,12 @@ export default function DeveloperCard({
           >
             {/* Fundo recortado em escudo */}
             <div
-              className={`absolute inset-0 ${tier.bg}`}
+              className={`absolute inset-0 ${getCardBgClass()}`}
               style={{ clipPath: `url(#${clipId})`, WebkitClipPath: `url(#${clipId})` }}
             >
               <div className="absolute top-[-40px] left-[-40px] w-40 h-40 rounded-full bg-gradient-to-br from-violet-600/10 to-indigo-600/10 blur-[50px]" />
+              {renderCardEffect()}
+              {renderThemeOverlay()}
             </div>
 
             {/* Moldura neon do escudo */}
@@ -428,7 +689,7 @@ export default function DeveloperCard({
             </div>
 
             {/* Verso Stats */}
-            <div className="flex-1 flex flex-col justify-start gap-3 py-3 z-10 overflow-hidden">
+            <div className="flex-1 flex flex-col justify-start gap-2.5 py-3 z-10 overflow-hidden">
               {/* Progresso do nível */}
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] font-semibold text-neutral-300">
@@ -440,20 +701,21 @@ export default function DeveloperCard({
                 </div>
               </div>
 
-              {/* Breakdown completo do OVR */}
-              <div className="border-t border-white/5 pt-2.5">
-                <span className="text-[8px] uppercase font-black text-neutral-500 tracking-widest block mb-1.5">Composição do OVR</span>
-                <div className="flex flex-col gap-1.5">
+              {/* DETALHAMENTO DE ATRIBUTOS (7 BAR GRAPHS) */}
+              <div className="border-t border-white/5 pt-2">
+                <span className="text-[8px] uppercase font-black text-neutral-500 tracking-widest block mb-1.5">Atributos Técnicos</span>
+                <div className="flex flex-col gap-1">
                   {[
-                    { label: "Experiência", value: breakdown.experience },
-                    { label: "Projetos", value: breakdown.projects },
-                    { label: "GitHub", value: breakdown.github },
-                    { label: "Skills & Badges", value: breakdown.skills_badges },
-                    { label: "Formação", value: breakdown.education },
-                    { label: "Completude", value: breakdown.completeness },
+                    { label: "BCK - Backend", value: attrs.bck },
+                    { label: "FRT - Frontend", value: attrs.frt },
+                    { label: "DAT - DevOps & DB", value: attrs.dat },
+                    { label: "OSS - Open Source", value: attrs.oss },
+                    { label: "COM - Comunidade", value: attrs.com },
+                    { label: "EXP - Experiência", value: attrs.exp },
+                    { label: "EDU - Educação", value: attrs.edu },
                   ].map((s) => (
                     <div key={s.label} className="flex items-center gap-2">
-                      <span className="text-[9px] font-semibold text-neutral-400 w-24 shrink-0">{s.label}</span>
+                      <span className="text-[8px] font-semibold text-neutral-400 w-24 shrink-0 truncate">{s.label}</span>
                       <div className="flex-1 h-1.5 bg-neutral-950 border border-white/5 rounded-full overflow-hidden">
                         <div className={`h-full bg-gradient-to-r ${borderGradientClass} rounded-full`} style={{ width: `${Math.min(100, s.value)}%` }} />
                       </div>
@@ -464,7 +726,7 @@ export default function DeveloperCard({
               </div>
 
               {/* Resumo + links */}
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-medium border-t border-white/5 pt-2.5">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-medium border-t border-white/5 pt-2">
                 <div>
                   <span className="text-[8px] uppercase font-bold text-neutral-500 block">XP Total</span>
                   <span className="text-white font-extrabold">{progress.totalXp} XP</span>
@@ -477,7 +739,7 @@ export default function DeveloperCard({
 
               {/* Links sociais */}
               {(profile.github_url || profile.linkedin_url || profile.website_url) && (
-                <div className="flex items-center gap-2 border-t border-white/5 pt-2.5">
+                <div className="flex items-center gap-2 border-t border-white/5 pt-2">
                   {profile.github_url && (
                     <a href={profile.github_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}
                       className="w-8 h-8 rounded-lg bg-neutral-950/60 border border-white/10 flex items-center justify-center text-neutral-300 hover:text-white hover:border-white/30 transition-colors" aria-label="GitHub">

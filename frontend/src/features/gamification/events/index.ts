@@ -12,6 +12,33 @@ export type GamificationEventMap = {
     oldLevel: number;
     profileName: string;
   };
+  'achievement_unlocked': {
+    badge: {
+      id: string;
+      name: string;
+      description: string;
+      rarity: string;
+      xp_reward: number;
+      icon_path: string;
+      is_secret: boolean;
+    };
+    profile: {
+      id: string;
+      xp: number;
+      level: number;
+      ovr: number;
+    };
+  };
+  'ovr_updated': {
+    newOvr: number;
+    oldOvr: number;
+    profile: {
+      id: string;
+      xp: number;
+      level: number;
+      ovr: number;
+    };
+  };
 };
 
 export type GamificationEventType = keyof GamificationEventMap;

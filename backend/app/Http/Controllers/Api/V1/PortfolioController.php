@@ -30,7 +30,13 @@ class PortfolioController extends Controller
                 'skills' => function ($query) {
                     $query->withPivot('proficiency_level');
                 },
-                'badges'
+                'badges',
+                'titles' => function ($query) {
+                    $query->wherePivot('is_equipped', true);
+                },
+                'cosmetics' => function ($query) {
+                    $query->wherePivot('is_equipped', true);
+                }
             ])
             ->first();
 
