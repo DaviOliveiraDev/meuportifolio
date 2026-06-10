@@ -21,6 +21,16 @@ class UpdateEducationAction
             throw new DomainException('Formação acadêmica não encontrada.', 404);
         }
 
-        return $this->educationRepository->update($id, $dto->toArray());
+        $updatedEducation = $this->educationRepository->update($id, $dto->toArray());
+
+        if ($dto->technologies !== null) {
+            $updatedEducation->technologies()->sync($dto->technologies);
+        }
+
+        if ($updatedEducation->profile) {
+            \App\Jobs\UpdateDeveloperCardJob::dispatch($updatedEducation->profile);
+        }
+
+        return $updatedEducation;
     }
 }

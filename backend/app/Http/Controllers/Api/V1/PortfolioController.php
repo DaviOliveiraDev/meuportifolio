@@ -16,6 +16,7 @@ class PortfolioController extends Controller
     public function show(string $username): JsonResponse
     {
         $profile = Profile::where('username', strtolower($username))
+            ->where('is_active', true)
             ->with([
                 'projects' => function ($query) {
                     $query->orderBy('order_weight')->orderBy('created_at', 'desc');
@@ -28,6 +29,19 @@ class PortfolioController extends Controller
                 },
                 'skills' => function ($query) {
                     $query->withPivot('proficiency_level');
+                },
+                'badges',
+                'titles' => function ($query) {
+                    $query->wherePivot('is_equipped', true);
+                },
+                'cosmetics' => function ($query) {
+                    $query->wherePivot('is_equipped', true);
+                },
+                'technologies' => function ($query) {
+                    $query->withPivot('self_proficiency', 'is_featured');
+                },
+                'technologyScores' => function ($query) {
+                    $query->with('technology');
                 }
             ])
             ->first();

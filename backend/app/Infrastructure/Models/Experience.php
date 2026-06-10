@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Experience extends Model
 {
@@ -33,6 +35,21 @@ class Experience extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function ($experience) {
+            if ($experience->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($experience->profile);
+            }
+        });
+
+        static::deleted(function ($experience) {
+            if ($experience->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($experience->profile);
+            }
+        });
+    }
+
     /**
      * Retorna a factory correspondente ao model.
      */
@@ -47,5 +64,22 @@ class Experience extends Model
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);
+    }
+
+    /**
+     * Tecnologias vinculadas a esta experiência profissional.
+     */
+    public function technologies(): BelongsToMany
+    {
+        return $this->belongsToMany(Technology::class, 'experience_technologies')
+                    ->withPivot('is_primary');
+    }
+
+    /**
+     * Evidências associadas a esta experiência.
+     */
+    public function evidences(): MorphMany
+    {
+        return $this->morphMany(TechnologyEvidence::class, 'source');
     }
 }

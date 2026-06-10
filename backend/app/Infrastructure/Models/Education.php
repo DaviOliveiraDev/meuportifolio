@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Education extends Model
 {
@@ -33,6 +35,21 @@ class Education extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function ($education) {
+            if ($education->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($education->profile);
+            }
+        });
+
+        static::deleted(function ($education) {
+            if ($education->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($education->profile);
+            }
+        });
+    }
+
     /**
      * Retorna a factory correspondente ao model.
      */
@@ -47,5 +64,21 @@ class Education extends Model
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);
+    }
+
+    /**
+     * Tecnologias vinculadas a esta formação acadêmica/curso.
+     */
+    public function technologies(): BelongsToMany
+    {
+        return $this->belongsToMany(Technology::class, 'education_technologies');
+    }
+
+    /**
+     * Evidências associadas a esta formação.
+     */
+    public function evidences(): MorphMany
+    {
+        return $this->morphMany(TechnologyEvidence::class, 'source');
     }
 }

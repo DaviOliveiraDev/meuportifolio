@@ -10,6 +10,11 @@ export interface ExperienceData {
   end_date: string | null;
   is_current: boolean;
   description: string | null;
+  technologies?: {
+    id: string;
+    name: string;
+    slug: string;
+  }[];
 }
 
 export function useExperiences() {
@@ -31,6 +36,7 @@ export function useExperiences() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['experiences'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
     },
   });
 
@@ -42,6 +48,7 @@ export function useExperiences() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['experiences'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
     },
   });
 
@@ -52,6 +59,7 @@ export function useExperiences() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['experiences'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['auth-user'] });
     },
   });
 

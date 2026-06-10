@@ -86,6 +86,23 @@ class RedisAnalyticsService implements AnalyticsServiceInterface
             if (count($events) > 0) {
                 AnalyticsEvent::insert($events);
                 $totalFlushed += count($events);
+
+                // Concede XP e atualiza as cartas dos perfis afetados pelas visualizações neste lote
+                $profileViews = collect($events)
+                    ->filter(fn($e) => $e['event_type'] === 'view_profile')
+                    ->pluck('profile_id')
+                    ->unique();
+
+                if ($profileViews->isNotEmpty()) {
+                    $xpManager = app(\App\Domain\Services\XpManagerService::class);
+                    foreach ($profileViews as $profileId) {
+                        $profile = \App\Infrastructure\Models\Profile::find($profileId);
+                        if ($profile) {
+                            $xpManager->awardXpForAction($profile, 'profile_view');
+                            \App\Jobs\UpdateDeveloperCardJob::dispatch($profile);
+                        }
+                    }
+                }
             }
 
         } while (count($events) === 1000);

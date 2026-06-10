@@ -32,7 +32,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Usuário cadastrado e autenticado com sucesso.',
             'token' => $token,
-            'user' => $user->load('profile'),
+            'user' => $user->load(['profile.skills', 'profile.badges']),
         ], 201);
     }
 
@@ -57,7 +57,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Login realizado com sucesso.',
             'token' => $token,
-            'user' => $user->load('profile'),
+            'user' => $user->load(['profile.skills', 'profile.badges']),
         ]);
     }
 
@@ -79,7 +79,14 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user()->load('profile');
+        $user = $request->user()->load(['profile.skills', 'profile.badges']);
+        
+        if ($user->profile && $user->profile->skills->count() >= 3) {
+            $xpManager = app(\App\Domain\Services\XpManagerService::class);
+            $xpManager->awardXpForAction($user->profile, 'add_skills');
+            // Reload to get updated XP/level
+            $user->load(['profile.skills', 'profile.badges']);
+        }
         
         return response()->json([
             'user' => $user,

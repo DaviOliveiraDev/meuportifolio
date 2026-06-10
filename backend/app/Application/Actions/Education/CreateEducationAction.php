@@ -14,6 +14,18 @@ class CreateEducationAction
 
     public function execute(CreateEducationDTO $dto): Education
     {
-        return $this->educationRepository->create($dto->toArray());
+        $education = $this->educationRepository->create($dto->toArray());
+
+        if ($dto->technologies !== null) {
+            $education->technologies()->sync($dto->technologies);
+        }
+
+        if ($education->profile) {
+            $xpManager = app(\App\Domain\Services\XpManagerService::class);
+            $xpManager->awardXpForAction($education->profile, 'add_education');
+            \App\Jobs\UpdateDeveloperCardJob::dispatch($education->profile);
+        }
+
+        return $education;
     }
 }

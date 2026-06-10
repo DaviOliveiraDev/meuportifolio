@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Project extends Model
 {
@@ -34,6 +36,21 @@ class Project extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function ($project) {
+            if ($project->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($project->profile);
+            }
+        });
+
+        static::deleted(function ($project) {
+            if ($project->profile) {
+                \App\Jobs\UpdateDeveloperCardJob::dispatch($project->profile);
+            }
+        });
+    }
+
     /**
      * Relação com o perfil.
      */
@@ -56,5 +73,22 @@ class Project extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ProjectImage::class)->orderBy('order_weight');
+    }
+
+    /**
+     * Relação com as tecnologias utilizadas no projeto.
+     */
+    public function technologies(): BelongsToMany
+    {
+        return $this->belongsToMany(Technology::class, 'project_technologies')
+                    ->withPivot('usage_intensity');
+    }
+
+    /**
+     * Evidências associadas a este projeto.
+     */
+    public function evidences(): MorphMany
+    {
+        return $this->morphMany(TechnologyEvidence::class, 'source');
     }
 }

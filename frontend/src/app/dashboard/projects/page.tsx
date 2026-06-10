@@ -59,6 +59,7 @@ const projectSchema = zod.object({
   demo_url: zod.string().url('URL da demonstração inválida.').or(zod.literal('')).nullable(),
   is_featured: zod.boolean(),
   order_weight: zod.number().int(),
+  technologies: zod.array(zod.string()),
 });
 
 type ProjectFormValues = zod.infer<typeof projectSchema>;
@@ -74,6 +75,11 @@ export default function ProjectsPage() {
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string>('idle');
+  
+  // Catálogo de tecnologias e busca interna do formulário
+  const [allTechnologies, setAllTechnologies] = useState<any[]>([]);
+  const [techQuery, setTechQuery] = useState('');
+
   const queryClient = useQueryClient();
 
   const checkSyncStatus = async (count = 0) => {
@@ -95,6 +101,7 @@ export default function ProjectsPage() {
         if (status === 'completed') {
           toast.success('Projetos sincronizados do GitHub com sucesso!');
           queryClient.invalidateQueries({ queryKey: ['projects'] });
+          queryClient.invalidateQueries({ queryKey: ['profile'] });
         } else if (status === 'failed') {
           const errorMessage = response.data.error || 'Erro desconhecido.';
           toast.error(`Falha na sincronização: ${errorMessage}`);
@@ -121,6 +128,19 @@ export default function ProjectsPage() {
       toast.error(message);
     }
   };
+
+  // Carrega catálogo de tecnologias no mount
+  useEffect(() => {
+    const loadTechnologies = async () => {
+      try {
+        const response = await apiClient.get('/technologies?cb=' + Date.now());
+        setAllTechnologies(Array.isArray(response.data) ? response.data : []);
+      } catch (err) {
+        console.error('Erro ao carregar catálogo de tecnologias:', err);
+      }
+    };
+    loadTechnologies();
+  }, []);
 
   useEffect(() => {
     const checkInitialStatus = async () => {
@@ -149,12 +169,16 @@ export default function ProjectsPage() {
       demo_url: '',
       is_featured: false,
       order_weight: 0,
+      technologies: [],
     }
   });
+
+  const selectedTechIds = watch('technologies') || [];
 
   const openAddDialog = () => {
     setEditingProject(null);
     setCoverPreview(null);
+    setTechQuery('');
     reset({
       title: '',
       description: '',
@@ -163,6 +187,7 @@ export default function ProjectsPage() {
       demo_url: '',
       is_featured: false,
       order_weight: 0,
+      technologies: [],
     });
     setDialogOpen(true);
   };
@@ -170,6 +195,7 @@ export default function ProjectsPage() {
   const openEditDialog = (project: ProjectData) => {
     setEditingProject(project);
     setCoverPreview(project.cover_image_url);
+    setTechQuery('');
     reset({
       title: project.title,
       description: project.description,
@@ -178,6 +204,7 @@ export default function ProjectsPage() {
       demo_url: project.demo_url || '',
       is_featured: project.is_featured,
       order_weight: project.order_weight,
+      technologies: project.technologies ? project.technologies.map((t: any) => t.id) : [],
     });
     setDialogOpen(true);
   };
@@ -217,9 +244,12 @@ export default function ProjectsPage() {
 
   const onSubmit = async (values: ProjectFormValues) => {
     try {
-      const payload = Object.fromEntries(
-        Object.entries(values).map(([key, val]) => [key, val === '' ? null : val])
-      ) as Omit<ProjectData, 'id' | 'profile_id'>;
+      const payload = {
+        ...values,
+        cover_image_url: values.cover_image_url === '' ? null : values.cover_image_url,
+        repository_url: values.repository_url === '' ? null : values.repository_url,
+        demo_url: values.demo_url === '' ? null : values.demo_url,
+      } as any;
 
       if (editingProject) {
         await updateProject({ id: editingProject.id, data: payload });
@@ -259,14 +289,14 @@ export default function ProjectsPage() {
       <div className="flex items-center justify-between pb-4 border-b border-neutral-200 dark:border-neutral-850">
         <div>
           <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Projetos</h1>
-          <p className="text-sm text-neutral-500">Adicione e organize seus projetos no seu portfólio.</p>
+          <p className="text-sm text-neutral-550">Adicione e organize seus projetos no portfólio e defina as tecnologias usadas.</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
             onClick={handleGithubSync}
             disabled={isSyncing}
             variant="outline"
-            className="border-neutral-250 dark:border-neutral-850 hover:bg-neutral-50 dark:hover:bg-neutral-900 text-neutral-700 dark:text-neutral-300 font-semibold cursor-pointer py-2 px-4 rounded-lg flex items-center gap-2 text-sm transition-colors"
+            className="border-neutral-250 dark:border-neutral-855 hover:bg-neutral-50 dark:hover:bg-neutral-900 text-neutral-700 dark:text-neutral-300 font-semibold cursor-pointer py-2 px-4 rounded-lg flex items-center gap-2 text-sm transition-colors"
           >
             {isSyncing ? (
               <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
@@ -324,7 +354,7 @@ export default function ProjectsPage() {
             <Card key={project.id} className="bg-white dark:bg-neutral-900/30 border-neutral-200 dark:border-neutral-850 overflow-hidden hover:border-violet-500/15 dark:hover:border-violet-500/20 transition-all duration-300 flex flex-col justify-between shadow-sm">
               <div>
                 {/* Project Image Header */}
-                <div className="relative aspect-video bg-neutral-100 dark:bg-neutral-850 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-center">
+                <div className="relative aspect-video bg-neutral-100 dark:bg-neutral-855 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-center">
                   {project.cover_image_url ? (
                     <img src={project.cover_image_url} alt={project.title} className="w-full h-full object-cover" />
                   ) : (
@@ -338,10 +368,20 @@ export default function ProjectsPage() {
                   )}
                 </div>
                 
-                <CardHeader>
+                <CardHeader className="pb-2">
                   <CardTitle className="text-lg font-bold text-neutral-900 dark:text-neutral-100 line-clamp-1">{project.title}</CardTitle>
-                  <CardDescription className="text-sm text-neutral-600 dark:text-neutral-400 line-clamp-2 min-h-[40px]">{project.description}</CardDescription>
+                  <CardDescription className="text-sm text-neutral-650 dark:text-neutral-400 line-clamp-2 min-h-[40px]">{project.description}</CardDescription>
                 </CardHeader>
+
+                {project.technologies && project.technologies.length > 0 && (
+                  <CardContent className="pt-0 pb-1 flex flex-wrap gap-1.5">
+                    {project.technologies.map((tech: any) => (
+                      <span key={tech.id} className="inline-flex items-center px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-850 text-neutral-600 dark:text-neutral-450 text-[10px] font-mono border border-neutral-250 dark:border-neutral-800">
+                        {tech.name}
+                      </span>
+                    ))}
+                  </CardContent>
+                )}
               </div>
 
               <CardFooter className="pt-0 flex items-center justify-between gap-2 border-t border-neutral-100 dark:border-neutral-850/50 mt-4 py-3">
@@ -351,7 +391,7 @@ export default function ProjectsPage() {
                       href={project.repository_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 dark:bg-neutral-850 dark:hover:bg-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 rounded-lg transition-colors"
+                      className="p-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 dark:bg-neutral-855 dark:hover:bg-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 rounded-lg transition-colors"
                       title="Repositório no GitHub"
                     >
                       <GithubIcon className="w-4 h-4" />
@@ -362,7 +402,7 @@ export default function ProjectsPage() {
                       href={project.demo_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 dark:bg-neutral-850 dark:hover:bg-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 rounded-lg transition-colors"
+                      className="p-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 dark:bg-neutral-855 dark:hover:bg-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 rounded-lg transition-colors"
                       title="Demonstração"
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -373,7 +413,7 @@ export default function ProjectsPage() {
                 <div className="flex gap-1.5">
                   <button
                     onClick={() => openEditDialog(project)}
-                    className="p-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-violet-650 dark:bg-neutral-850 dark:hover:bg-neutral-800 dark:text-neutral-400 dark:hover:text-violet-400 rounded-lg transition-colors cursor-pointer"
+                    className="p-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-violet-650 dark:bg-neutral-855 dark:hover:bg-neutral-800 dark:text-neutral-400 dark:hover:text-violet-400 rounded-lg transition-colors cursor-pointer"
                     title="Editar Projeto"
                   >
                     <Pencil className="w-4 h-4" />
@@ -462,6 +502,78 @@ export default function ProjectsPage() {
                   <p className="text-[10px] text-neutral-500 mt-1.5 text-center sm:text-left">Formatos suportados: WebP, JPG, PNG (Max. 5MB).</p>
                 </div>
               </div>
+            </div>
+
+            {/* Seleção de Tecnologias */}
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">Tecnologias Utilizadas (Opcional)</Label>
+              
+              {/* Selected tech tags */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {selectedTechIds.map((id: string) => {
+                  const tech = allTechnologies.find(t => t.id === id);
+                  if (!tech) return null;
+                  return (
+                    <span 
+                      key={id} 
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-violet-500/10 text-violet-650 border border-violet-500/20 dark:text-violet-400 dark:bg-violet-500/10"
+                    >
+                      {tech.name}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = selectedTechIds.filter((tId: string) => tId !== id);
+                          setValue('technologies', updated);
+                        }}
+                        className="hover:text-red-500 focus:outline-none ml-1 font-bold text-[10px] cursor-pointer"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  );
+                })}
+                {selectedTechIds.length === 0 && (
+                  <p className="text-[11px] text-neutral-500 italic mt-0.5 leading-tight">
+                    Nenhuma tecnologia selecionada.
+                  </p>
+                )}
+              </div>
+
+              {/* Input de Busca */}
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="Pesquise tecnologias para adicionar (ex: React, Tailwind, PostgreSQL)..."
+                  value={techQuery}
+                  onChange={(e) => setTechQuery(e.target.value)}
+                  className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
+                />
+              </div>
+
+              {/* Lista filtrada de correspondências */}
+              {techQuery.trim().length > 0 && (
+                <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg max-h-36 overflow-y-auto bg-white dark:bg-neutral-950 p-1 divide-y divide-neutral-100 dark:divide-neutral-850 shadow-sm relative z-50">
+                  {Array.isArray(allTechnologies) && allTechnologies
+                    .filter(t => t.name.toLowerCase().includes(techQuery.toLowerCase()) && !selectedTechIds.includes(t.id))
+                    .slice(0, 10)
+                    .map((tech) => (
+                      <button
+                        key={tech.id}
+                        type="button"
+                        onClick={() => {
+                          setValue('technologies', [...selectedTechIds, tech.id]);
+                          setTechQuery('');
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-violet-500/5 hover:text-violet-500 dark:hover:bg-violet-500/10 dark:hover:text-violet-400 font-semibold transition-colors cursor-pointer"
+                      >
+                        + {tech.name} <span className="text-[10px] text-neutral-450 ml-1 font-medium">({tech.category?.name})</span>
+                      </button>
+                    ))}
+                  {(!Array.isArray(allTechnologies) || allTechnologies.filter(t => t.name.toLowerCase().includes(techQuery.toLowerCase()) && !selectedTechIds.includes(t.id)).length === 0) && (
+                    <p className="text-[10px] text-neutral-500 italic p-2 text-center">Nenhuma tecnologia encontrada.</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Links */}
