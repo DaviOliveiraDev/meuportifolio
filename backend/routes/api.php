@@ -74,6 +74,33 @@ Route::prefix('v1')->group(function () {
         Route::put('reports/{id}', [AdminModerationController::class, 'update']);
     });
     
+    // Rota segura para rodar seeders via navegador sem acesso ao terminal do container
+    Route::get('/system/seed', function (\Illuminate\Http\Request $request) {
+        if ($request->input('token') !== 'devfolio-seed-2026') {
+            abort(403, 'Acesso não autorizado.');
+        }
+        
+        // Executa o seeder de tecnologias
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\TechDnaSeeder',
+            '--force' => true
+        ]);
+        $techOutput = \Illuminate\Support\Facades\Artisan::output();
+        
+        // Executa o seeder de gamificação
+        \Illuminate\Support\Facades\Artisan::call('db:seed', [
+            '--class' => 'Database\\Seeders\\GamificationSeeder',
+            '--force' => true
+        ]);
+        $gamiOutput = \Illuminate\Support\Facades\Artisan::output();
+        
+        return response()->json([
+            'message' => 'Sementiras executadas com sucesso!',
+            'tech_output' => $techOutput,
+            'gamification_output' => $gamiOutput
+        ]);
+    });
+    
 });
 
 
