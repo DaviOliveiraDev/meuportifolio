@@ -16,7 +16,7 @@ class S3FileStorage implements StorageServiceInterface
         $fullPath = "{$folder}/{$fileName}";
 
         // Usa S3 se as credenciais existirem no ambiente, senão faz fallback para local public disk
-        $disk = env('AWS_ACCESS_KEY_ID') ? 's3' : 'public';
+        $disk = (config('filesystems.disks.s3.key') || config('filesystems.default') === 's3') ? 's3' : 'public';
 
         if ($optimizedPath !== $file->getRealPath()) {
             Storage::disk($disk)->putFileAs($folder, new \Illuminate\Http\File($optimizedPath), $fileName, 'public');
@@ -33,12 +33,12 @@ class S3FileStorage implements StorageServiceInterface
         }
 
         if ($disk === 's3') {
-            $bucket = env('AWS_BUCKET');
-            $region = env('AWS_DEFAULT_REGION', 'us-east-1');
+            $bucket = config('filesystems.disks.s3.bucket');
+            $region = config('filesystems.disks.s3.region', 'us-east-1');
             return "https://{$bucket}.s3.{$region}.amazonaws.com/" . ltrim($fullPath, '/');
         }
 
-        return rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage/' . ltrim($fullPath, '/');
+        return rtrim(config('app.url', 'http://localhost'), '/') . '/storage/' . ltrim($fullPath, '/');
     }
 
     private function convertToWebp(UploadedFile $file): string

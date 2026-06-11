@@ -47,4 +47,11 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'browsershot' => [
+        'docker_env' => env('DOCKER_ENV', false),
+        'node_binary_path' => env('NODE_BINARY_PATH'),
+        'npm_binary_path' => env('NPM_BINARY_PATH'),
+        'chrome_binary_path' => env('CHROME_BINARY_PATH'),
+    ],
+
 ];
