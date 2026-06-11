@@ -60,16 +60,21 @@ class TechDnaSeeder extends Seeder
         $categoryMap = [];
 
         foreach ($categories as $cat) {
-            $id = Str::uuid()->toString();
-            DB::table('technology_categories')->insert([
-                'id' => $id,
-                'name' => $cat['name'],
-                'slug' => $cat['slug'],
-                'description' => $cat['description'],
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            $categoryMap[$cat['slug']] = $id;
+            $existing = DB::table('technology_categories')->where('slug', $cat['slug'])->first();
+            if ($existing) {
+                $categoryMap[$cat['slug']] = $existing->id;
+            } else {
+                $id = Str::uuid()->toString();
+                DB::table('technology_categories')->insert([
+                    'id' => $id,
+                    'name' => $cat['name'],
+                    'slug' => $cat['slug'],
+                    'description' => $cat['description'],
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+                $categoryMap[$cat['slug']] = $id;
+            }
         }
 
         // 2. Tecnologias a serem semeadas (120 no total)
@@ -220,16 +225,22 @@ class TechDnaSeeder extends Seeder
                 $slug = 'c-sharp';
             }
 
-            DB::table('technologies')->insert([
-                'id' => Str::uuid()->toString(),
-                'category_id' => $catId,
-                'name' => $tech['name'],
-                'slug' => $slug,
-                'logo_url' => null,
-                'is_verified' => true,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+            $exists = DB::table('technologies')->where('slug', $slug)->exists();
+            if (!$exists) {
+                DB::table('technologies')->insert([
+                    'id' => Str::uuid()->toString(),
+                    'category_id' => $catId,
+                    'name' => $tech['name'],
+                    'slug' => $slug,
+                    'logo_url' => null,
+                    'is_verified' => true,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
         }
+
+        // Limpa o cache de tecnologias para garantir que a lista seja recarregada
+        \Illuminate\Support\Facades\Cache::forget('technologies:list');
     }
 }
