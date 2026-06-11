@@ -27,7 +27,18 @@ class S3FileStorage implements StorageServiceInterface
             $fullPath = "{$folder}/{$fileName}";
         }
 
-        return Storage::disk($disk)->url($fullPath);
+        $storage = Storage::disk($disk);
+        if (method_exists($storage, 'url')) {
+            return $storage->url($fullPath);
+        }
+
+        if ($disk === 's3') {
+            $bucket = env('AWS_BUCKET');
+            $region = env('AWS_DEFAULT_REGION', 'us-east-1');
+            return "https://{$bucket}.s3.{$region}.amazonaws.com/" . ltrim($fullPath, '/');
+        }
+
+        return rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage/' . ltrim($fullPath, '/');
     }
 
     private function convertToWebp(UploadedFile $file): string

@@ -112,7 +112,18 @@ class GenerateResumePdfJob implements ShouldQueue
             $fileName = 'resumes/' . Str::uuid() . '.pdf';
             
             Storage::disk($disk)->put($fileName, $pdfContent, 'public');
-            $url = Storage::disk($disk)->url($fileName);
+            $storage = Storage::disk($disk);
+            if (method_exists($storage, 'url')) {
+                $url = $storage->url($fileName);
+            } else {
+                if ($disk === 's3') {
+                    $bucket = env('AWS_BUCKET');
+                    $region = env('AWS_DEFAULT_REGION', 'us-east-1');
+                    $url = "https://{$bucket}.s3.{$region}.amazonaws.com/" . ltrim($fileName, '/');
+                } else {
+                    $url = rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage/' . ltrim($fileName, '/');
+                }
+            }
 
             Log::info("PDF gerado com sucesso para o perfil {$profileId}. Salvo em: {$fileName}");
 
