@@ -49,7 +49,7 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_REVERB_HOST: api.devfolio.app.br
-          NEXT_PUBLIC_REVERB_PORT: 443
+          NEXT_PUBLIC_REVERB_PORT: 8443
           NEXT_PUBLIC_REVERB_SCHEME: https
           NEXT_PUBLIC_REVERB_APP_KEY: ${{ secrets.NEXT_PUBLIC_REVERB_APP_KEY || 'rgd6wmzwwmo8oo5rvjc4' }}
 
