@@ -83,18 +83,18 @@ class GenerateResumePdfJob implements ShouldQueue
                 ->showBackground();
 
             // Opções para Docker/Linux e Windows
-            if (config('app.env') !== 'local' || env('DOCKER_ENV') || PHP_OS_FAMILY === 'Linux') {
+            if (config('app.env') !== 'local' || config('services.browsershot.docker_env') || PHP_OS_FAMILY === 'Linux') {
                 $browsershot->noSandbox()->disableSetuidSandbox();
             }
 
             // Permite configurar caminhos customizados pelo .env
-            if ($nodePath = env('NODE_BINARY_PATH')) {
+            if ($nodePath = config('services.browsershot.node_binary_path')) {
                 $browsershot->setNodeBinary($nodePath);
             }
-            if ($npmPath = env('NPM_BINARY_PATH')) {
+            if ($npmPath = config('services.browsershot.npm_binary_path')) {
                 $browsershot->setNpmBinary($npmPath);
             }
-            if ($chromePath = env('CHROME_BINARY_PATH')) {
+            if ($chromePath = config('services.browsershot.chrome_binary_path')) {
                 $browsershot->setChromePath($chromePath);
             }
 
@@ -108,7 +108,7 @@ class GenerateResumePdfJob implements ShouldQueue
             $pdfContent = $browsershot->pdf();
 
             // Gravação do PDF no Storage
-            $disk = env('AWS_ACCESS_KEY_ID') ? 's3' : 'public';
+            $disk = (config('filesystems.disks.s3.key') || config('filesystems.default') === 's3') ? 's3' : 'public';
             $fileName = 'resumes/' . Str::uuid() . '.pdf';
             
             Storage::disk($disk)->put($fileName, $pdfContent, 'public');
@@ -117,11 +117,11 @@ class GenerateResumePdfJob implements ShouldQueue
                 $url = $storage->url($fileName);
             } else {
                 if ($disk === 's3') {
-                    $bucket = env('AWS_BUCKET');
-                    $region = env('AWS_DEFAULT_REGION', 'us-east-1');
+                    $bucket = config('filesystems.disks.s3.bucket');
+                    $region = config('filesystems.disks.s3.region', 'us-east-1');
                     $url = "https://{$bucket}.s3.{$region}.amazonaws.com/" . ltrim($fileName, '/');
                 } else {
-                    $url = rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage/' . ltrim($fileName, '/');
+                    $url = rtrim(config('app.url', 'http://localhost'), '/') . '/storage/' . ltrim($fileName, '/');
                 }
             }
 

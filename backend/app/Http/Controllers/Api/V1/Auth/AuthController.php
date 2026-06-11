@@ -114,7 +114,7 @@ class AuthController extends Controller
      */
     public function handleProviderCallback(Request $request, string $provider)
     {
-        $frontendUrl = env('FRONTEND_URL', 'https://devfolio.app.br');
+        $frontendUrl = config('app.frontend_url');
 
         if (!in_array($provider, ['github', 'google'])) {
             return redirect()->away($frontendUrl . '/login?error=' . urlencode('Provedor não suportado.'));
