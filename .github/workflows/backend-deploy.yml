@@ -105,6 +105,9 @@ jobs:
             REVERB_PORT=8443
             REVERB_SCHEME=http
             REVERB_HOST=127.0.0.1
+            REDIS_HOST=127.0.0.1
+            REDIS_PORT=6379
+            QUEUE_CONNECTION=redis
 
       - name: Deploy Amazon ECS task definition
         id: deploy-task
