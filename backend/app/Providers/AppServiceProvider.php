@@ -32,5 +32,15 @@ class AppServiceProvider extends ServiceProvider
         \Laravel\Sanctum\Sanctum::usePersonalAccessTokenModel(
             \App\Infrastructure\Models\PersonalAccessToken::class
         );
+
+        // Debug Redis configuration on boot in production
+        if (config('app.env') === 'production') {
+            \Illuminate\Support\Facades\Log::info('Production Redis Config Debug:', [
+                'host' => config('database.redis.default.host'),
+                'port' => config('database.redis.default.port'),
+                'url' => config('database.redis.default.url'),
+                'client' => config('database.redis.client'),
+            ]);
+        }
     }
 }
