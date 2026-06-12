@@ -45,6 +45,13 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('profile', [ProfileController::class, 'show']);
         Route::put('profile', [ProfileController::class, 'update']);
+        Route::get('profile/achievements', [ProfileController::class, 'achievements']);
+        Route::get('profile/ovr-breakdown', [ProfileController::class, 'ovrBreakdown']);
+        Route::get('profile/cosmetics', [ProfileController::class, 'cosmeticsCatalog']);
+        Route::post('profile/titles/{id}/equip', [ProfileController::class, 'equipTitle']);
+        Route::post('profile/titles/{id}/unequip', [ProfileController::class, 'unequipTitle']);
+        Route::post('profile/cosmetics/{id}/equip', [ProfileController::class, 'equipCosmetic']);
+        Route::post('profile/cosmetics/{id}/unequip', [ProfileController::class, 'unequipCosmetic']);
         Route::post('upload', [UploadController::class, 'upload']);
         Route::apiResource('projects', ProjectController::class);
         Route::apiResource('experiences', ExperienceController::class);

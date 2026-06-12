@@ -179,6 +179,113 @@ class OvrEngineService
     }
 
     /**
+     * Retorna o detalhamento completo do cálculo do OVR para o Modal do Frontend.
+     */
+    public function getDetailedOvrBreakdown(Profile $profile): array
+    {
+        $stats = $profile->stats()->firstOrCreate([]);
+        
+        $config = ScoringConfig::where('is_active', true)->first();
+        $weights = $config?->weights ?? $this->getDefaultWeights();
+        
+        // Calcular scores reais
+        $expScore = $this->calculateExperienceScore($profile, $stats);
+        $projScore = $this->calculateProjectsScore($profile, $stats);
+        $skillBadgeScore = max($this->calculateSkillsBadgesScore($profile, $stats), $this->calculateTechDnaScore($profile));
+        $githubScore = !empty($profile->github_url) ? max(25, $this->calculateOpenSourceScore($profile, $stats)) : 0;
+        $eduScore = max($this->calculateEducationScore($profile, $stats), $this->calculateLegacyEducationScore($profile, $stats));
+        $completeScore = (int) ($profile->profile_completeness ?? 0);
+        
+        // Contribuições e descritivos
+        // EXP
+        $expMonths = 0;
+        foreach ($profile->experiences as $exp) {
+            $start = Carbon::parse($exp->start_date);
+            $end = $exp->is_current ? now() : Carbon::parse($exp->end_date);
+            $expMonths += max(1, $start->diffInMonths($end));
+        }
+        $expYears = round($expMonths / 12, 1);
+        $expDesc = $profile->experiences()->count() . " experiência(s) cadastrada(s) ({$expMonths} meses / {$expYears} anos acumulados)";
+
+        // PROJ
+        $projs = $profile->projects()->get();
+        $featuredProj = $projs->where('is_featured', true)->count();
+        $demoProj = $projs->whereNotNull('demo_url')->where('demo_url', '!=', '')->count();
+        $coverProj = $projs->whereNotNull('cover_image_url')->where('cover_image_url', '!=', '')->count();
+        $projDesc = $projs->count() . " projeto(s) cadastrado(s) ({$featuredProj} em destaque, {$demoProj} com links de demonstração, {$coverProj} com imagens de capa)";
+
+        // SKILL & BADGES
+        $skillsCount = $profile->skills()->count();
+        $badgesCount = $profile->badges()->count();
+        $techDna = $this->calculateTechDnaScore($profile);
+        $skillDesc = "{$skillsCount} habilidades e {$badgesCount} conquistas desbloqueadas (Média Tech DNA: {$techDna})";
+
+        // GITHUB
+        $githubConnected = !empty($profile->github_url);
+        if ($githubConnected) {
+            $githubDesc = "GitHub conectado: {$stats->github_repositories} repositório(s), {$stats->github_commits} commit(s), {$stats->github_stars} estrela(s) obtida(s)";
+        } else {
+            $githubDesc = "Conta do GitHub não conectada ao portfólio.";
+        }
+
+        // EDUCATION
+        $eduCount = $profile->educations()->count();
+        $eduDesc = "{$eduCount} formação(ões) acadêmica(s) e certificados cadastrados";
+
+        // COMPLETENESS
+        $completeDesc = "Perfil profissional {$completeScore}% preenchido e atualizado.";
+
+        return [
+            'ovr' => $profile->ovr ?? 1,
+            'weights' => $weights,
+            'axes' => [
+                'experience' => [
+                    'name' => 'Experiência Profissional',
+                    'score' => $expScore,
+                    'weight' => $weights['experience'] ?? 30,
+                    'contribution' => $expDesc,
+                    'tip' => 'Adicione novas experiências de trabalho com descrições detalhadas e responsabilidades para aumentar sua pontuação.'
+                ],
+                'projects' => [
+                    'name' => 'Projetos e Demonstrações',
+                    'score' => $projScore,
+                    'weight' => $weights['projects'] ?? 25,
+                    'contribution' => $projDesc,
+                    'tip' => 'Insira links de demonstração funcionais, repositórios públicos do GitHub e imagens de capa atraentes nos seus projetos.'
+                ],
+                'skills_badges' => [
+                    'name' => 'Habilidades e Medalhas',
+                    'score' => $skillBadgeScore,
+                    'weight' => $weights['skills_badges'] ?? 15,
+                    'contribution' => $skillDesc,
+                    'tip' => 'Cadastre habilidades técnicas com proficiência acima de 80 e desbloqueie novas conquistas para evoluir seu DNA técnico.'
+                ],
+                'github' => [
+                    'name' => 'GitHub e Open Source',
+                    'score' => $githubScore,
+                    'weight' => $weights['github'] ?? 15,
+                    'contribution' => $githubDesc,
+                    'tip' => 'Conecte sua conta do GitHub e mantenha a sincronização de commits e estrelas atualizada.'
+                ],
+                'education' => [
+                    'name' => 'Formação Acadêmica',
+                    'score' => $eduScore,
+                    'weight' => $weights['education'] ?? 10,
+                    'contribution' => $eduDesc,
+                    'tip' => 'Adicione suas graduações, cursos livres relevantes e certificações técnicas oficiais no currículo.'
+                ],
+                'completeness' => [
+                    'name' => 'Completude do Perfil',
+                    'score' => $completeScore,
+                    'weight' => $weights['completeness'] ?? 5,
+                    'contribution' => $completeDesc,
+                    'tip' => 'Preencha todos os campos do seu perfil, como biografia detalhada, localização e links das redes sociais para atingir 100%.'
+                ],
+            ]
+        ];
+    }
+
+    /**
      * Calcula pontuação de Backend (BCK).
      */
     private function calculateBackendScore(Profile $profile, $stats): int

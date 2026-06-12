@@ -507,6 +507,36 @@ class GamificationSeeder extends Seeder
                 'icon_path' => 'crown',
                 'rules_criteria' => ['type' => 'experience_months', 'value' => 120]
             ],
+            [
+                'name' => 'Polivalente',
+                'description' => 'Liste experiências em 3 empresas diferentes.',
+                'category' => 'Career',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => false,
+                'icon_path' => 'network',
+                'rules_criteria' => ['type' => 'unique_companies_count', 'value' => 3]
+            ],
+            [
+                'name' => 'Mentor Sênior',
+                'description' => 'Descrição descrevendo mentoria ou treinamento de equipe.',
+                'category' => 'Career',
+                'rarity' => 'epica',
+                'xp_reward' => 500,
+                'is_secret' => false,
+                'icon_path' => 'heart-handshake',
+                'rules_criteria' => ['type' => 'mentorship_experience', 'value' => 1]
+            ],
+            [
+                'name' => 'Promissor',
+                'description' => 'Adicione experiência com cargo de Estagiário.',
+                'category' => 'Career',
+                'rarity' => 'comum',
+                'xp_reward' => 100,
+                'is_secret' => false,
+                'icon_path' => 'baby',
+                'rules_criteria' => ['type' => 'internship_experience', 'value' => 1]
+            ],
 
             // Category: Empregabilidade & Currículo (10)
             [
@@ -548,6 +578,66 @@ class GamificationSeeder extends Seeder
                 'is_secret' => false,
                 'icon_path' => 'sparkles',
                 'rules_criteria' => ['type' => 'pdf_ats_score', 'value' => 95]
+            ],
+            [
+                'name' => 'Multilíngue',
+                'description' => 'Gere e exporte currículos em mais de um idioma.',
+                'category' => 'Resume',
+                'rarity' => 'epica',
+                'xp_reward' => 500,
+                'is_secret' => false,
+                'icon_path' => 'languages',
+                'rules_criteria' => ['type' => 'multilingual_languages', 'value' => 2]
+            ],
+            [
+                'name' => 'Currículo Imparável',
+                'description' => 'Realize o download do PDF 15 vezes ou mais.',
+                'category' => 'Resume',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => false,
+                'icon_path' => 'download',
+                'rules_criteria' => ['type' => 'pdf_exports', 'value' => 15]
+            ],
+            [
+                'name' => 'Estudioso Ativo',
+                'description' => 'Adicione pelo menos 2 entradas de Educação.',
+                'category' => 'Resume',
+                'rarity' => 'comum',
+                'xp_reward' => 100,
+                'is_secret' => false,
+                'icon_path' => 'book-open',
+                'rules_criteria' => ['type' => 'educations_count', 'value' => 2]
+            ],
+            [
+                'name' => 'Certificado',
+                'description' => 'Adicione pelo menos 2 Certificações Técnicas.',
+                'category' => 'Resume',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => false,
+                'icon_path' => 'award',
+                'rules_criteria' => ['type' => 'certifications_count', 'value' => 2]
+            ],
+            [
+                'name' => 'Polido',
+                'description' => 'Gere PDF do currículo nos primeiros 15 minutos após atualizar dados.',
+                'category' => 'Resume',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => false,
+                'icon_path' => 'clock',
+                'rules_criteria' => ['type' => 'pdf_polished', 'value' => 1]
+            ],
+            [
+                'name' => 'Analítico',
+                'description' => 'Complete a análise de pontuação ATS do seu currículo.',
+                'category' => 'Resume',
+                'rarity' => 'comum',
+                'xp_reward' => 100,
+                'is_secret' => false,
+                'icon_path' => 'line-chart',
+                'rules_criteria' => ['type' => 'ats_analyzed', 'value' => 1]
             ],
 
             // Category: Consistência & Streaks (10)
@@ -621,6 +711,36 @@ class GamificationSeeder extends Seeder
                 'icon_path' => 'flame',
                 'rules_criteria' => ['type' => 'streak', 'value' => 365]
             ],
+            [
+                'name' => 'Fim de Semana',
+                'description' => 'Faça alterações ou adicione projetos no final de semana.',
+                'category' => 'Streaks',
+                'rarity' => 'comum',
+                'xp_reward' => 100,
+                'is_secret' => false,
+                'icon_path' => 'coffee',
+                'rules_criteria' => ['type' => 'friday_night_project', 'value' => 1]
+            ],
+            [
+                'name' => 'Madrugador',
+                'description' => 'Salve alterações ou faça login entre as 00:00 e as 05:00.',
+                'category' => 'Streaks',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => false,
+                'icon_path' => 'sunset',
+                'rules_criteria' => ['type' => 'secret_time_0404', 'value' => 1]
+            ],
+            [
+                'name' => 'Fidelidade Anual',
+                'description' => 'Complete 1 ano de conta ativa.',
+                'category' => 'Streaks',
+                'rarity' => 'lendaria',
+                'xp_reward' => 1000,
+                'is_secret' => false,
+                'icon_path' => 'calendar-check',
+                'rules_criteria' => ['type' => 'streak', 'value' => 365]
+            ],
 
             // Category: Card & OVR (10)
             [
@@ -672,6 +792,56 @@ class GamificationSeeder extends Seeder
                 'is_secret' => false,
                 'icon_path' => 'zap-off',
                 'rules_criteria' => ['type' => 'ovr', 'value' => 95]
+            ],
+            [
+                'name' => 'Estiloso',
+                'description' => 'Equipe seu primeiro cosmético no Card.',
+                'category' => 'Card',
+                'rarity' => 'comum',
+                'xp_reward' => 100,
+                'is_secret' => false,
+                'icon_path' => 'sparkle',
+                'rules_criteria' => ['type' => 'cosmetic_equipped', 'value' => 1]
+            ],
+            [
+                'name' => 'Colecionador',
+                'description' => 'Desbloqueie 5 ou mais cosméticos visuais.',
+                'category' => 'Card',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => false,
+                'icon_path' => 'boxes',
+                'rules_criteria' => ['type' => 'cosmetics_count', 'value' => 5]
+            ],
+            [
+                'name' => 'Tríplice Insígnia',
+                'description' => 'Fixe 3 conquistas de alto nível no seu Card.',
+                'category' => 'Card',
+                'rarity' => 'epica',
+                'xp_reward' => 500,
+                'is_secret' => false,
+                'icon_path' => 'grid',
+                'rules_criteria' => ['type' => 'pinned_badges_count', 'value' => 3]
+            ],
+            [
+                'name' => 'Visualizador OVR',
+                'description' => 'Acesse a ferramenta de histórico e evolução do OVR.',
+                'category' => 'Card',
+                'rarity' => 'comum',
+                'xp_reward' => 100,
+                'is_secret' => false,
+                'icon_path' => 'line-chart',
+                'rules_criteria' => ['type' => 'ovr_timeline_accessed', 'value' => 1]
+            ],
+            [
+                'name' => 'Rei das Skins',
+                'description' => 'Desbloqueie 10 cosméticos visuais de Card.',
+                'category' => 'Card',
+                'rarity' => 'epica',
+                'xp_reward' => 500,
+                'is_secret' => false,
+                'icon_path' => 'sparkles',
+                'rules_criteria' => ['type' => 'cosmetics_count', 'value' => 10]
             ],
 
             // Category: Community (10)
@@ -725,8 +895,58 @@ class GamificationSeeder extends Seeder
                 'icon_path' => 'flame-kindling',
                 'rules_criteria' => ['type' => 'views_one_day', 'value' => 100]
             ],
+            [
+                'name' => 'Influenciador Tech',
+                'description' => 'Adicione links para 4 redes sociais.',
+                'category' => 'Community',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => false,
+                'icon_path' => 'network',
+                'rules_criteria' => ['type' => 'social_links_count', 'value' => 4]
+            ],
+            [
+                'name' => 'Cartão de Visitas',
+                'description' => 'Exiba o card público do DevFolio incorporado em um Readme do GitHub.',
+                'category' => 'Community',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => false,
+                'icon_path' => 'code-2',
+                'rules_criteria' => ['type' => 'readme_embedded', 'value' => 1]
+            ],
+            [
+                'name' => 'Recomendado',
+                'description' => 'Receba 3 recomendações/reviews de perfis.',
+                'category' => 'Community',
+                'rarity' => 'epica',
+                'xp_reward' => 500,
+                'is_secret' => false,
+                'icon_path' => 'message-square',
+                'rules_criteria' => ['type' => 'linkedin_clicks', 'value' => 3]
+            ],
+            [
+                'name' => 'Rede Crescente',
+                'description' => 'Receba 10 cliques de referência vindos do LinkedIn.',
+                'category' => 'Community',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => false,
+                'icon_path' => 'share',
+                'rules_criteria' => ['type' => 'linkedin_clicks', 'value' => 10]
+            ],
+            [
+                'name' => 'Conexão Aberta',
+                'description' => 'Forneça email público ou formulário ativo de contato.',
+                'category' => 'Community',
+                'rarity' => 'comum',
+                'xp_reward' => 100,
+                'is_secret' => false,
+                'icon_path' => 'mail',
+                'rules_criteria' => ['type' => 'contact_form_active', 'value' => 1]
+            ],
 
-            // Category: Secrets (10)
+            // Category: Secrets (15)
             [
                 'name' => 'Café com Código',
                 'description' => 'Salve dados do perfil exatamente às 04:04 da manhã.',
@@ -827,8 +1047,57 @@ class GamificationSeeder extends Seeder
                 'icon_path' => 'calendar-days',
                 'rules_criteria' => ['type' => 'secret_weekend_commits', 'value' => 1]
             ],
+            [
+                'name' => 'Hiperativo',
+                'description' => 'Execute 20 sincronizações de GitHub no mesmo dia.',
+                'category' => 'Secrets',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => true,
+                'icon_path' => 'zap',
+                'rules_criteria' => ['type' => 'github_sync_spam', 'value' => 20]
+            ],
+            [
+                'name' => 'Fim de Expediente',
+                'description' => 'Salve um projeto novo na sexta-feira depois das 21h.',
+                'category' => 'Secrets',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => true,
+                'icon_path' => 'moon',
+                'rules_criteria' => ['type' => 'friday_night_project', 'value' => 1]
+            ],
+            [
+                'name' => 'Deployer Veloz',
+                'description' => 'Conecte repositório com deploy em menos de 10 minutos após registro.',
+                'category' => 'Secrets',
+                'rarity' => 'epica',
+                'xp_reward' => 500,
+                'is_secret' => true,
+                'icon_path' => 'zap',
+                'rules_criteria' => ['type' => 'github_connected', 'value' => 1]
+            ],
+            [
+                'name' => 'Sombra Silenciosa',
+                'description' => 'Fique com o perfil público invisível no explore por 7 dias.',
+                'category' => 'Secrets',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => true,
+                'icon_path' => 'eye-off',
+                'rules_criteria' => ['type' => 'open_to_work', 'value' => 0]
+            ],
+            [
+                'name' => 'Mestre dos Atalhos',
+                'description' => 'Acesse 5 páginas diferentes do dashboard usando atalhos do teclado.',
+                'category' => 'Secrets',
+                'rarity' => 'rara',
+                'xp_reward' => 250,
+                'is_secret' => true,
+                'icon_path' => 'keyboard',
+                'rules_criteria' => ['type' => 'secret_konami', 'value' => 1]
+            ],
         ];
-
         foreach ($badges as $badgeData) {
             Badge::firstOrCreate(
                 ['name' => $badgeData['name']],

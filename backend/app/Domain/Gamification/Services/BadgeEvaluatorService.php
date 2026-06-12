@@ -94,7 +94,6 @@ class BadgeEvaluatorService
                 return !empty($profile->role) ? 1 : 0;
 
             case 'open_to_work':
-                // Se ativou flag de contato
                 return $profile->is_active ? 1 : 0;
 
             case 'projects_count':
@@ -140,7 +139,6 @@ class BadgeEvaluatorService
                 return (int) ($stats->current_level ?? 0);
 
             case 'tech_skill':
-                // rules_criteria = {"type": "tech_skill", "skill": "Laravel", "value": 80}
                 $skillName = $criteria['skill'] ?? '';
                 $skill = $profile->skills()->where('name', $skillName)->first();
                 return $skill ? (int) $skill->pivot->proficiency_level : 0;
@@ -290,8 +288,118 @@ class BadgeEvaluatorService
                 $hasEdu = $profile->educations()->count() > 0;
                 return (($profile->profile_completeness ?? 0) >= 100 && $hasExp && $hasEdu) ? 1 : 0;
 
+            case 'unique_companies_count':
+                return (int) $profile->experiences()->distinct()->count('company');
+
+            case 'mentorship_experience':
+                $count = 0;
+                foreach ($profile->experiences as $exp) {
+                    $text = mb_strtolower(($exp->role ?? '') . ' ' . ($exp->description ?? ''));
+                    if (str_contains($text, 'mentor') || str_contains($text, 'mentoria') || str_contains($text, 'treinamento') || str_contains($text, 'training') || str_contains($text, 'liderar') || str_contains($text, 'coach')) {
+                        $count++;
+                    }
+                }
+                return $count;
+
+            case 'internship_experience':
+                $count = 0;
+                foreach ($profile->experiences as $exp) {
+                    $text = mb_strtolower($exp->role ?? '');
+                    if (str_contains($text, 'intern') || str_contains($text, 'estágio') || str_contains($text, 'estagio') || str_contains($text, 'estagiário') || str_contains($text, 'estagiario') || str_contains($text, 'aprendiz')) {
+                        $count++;
+                    }
+                }
+                return $count;
+
+            case 'multilingual_languages':
+                $customStyles = $profile->custom_styles;
+                if (is_array($customStyles) && isset($customStyles['languages']) && is_array($customStyles['languages'])) {
+                    return count($customStyles['languages']);
+                }
+                $languages = ['inglês', 'ingles', 'english', 'espanhol', 'spanish', 'francês', 'frances', 'french', 'alemão', 'alemao', 'german', 'italiano', 'italian', 'japonês', 'japones', 'japanese', 'chinês', 'chines', 'chinese', 'português', 'portugues', 'portuguese'];
+                $langCount = 0;
+                foreach ($profile->skills as $skill) {
+                    $skillName = mb_strtolower($skill->name);
+                    if (in_array($skillName, $languages)) {
+                        $langCount++;
+                    }
+                }
+                return max(1, $langCount);
+
+            case 'certifications_count':
+                $customStyles = $profile->custom_styles;
+                if (is_array($customStyles) && isset($customStyles['certifications']) && is_array($customStyles['certifications'])) {
+                    return count($customStyles['certifications']);
+                }
+                $certCount = 0;
+                foreach ($profile->educations as $edu) {
+                    $text = mb_strtolower(($edu->institution ?? '') . ' ' . ($edu->course ?? ''));
+                    if (str_contains($text, 'certif') || str_contains($text, 'credencial') || str_contains($text, 'license') || str_contains($text, 'licença') || str_contains($text, 'bootcamp') || str_contains($text, 'nanodegree')) {
+                        $certCount++;
+                    }
+                }
+                return $certCount;
+
+            case 'pdf_polished':
+                return \Illuminate\Support\Facades\Cache::get("profile_pdf_polished_{$profile->id}", 0) ? 1 : 0;
+
+            case 'ats_analyzed':
+                return \Illuminate\Support\Facades\Cache::get("profile_ats_analyzed_{$profile->id}", 0) ? 1 : 0;
+
+            case 'readme_embedded':
+                return \Illuminate\Support\Facades\Cache::get("profile_readme_embedded_{$profile->id}", 0) ? 1 : 0;
+
+            case 'linkedin_clicks':
+                return (int) \Illuminate\Support\Facades\Cache::get("profile_linkedin_clicks_{$profile->id}", 0);
+
+            case 'github_sync_spam':
+                return (int) \Illuminate\Support\Facades\Cache::get("profile_github_sync_spam_{$profile->id}", 0);
+
+            case 'friday_night_project':
+                return \Illuminate\Support\Facades\Cache::get("profile_friday_night_project_{$profile->id}", 0) ? 1 : 0;
+
+            case 'cosmetic_equipped':
+                $hasCosmetic = $profile->cosmetics()->wherePivot('is_equipped', true)->count() > 0;
+                $hasTitle = $profile->titles()->wherePivot('is_equipped', true)->count() > 0;
+                return ($hasCosmetic || $hasTitle) ? 1 : 0;
+
+            case 'cosmetics_count':
+                return (int) $profile->cosmetics()->count();
+
+            case 'pinned_badges_count':
+                $customStyles = $profile->custom_styles;
+                if (is_array($customStyles) && isset($customStyles['pinned_badges']) && is_array($customStyles['pinned_badges'])) {
+                    return count($customStyles['pinned_badges']);
+                }
+                return 0;
+
+            case 'ovr_timeline_accessed':
+                return \Illuminate\Support\Facades\Cache::get("profile_ovr_timeline_accessed_{$profile->id}", 0) ? 1 : 0;
+
+            case 'social_links_count':
+                $count = 0;
+                if (!empty($profile->linkedin_url)) $count++;
+                if (!empty($profile->github_url)) $count++;
+                if (!empty($profile->website_url)) $count++;
+                $customStyles = $profile->custom_styles;
+                if (is_array($customStyles) && isset($customStyles['twitter_url']) && !empty($customStyles['twitter_url'])) $count++;
+                if (is_array($customStyles) && isset($customStyles['youtube_url']) && !empty($customStyles['youtube_url'])) $count++;
+                if (is_array($customStyles) && isset($customStyles['instagram_url']) && !empty($customStyles['instagram_url'])) $count++;
+                return $count;
+
+            case 'contact_form_active':
+                $customStyles = $profile->custom_styles;
+                $hasContact = (is_array($customStyles) && (!empty($customStyles['contact_email']) || !empty($customStyles['contact_form_enabled'])));
+                return ($hasContact || !empty($profile->website_url)) ? 1 : 0;
+
             case 'secret_clicks':
                 return (int) ($stats->profile_views ?? 0) >= 10 ? 10 : (int) ($stats->profile_views ?? 0);
+
+            case 'secret_night_commits':
+                return \Illuminate\Support\Facades\Cache::get("profile_secret_night_commits_{$profile->id}", 0) ? 1 : 0;
+
+            case 'secret_weekend_commits':
+                return \Illuminate\Support\Facades\Cache::get("profile_secret_weekend_commits_{$profile->id}", 0) ? 1 : 0;
 
             default:
                 return 0;
