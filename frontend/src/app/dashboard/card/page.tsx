@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/features/auth/hooks/use-auth';
+import { useProfile } from '@/features/profile/hooks/use-profile';
 import { useProjects } from '@/features/projects/hooks/use-projects';
 import { useExperiences } from '@/features/experiences/hooks/use-experiences';
 import { useEducations } from '@/features/educations/hooks/use-educations';
@@ -16,12 +16,11 @@ import { calculateOvr } from '@/features/gamification/domain/calculate-ovr';
 import { TierEvolutionModal } from '@/features/dashboard/components/tier-evolution-modal';
 
 export default function CardCustomizationPage() {
-  const { user } = useAuth();
+  const { profile, isLoading: profileLoading } = useProfile();
   const { projects, isLoading: projectsLoading } = useProjects();
   const { experiences, isLoading: experiencesLoading } = useExperiences();
   const { educations, isLoading: educationsLoading } = useEducations();
 
-  const profile = user?.profile;
   const [isTierModalOpen, setIsTierModalOpen] = useState(false);
 
   // Calcula o OVR real do usuário
@@ -37,7 +36,7 @@ export default function CardCustomizationPage() {
     educations?.length || 0
   );
 
-  const loading = projectsLoading || experiencesLoading || educationsLoading;
+  const loading = profileLoading || projectsLoading || experiencesLoading || educationsLoading;
 
   if (loading) {
     return (
