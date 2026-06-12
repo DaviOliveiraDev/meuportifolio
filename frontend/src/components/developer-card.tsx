@@ -723,8 +723,35 @@ export default function DeveloperCard({
                 LVL {level}
               </span>
 
+              {/* Pinned Badges Showcase Shelf */}
+              <div className="shrink-0 flex items-center justify-center gap-2 mt-2.5 mb-1 z-10" title="Medalhas Fixadas">
+                {[0, 1, 2].map((idx) => {
+                  const badge = displayBadges[idx];
+                  if (badge) {
+                    return (
+                      <div
+                        key={badge.id}
+                        className="w-7 h-7 rounded-full bg-neutral-950/75 border border-amber-500/25 flex items-center justify-center text-[13px] hover:scale-110 transition-transform shadow-[0_0_8px_rgba(245,158,11,0.15)]"
+                        title={`${badge.name}: ${badge.description}`}
+                      >
+                        {getBadgeIcon(badge.icon_path)}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div
+                      key={idx}
+                      className="w-7 h-7 rounded-full bg-black/40 border border-dashed border-white/15 flex items-center justify-center text-[9px] text-white/20 select-none"
+                      title="Slot de medalha vazio"
+                    >
+                      +
+                    </div>
+                  );
+                })}
+              </div>
+
               {/* Avatar circular com anel */}
-              <div className="mt-4 mb-3 relative shrink-0">
+              <div className="mt-2.5 mb-3 relative shrink-0">
                 <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${borderGradientClass} p-[3px] shadow-[0_8px_28px_rgba(0,0,0,0.55)]`}>
                   <div className="w-full h-full rounded-full bg-[#050508] flex items-center justify-center overflow-hidden border-2 border-black/40">
                     {profile.avatar_url ? (
@@ -756,7 +783,7 @@ export default function DeveloperCard({
 
               {/* SLOTS TÉCNICOS OU GRID DE ATRIBUTOS (DEPENDENDO DO SCORE) */}
               {hasScores ? (
-                <div className="shrink-0 flex flex-col gap-1.5 w-[82%] bg-black/35 backdrop-blur-xs border border-white/5 rounded-xl p-2.5 mb-2 text-[9.5px] font-mono select-none text-left justify-center min-h-[128px]">
+                <div className="shrink-0 flex flex-col gap-1.5 w-[82%] bg-black/35 backdrop-blur-xs border border-white/5 rounded-xl p-2.5 mb-2 text-[9.5px] font-mono select-none text-left justify-center min-h-[128px] mt-auto">
                   <div className="flex items-center gap-1.5 text-white">
                     <span className="text-white/40 font-bold shrink-0">FOCUS:</span>
                     <span className="font-extrabold truncate text-amber-300" title={slot1Text}>{slot1Text}</span>
@@ -779,7 +806,7 @@ export default function DeveloperCard({
                   </div>
                 </div>
               ) : (
-                <div className="shrink-0 grid grid-cols-2 gap-x-4 gap-y-1 w-[82%] bg-black/35 backdrop-blur-xs border border-white/5 rounded-xl p-2 mb-2 text-[10px] font-mono select-none min-h-[128px]">
+                <div className="shrink-0 grid grid-cols-2 gap-x-4 gap-y-1 w-[82%] bg-black/35 backdrop-blur-xs border border-white/5 rounded-xl p-2 mb-2 text-[10px] font-mono select-none min-h-[128px] mt-auto">
                   <div className="flex justify-between items-center px-1">
                     <span className="text-white/40 font-bold tracking-wider">BCK</span>
                     <span className="font-extrabold text-white">{attrs.bck}</span>
@@ -811,21 +838,8 @@ export default function DeveloperCard({
                 </div>
               )}
 
-              {/* SLOTS DE MEDALHAS */}
-              <div className="shrink-0 flex items-center justify-center gap-2.5 mt-auto">
-                {displayBadges.map((badge) => (
-                  <div
-                    key={badge.id}
-                    className="w-9 h-9 rounded-xl bg-neutral-950/55 border border-white/10 flex items-center justify-center text-amber-400/95 shadow-sm"
-                    title={`${badge.name}: ${badge.description}`}
-                  >
-                    {getBadgeIcon(badge.icon_path)}
-                  </div>
-                ))}
-                {displayBadges.length === 0 && (
-                  <span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">Sem Conquistas Fixadas</span>
-                )}
-              </div>
+              {/* Espaçamento sutil inferior */}
+              <div className="h-2 shrink-0" />
 
               {/* Flip hint */}
               <div className="absolute bottom-2 right-7 text-[7px] text-white/40 font-bold uppercase tracking-wider flex items-center gap-0.5">
