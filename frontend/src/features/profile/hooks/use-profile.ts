@@ -15,6 +15,14 @@ export interface ProfileData {
   theme_name: string;
   custom_styles?: any;
   skills?: any[];
+  badges?: any[];
+  titles?: any[];
+  cosmetics?: any[];
+  technology_scores?: any[];
+  profile_completeness?: number;
+  level?: number;
+  xp?: number;
+  ovr?: number;
 }
 
 export function useProfile() {
