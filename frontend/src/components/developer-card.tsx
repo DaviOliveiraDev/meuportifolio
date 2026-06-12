@@ -213,6 +213,31 @@ export default function DeveloperCard({
     }
   };
 
+  const getCardBorderStops = () => {
+    if (equippedBorder) {
+      switch (equippedBorder) {
+        case 'border-amber-800': return ['#78350f', '#b45309', '#78350f'];
+        case 'border-slate-400': return ['#64748b', '#cbd5e1', '#64748b'];
+        case 'border-yellow-500': return ['#eab308', '#f59e0b', '#d97706'];
+        case 'border-sky-500': return ['#0ea5e9', '#3b82f6', '#6366f1'];
+        case 'border-purple-600': return ['#7c3aed', '#a855f7', '#ec4899'];
+        case 'border-neon-cyber': return ['#06b6d4', '#ec4899', '#a855f7', '#06b6d4'];
+        default: return tier.stops;
+      }
+    }
+
+    switch (borderTheme) {
+      case 'neon':
+        return ['#06b6d4', '#ec4899', '#a855f7'];
+      case 'holographic':
+        return ['#cbd5e1', '#f472b6', '#38bdf8', '#fbbf24', '#cbd5e1'];
+      case 'cosmic':
+        return ['#8b5cf6', '#d946ef', '#f43f5e'];
+      default:
+        return tier.stops;
+    }
+  };
+
   // Determina o fundo recortado baseado no cosmético equipado
   const getCardBgClass = () => {
     if (equippedBg) {
@@ -591,9 +616,13 @@ export default function DeveloperCard({
                 <path d={SHIELD_PATH} />
               </clipPath>
               <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor={tier.stops[0]} />
-                <stop offset="50%" stopColor={tier.stops[1]} />
-                <stop offset="100%" stopColor={tier.stops[2]} />
+                {getCardBorderStops().map((color, idx, arr) => (
+                  <stop 
+                    key={idx} 
+                    offset={`${(idx / (arr.length - 1)) * 100}%`} 
+                    stopColor={color} 
+                  />
+                ))}
               </linearGradient>
             </defs>
           </svg>

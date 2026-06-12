@@ -94,19 +94,19 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
     handleUpdateStyle({ pinned_badges: newPinned });
   };
 
-  // Level-based default borders and foils
+  // Level-based default borders and foils (unlocked for testing)
   const borderThemes = [
     { id: 'default', name: 'Original', desc: 'Cor do OVR Tier', minLevel: 1, colors: 'from-neutral-700 to-neutral-500' },
-    { id: 'neon', name: 'Néon Vibrante', desc: 'Ciano e Magenta Néon', minLevel: 3, colors: 'from-cyan-400 via-pink-500 to-violet-600' },
-    { id: 'holographic', name: 'Holo Prism', desc: 'Arco-íris Reflexivo', minLevel: 7, colors: 'from-[#cbd5e1] via-[#f472b6] via-[#38bdf8] via-[#fbbf24] to-[#cbd5e1]' },
-    { id: 'cosmic', name: 'Lendário Cósmico', desc: 'Aura Roxa Cósmica', minLevel: 12, colors: 'from-purple-600 via-pink-600 to-rose-500' },
+    { id: 'neon', name: 'Néon Vibrante', desc: 'Ciano e Magenta Néon', minLevel: 1, colors: 'from-cyan-400 via-pink-500 to-violet-600' },
+    { id: 'holographic', name: 'Holo Prism', desc: 'Arco-íris Reflexivo', minLevel: 1, colors: 'from-[#cbd5e1] via-[#f472b6] via-[#38bdf8] via-[#fbbf24] to-[#cbd5e1]' },
+    { id: 'cosmic', name: 'Lendário Cósmico', desc: 'Aura Roxa Cósmica', minLevel: 1, colors: 'from-purple-600 via-pink-600 to-rose-500' },
   ] as const;
 
   const foilEffects = [
     { id: 'none', name: 'Nenhum', desc: 'Sem cobertura metálica', minLevel: 1, style: 'bg-neutral-800' },
-    { id: 'chrome', name: 'Prata Cromada', desc: 'Efeito metal escovado', minLevel: 5, style: 'bg-gradient-to-r from-slate-200 to-slate-400 text-slate-900' },
-    { id: 'gold', name: 'Ouro Âmbar', desc: 'Brilho luxuoso em ouro', minLevel: 10, style: 'bg-gradient-to-r from-amber-300 to-amber-500 text-amber-950' },
-    { id: 'diamond', name: 'Diamante Glacial', desc: 'Prisma ciano cristalino', minLevel: 15, style: 'bg-gradient-to-r from-cyan-200 to-indigo-400 text-cyan-950' },
+    { id: 'chrome', name: 'Prata Cromada', desc: 'Efeito metal escovado', minLevel: 1, style: 'bg-gradient-to-r from-slate-200 to-slate-400 text-slate-900' },
+    { id: 'gold', name: 'Ouro Âmbar', desc: 'Brilho luxuoso em ouro', minLevel: 1, style: 'bg-gradient-to-r from-amber-300 to-amber-500 text-amber-950' },
+    { id: 'diamond', name: 'Diamante Glacial', desc: 'Prisma ciano cristalino', minLevel: 1, style: 'bg-gradient-to-r from-cyan-200 to-indigo-400 text-cyan-950' },
   ] as const;
 
   // Filter cosmetics catalog by types

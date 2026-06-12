@@ -15,7 +15,8 @@ import {
   FolderGit2, 
   Briefcase, 
   GraduationCap, 
-  Globe 
+  Globe,
+  Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -31,6 +32,7 @@ export function Header() {
 
   const menuItems = [
     { name: 'Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Developer Card', href: '/dashboard/card', icon: Sparkles },
     { name: 'Perfil', href: '/dashboard/profile', icon: UserIcon },
     { name: 'Projetos', href: '/dashboard/projects', icon: FolderGit2 },
     { name: 'Experiências', href: '/dashboard/experiences', icon: Briefcase },
