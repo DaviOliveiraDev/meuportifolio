@@ -10,7 +10,8 @@ import {
   GraduationCap, 
   Globe,
   Sliders,
-  ShieldAlert
+  ShieldAlert,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/use-auth';
@@ -21,6 +22,7 @@ export function Sidebar() {
   
   const menuItems = [
     { name: 'Geral', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Developer Card', href: '/dashboard/card', icon: Sparkles },
     { name: 'Perfil', href: '/dashboard/profile', icon: User },
     { name: 'Projetos', href: '/dashboard/projects', icon: FolderGit2 },
     { name: 'Experiências', href: '/dashboard/experiences', icon: Briefcase },

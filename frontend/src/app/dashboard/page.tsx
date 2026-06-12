@@ -7,6 +7,7 @@ import { useEducations } from '@/features/educations/hooks/use-educations';
 import { Sparkles, Link2, ExternalLink } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 // Importando componentes gamificados modulares
 import DeveloperCard from '@/components/developer-card';
@@ -180,13 +181,13 @@ export default function DashboardPage() {
           </div>
 
           {/* Customização de Estilo do Card */}
-          {profile && (
-            <CardCustomizerPanel 
-              profile={profile} 
-              className="w-full" 
-              onOpenTierModal={() => setIsTierModalOpen(true)}
-            />
-          )}
+          <Link
+            href="/dashboard/card"
+            className="w-full flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-neutral-905 border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-850 hover:border-violet-500/50 hover:bg-neutral-50 dark:hover:bg-neutral-850 text-neutral-850 dark:text-white font-extrabold text-xs tracking-wider uppercase transition-all shadow-md shadow-violet-500/5 cursor-pointer text-center group/btn"
+          >
+            <Sparkles className="w-4 h-4 text-violet-500 group-hover/btn:text-amber-400 transition-colors animate-pulse" />
+            Customizar Estilo do Card
+          </Link>
 
           {/* Painel de Compartilhamento Viral */}
           <ShareCardPanel profile={profile} className="w-full" />

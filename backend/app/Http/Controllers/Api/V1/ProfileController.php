@@ -127,21 +127,20 @@ class ProfileController extends Controller
         $equippedTitleObj = $profile->titles()->wherePivot('is_equipped', true)->first();
         $equippedTitleId = $equippedTitleObj ? $equippedTitleObj->id : null;
 
-        $titlesList = $allTitles->map(function ($title) use ($unlockedTitleIds, $equippedTitleId) {
+        $titlesList = $allTitles->map(function ($title) use ($equippedTitleId) {
             return [
                 'id' => $title->id,
                 'name' => $title->name,
-                'unlocked' => in_array($title->id, $unlockedTitleIds),
+                'unlocked' => true, // Liberado para testes
                 'is_equipped' => $title->id === $equippedTitleId,
                 'unlock_requirement' => $title->badge ? "Conquiste '{$title->badge->name}'" : null
             ];
         });
 
         $allCosmetics = Cosmetic::with('badge')->get();
-        $unlockedCosmeticIds = $profile->cosmetics()->pluck('cosmetics.id')->toArray();
         $equippedCosmeticIds = $profile->cosmetics()->wherePivot('is_equipped', true)->pluck('cosmetics.id')->toArray();
 
-        $cosmeticsList = $allCosmetics->map(function ($cosm) use ($unlockedCosmeticIds, $equippedCosmeticIds) {
+        $cosmeticsList = $allCosmetics->map(function ($cosm) use ($equippedCosmeticIds) {
             $requirement = null;
             if ($cosm->unlock_badge_id && $cosm->badge) {
                 $requirement = "Conquiste '{$cosm->badge->name}'";
@@ -160,7 +159,7 @@ class ProfileController extends Controller
                 'name' => $cosm->name,
                 'type' => $cosm->type,
                 'value' => $cosm->value,
-                'unlocked' => in_array($cosm->id, $unlockedCosmeticIds),
+                'unlocked' => true, // Liberado para testes
                 'is_equipped' => in_array($cosm->id, $equippedCosmeticIds),
                 'unlock_requirement' => $requirement
             ];
@@ -184,7 +183,7 @@ class ProfileController extends Controller
 
         $hasTitle = $profile->titles()->where('titles.id', $id)->exists();
         if (!$hasTitle) {
-            return response()->json(['message' => 'Você não possui este título desbloqueado.'], 403);
+            $profile->titles()->attach($id, ['unlocked_at' => now()]);
         }
 
         DB::transaction(function () use ($profile, $id) {
@@ -222,10 +221,18 @@ class ProfileController extends Controller
             return response()->json(['message' => 'Perfil profissional não inicializado.'], 404);
         }
 
-        $cosmetic = $profile->cosmetics()->where('cosmetics.id', $id)->first();
+        $cosmetic = Cosmetic::find($id);
         if (!$cosmetic) {
-            return response()->json(['message' => 'Você não possui este cosmético desbloqueado.'], 403);
+            return response()->json(['message' => 'Cosmético não encontrado.'], 404);
         }
+
+        $hasCosmetic = $profile->cosmetics()->where('cosmetics.id', $id)->exists();
+        if (!$hasCosmetic) {
+            $profile->cosmetics()->attach($id, ['unlocked_at' => now()]);
+        }
+
+        // Re-read cosmetic reference from profile relationship to get correct object for transaction
+        $cosmetic = $profile->cosmetics()->where('cosmetics.id', $id)->first();
 
         DB::transaction(function () use ($profile, $cosmetic) {
             // Desequipa todos os cosméticos do mesmo tipo
