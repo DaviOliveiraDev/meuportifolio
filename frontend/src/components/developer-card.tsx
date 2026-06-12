@@ -165,6 +165,10 @@ export default function DeveloperCard({
   const shineX = useTransform(x, [-100, 100], ["0%", "100%"]);
   const shineY = useTransform(y, [-150, 150], ["0%", "100%"]);
 
+  // Posições do reflexo metálico (foil) - varre o card conforme o mouse
+  const foilShineX = useTransform(x, [-150, 150], ["0%", "100%"]);
+  const foilShineY = useTransform(y, [-200, 200], ["0%", "100%"]);
+
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (!cardRef.current || isFlipped) return;
     const rect = cardRef.current.getBoundingClientRect();
@@ -267,30 +271,39 @@ export default function DeveloperCard({
     return tier.bg;
   };
 
-  // Efeitos holográficos adicionais (Foil)
+  // Efeitos holográficos adicionais (Foil) - reativos ao movimento do mouse
   const renderFoilSheen = () => {
     if (foilEffect === 'none') return null;
 
     let bgStyle = '';
-    let opacity = 'opacity-30';
+    let opacity = 'opacity-40';
+    let blend = 'mix-blend-overlay';
 
     if (foilEffect === 'chrome') {
-      bgStyle = 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.3) 100%)';
-      opacity = 'opacity-20';
+      bgStyle =
+        'linear-gradient(115deg, rgba(255,255,255,0) 20%, rgba(255,255,255,0.55) 45%, rgba(203,213,225,0.35) 50%, rgba(255,255,255,0.55) 55%, rgba(255,255,255,0) 80%)';
+      opacity = 'opacity-30';
+      blend = 'mix-blend-soft-light';
     } else if (foilEffect === 'gold') {
-      bgStyle = 'linear-gradient(135deg, rgba(251,191,36,0.35) 0%, rgba(255,255,255,0) 60%, rgba(217,119,6,0.4) 100%)';
-      opacity = 'opacity-35';
+      bgStyle =
+        'linear-gradient(115deg, rgba(251,191,36,0) 20%, rgba(253,224,71,0.6) 42%, rgba(217,119,6,0.45) 52%, rgba(253,224,71,0.6) 60%, rgba(251,191,36,0) 82%)';
+      opacity = 'opacity-45';
+      blend = 'mix-blend-color-dodge';
     } else if (foilEffect === 'diamond') {
-      bgStyle = 'radial-gradient(circle, rgba(165,243,252,0.4) 0%, rgba(99,102,241,0.1) 70%)';
-      opacity = 'opacity-40';
+      bgStyle =
+        'linear-gradient(115deg, rgba(165,243,252,0) 15%, rgba(165,243,252,0.55) 38%, rgba(99,102,241,0.4) 50%, rgba(244,114,182,0.45) 62%, rgba(165,243,252,0) 85%)';
+      opacity = 'opacity-50';
+      blend = 'mix-blend-color-dodge';
     }
 
     return (
-      <motion.div 
-        className={`absolute inset-0 pointer-events-none rounded-[22px] mix-blend-overlay transition-opacity duration-300 z-25 ${opacity}`}
+      <motion.div
+        className={`absolute inset-0 pointer-events-none ${blend} transition-opacity duration-300 z-[22] ${opacity}`}
         style={{
-          background: bgStyle,
-          backgroundAttachment: 'fixed'
+          backgroundImage: bgStyle,
+          backgroundSize: '250% 250%',
+          backgroundPositionX: foilShineX,
+          backgroundPositionY: foilShineY,
         }}
       />
     );
@@ -587,12 +600,15 @@ export default function DeveloperCard({
       >
         {/* GLOW NEON DO ESCUDO (atrás da moldura) */}
         <svg
-          className="absolute -inset-1 w-[336px] h-[476px] pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity duration-500"
+          className={`absolute -inset-1 w-[336px] h-[476px] pointer-events-none opacity-70 group-hover:opacity-100 transition-opacity duration-500 ${tier.hasPulseGlow ? 'animate-pulse' : ''}`}
           viewBox="-8 -8 336 476"
           fill="none"
           aria-hidden="true"
         >
           <path d={SHIELD_PATH} stroke={`url(#${gradientId})`} strokeWidth="6" className="blur-[14px]" />
+          {(tier.hasHoloEffect || tier.hasPulseGlow) && (
+            <path d={SHIELD_PATH} stroke={`url(#${gradientId})`} strokeWidth="10" className="blur-[28px] opacity-60" />
+          )}
         </svg>
 
         {/* CARD FÍSICO CONTÊINER (formato de escudo) */}
