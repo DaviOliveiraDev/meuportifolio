@@ -6,9 +6,15 @@ use App\Application\Actions\Profile\UpdateProfileUseCase;
 use App\Application\DTOs\Profile\UpdateProfileDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Profile\UpdateProfileRequest;
+use App\Domain\Gamification\Services\OvrEngineService;
+use App\Infrastructure\Models\Badge;
+use App\Infrastructure\Models\ProfileBadgeProgress;
+use App\Infrastructure\Models\Title;
+use App\Infrastructure\Models\Cosmetic;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
@@ -53,5 +59,206 @@ class ProfileController extends Controller
                 'message' => $e->getMessage()
             ], $statusCode);
         }
+    }
+
+    /**
+     * Retorna o catálogo de conquistas do usuário.
+     */
+    public function achievements(Request $request): JsonResponse
+    {
+        $profile = $request->user()->profile;
+        if (!$profile) {
+            return response()->json(['message' => 'Perfil profissional não inicializado.'], 404);
+        }
+
+        $badges = Badge::where('is_active', true)->get();
+        $unlockedBadgeIds = $profile->badges()->pluck('badges.id')->toArray();
+        
+        $progress = ProfileBadgeProgress::where('profile_id', $profile->id)
+            ->get()
+            ->keyBy('badge_id');
+
+        $result = $badges->map(function ($badge) use ($unlockedBadgeIds, $progress) {
+            $userProgress = $progress->get($badge->id);
+            return [
+                'id' => $badge->id,
+                'name' => $badge->name,
+                'description' => $badge->description,
+                'category' => $badge->category,
+                'rarity' => $badge->rarity,
+                'xp_reward' => $badge->xp_reward,
+                'icon_path' => $badge->icon_path,
+                'is_secret' => $badge->is_secret,
+                'unlocked' => in_array($badge->id, $unlockedBadgeIds),
+                'current_value' => $userProgress ? $userProgress->current_value : 0,
+                'target_value' => $userProgress ? $userProgress->target_value : 1,
+            ];
+        });
+
+        return response()->json([
+            'achievements' => $result
+        ]);
+    }
+
+    /**
+     * Retorna o detalhamento do OVR calculado.
+     */
+    public function ovrBreakdown(Request $request, OvrEngineService $ovrService): JsonResponse
+    {
+        $profile = $request->user()->profile;
+        if (!$profile) {
+            return response()->json(['message' => 'Perfil profissional não inicializado.'], 404);
+        }
+        return response()->json($ovrService->getDetailedOvrBreakdown($profile));
+    }
+
+    /**
+     * Retorna o catálogo de cosméticos e títulos do usuário.
+     */
+    public function cosmeticsCatalog(Request $request): JsonResponse
+    {
+        $profile = $request->user()->profile;
+        if (!$profile) {
+            return response()->json(['message' => 'Perfil profissional não inicializado.'], 404);
+        }
+
+        $allTitles = Title::where('is_active', true)->with('badge')->get();
+        $unlockedTitleIds = $profile->titles()->pluck('titles.id')->toArray();
+        $equippedTitleObj = $profile->titles()->wherePivot('is_equipped', true)->first();
+        $equippedTitleId = $equippedTitleObj ? $equippedTitleObj->id : null;
+
+        $titlesList = $allTitles->map(function ($title) use ($unlockedTitleIds, $equippedTitleId) {
+            return [
+                'id' => $title->id,
+                'name' => $title->name,
+                'unlocked' => in_array($title->id, $unlockedTitleIds),
+                'is_equipped' => $title->id === $equippedTitleId,
+                'unlock_requirement' => $title->badge ? "Conquiste '{$title->badge->name}'" : null
+            ];
+        });
+
+        $allCosmetics = Cosmetic::with('badge')->get();
+        $unlockedCosmeticIds = $profile->cosmetics()->pluck('cosmetics.id')->toArray();
+        $equippedCosmeticIds = $profile->cosmetics()->wherePivot('is_equipped', true)->pluck('cosmetics.id')->toArray();
+
+        $cosmeticsList = $allCosmetics->map(function ($cosm) use ($unlockedCosmeticIds, $equippedCosmeticIds) {
+            $requirement = null;
+            if ($cosm->unlock_badge_id && $cosm->badge) {
+                $requirement = "Conquiste '{$cosm->badge->name}'";
+            } elseif (str_starts_with($cosm->name, 'Moldura Silver')) {
+                $requirement = "Alcance OVR 65+";
+            } elseif (str_starts_with($cosm->name, 'Moldura Gold')) {
+                $requirement = "Alcance OVR 75+";
+            } elseif (str_starts_with($cosm->name, 'Moldura Diamond')) {
+                $requirement = "Alcance OVR 85+";
+            } elseif (str_starts_with($cosm->name, 'Moldura Legendary')) {
+                $requirement = "Alcance OVR 95+";
+            }
+
+            return [
+                'id' => $cosm->id,
+                'name' => $cosm->name,
+                'type' => $cosm->type,
+                'value' => $cosm->value,
+                'unlocked' => in_array($cosm->id, $unlockedCosmeticIds),
+                'is_equipped' => in_array($cosm->id, $equippedCosmeticIds),
+                'unlock_requirement' => $requirement
+            ];
+        });
+
+        return response()->json([
+            'titles' => $titlesList,
+            'cosmetics' => $cosmeticsList
+        ]);
+    }
+
+    /**
+     * Equipa um título selecionado.
+     */
+    public function equipTitle(Request $request, string $id): JsonResponse
+    {
+        $profile = $request->user()->profile;
+        if (!$profile) {
+            return response()->json(['message' => 'Perfil profissional não inicializado.'], 404);
+        }
+
+        $hasTitle = $profile->titles()->where('titles.id', $id)->exists();
+        if (!$hasTitle) {
+            return response()->json(['message' => 'Você não possui este título desbloqueado.'], 403);
+        }
+
+        DB::transaction(function () use ($profile, $id) {
+            // Desequipa todos os títulos
+            $profile->titles()->updateExistingPivot($profile->titles()->pluck('titles.id')->toArray(), ['is_equipped' => false]);
+            // Equipa o selecionado
+            $profile->titles()->updateExistingPivot($id, ['is_equipped' => true]);
+        });
+
+        return response()->json(['message' => 'Título equipado com sucesso!']);
+    }
+
+    /**
+     * Desequipa um título selecionado.
+     */
+    public function unequipTitle(Request $request, string $id): JsonResponse
+    {
+        $profile = $request->user()->profile;
+        if (!$profile) {
+            return response()->json(['message' => 'Perfil profissional não inicializado.'], 404);
+        }
+
+        $profile->titles()->updateExistingPivot($id, ['is_equipped' => false]);
+
+        return response()->json(['message' => 'Título desequipado com sucesso!']);
+    }
+
+    /**
+     * Equipa um cosmético selecionado.
+     */
+    public function equipCosmetic(Request $request, string $id): JsonResponse
+    {
+        $profile = $request->user()->profile;
+        if (!$profile) {
+            return response()->json(['message' => 'Perfil profissional não inicializado.'], 404);
+        }
+
+        $cosmetic = $profile->cosmetics()->where('cosmetics.id', $id)->first();
+        if (!$cosmetic) {
+            return response()->json(['message' => 'Você não possui este cosmético desbloqueado.'], 403);
+        }
+
+        DB::transaction(function () use ($profile, $cosmetic) {
+            // Desequipa todos os cosméticos do mesmo tipo
+            $cosmeticsOfType = $profile->cosmetics()
+                ->where('type', $cosmetic->type)
+                ->pluck('cosmetics.id')
+                ->toArray();
+
+            if (!empty($cosmeticsOfType)) {
+                $profile->cosmetics()->updateExistingPivot($cosmeticsOfType, ['is_equipped' => false]);
+            }
+
+            // Equipa o selecionado
+            $profile->cosmetics()->updateExistingPivot($cosmetic->id, ['is_equipped' => true]);
+            
+            \Illuminate\Support\Facades\Cache::put("profile_cosmetic_equipped_{$profile->id}", 1, now()->addYear());
+        });
+
+        return response()->json(['message' => 'Cosmético equipado com sucesso!']);
+    }
+
+    /**
+     * Desequipa um cosmético selecionado.
+     */
+    public function unequipCosmetic(Request $request, string $id): JsonResponse
+    {
+        $profile = $request->user()->profile;
+        if (!$profile) {
+            return response()->json(['message' => 'Perfil profissional não inicializado.'], 404);
+        }
+
+        $profile->cosmetics()->updateExistingPivot($id, ['is_equipped' => false]);
+
+        return response()->json(['message' => 'Cosmético desequipado com sucesso!']);
     }
 }

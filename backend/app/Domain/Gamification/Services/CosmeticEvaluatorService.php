@@ -44,6 +44,8 @@ class CosmeticEvaluatorService
                     $shouldUnlock = true;
                 } elseif ($cosmetic->name === 'Moldura Bronze') {
                     $shouldUnlock = true; // Bronze é padrão e liberado por padrão
+                } elseif (!str_starts_with($cosmetic->name, 'Moldura')) {
+                    $shouldUnlock = true; // Outros cosméticos sem badge associada são liberados por padrão
                 }
             }
 

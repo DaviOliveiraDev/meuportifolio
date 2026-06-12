@@ -1,7 +1,11 @@
 'use client';
 
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api-client';
 import { Scale, Sparkles, AlertCircle, ArrowUp } from 'lucide-react';
 import { calculateOvr, OvrWeights } from '@/features/gamification/domain/calculate-ovr';
+import { OvrBreakdownModal } from './ovr-breakdown-modal';
 
 interface OvrBreakdownProps {
   profile?: {
@@ -33,6 +37,16 @@ interface OvrBreakdownProps {
 }
 
 export function OvrBreakdown({ profile, educationsCount = 0, className, onOpenTierModal }: OvrBreakdownProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { data: breakdownData } = useQuery({
+    queryKey: ['ovr-breakdown'],
+    queryFn: async () => {
+      const response = await apiClient.get('/profile/ovr-breakdown');
+      return response.data;
+    }
+  });
+
   // Realiza o cálculo do OVR e do detalhamento
   const { ovr, breakdown } = calculateOvr(profile || {}, educationsCount);
 
@@ -107,7 +121,11 @@ export function OvrBreakdown({ profile, educationsCount = 0, className, onOpenTi
 
     return (
       <div className="flex flex-col items-center justify-center">
-        <svg viewBox="0 0 300 300" className="w-full max-w-[230px] h-auto drop-shadow-md">
+        <svg 
+          onClick={() => setIsModalOpen(true)}
+          viewBox="0 0 300 300" 
+          className="w-full max-w-[230px] h-auto drop-shadow-md cursor-pointer hover:scale-[1.02] transition-transform"
+        >
           {/* Eixos Grid de Fundo */}
           {gridPolygons.map((pts, idx) => (
             <polygon
@@ -204,7 +222,11 @@ export function OvrBreakdown({ profile, educationsCount = 0, className, onOpenTi
         {/* Badge do OVR & Ver Elos Button */}
         <div className="flex flex-col items-end gap-1.5">
           <div className="flex flex-col items-center">
-            <div className="text-2xl font-black bg-gradient-to-tr from-amber-500 to-yellow-400 bg-clip-text text-transparent leading-none">
+            <div 
+              onClick={() => setIsModalOpen(true)}
+              className="text-2xl font-black bg-gradient-to-tr from-amber-500 to-yellow-400 bg-clip-text text-transparent leading-none cursor-pointer hover:scale-110 transition-transform"
+              title="Clique para ver detalhamento do OVR"
+            >
               {ovr}
             </div>
             <span className="text-[8px] font-bold text-neutral-450 uppercase tracking-widest mt-0.5">OVR</span>
@@ -271,6 +293,13 @@ export function OvrBreakdown({ profile, educationsCount = 0, className, onOpenTi
           })}
         </div>
       </div>
+      {breakdownData && (
+        <OvrBreakdownModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          breakdownData={breakdownData}
+        />
+      )}
     </div>
   );
 }

@@ -1,9 +1,10 @@
 'use client';
 
 import { useProfile } from '@/features/profile/hooks/use-profile';
+import { useCosmetics } from '@/features/dashboard/hooks/use-cosmetics';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Lock, Palette, CheckCircle2, Pin, Sliders } from 'lucide-react';
+import { Sparkles, Lock, Palette, CheckCircle2, Pin, Sliders, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CardCustomizerPanelProps {
@@ -14,6 +15,14 @@ interface CardCustomizerPanelProps {
 
 export function CardCustomizerPanel({ profile, className, onOpenTierModal }: CardCustomizerPanelProps) {
   const { updateProfile, isUpdating } = useProfile();
+  const {
+    catalog,
+    isLoading: isCosmeticsLoading,
+    equipTitle,
+    unequipTitle,
+    equipCosmetic,
+    unequipCosmetic
+  } = useCosmetics();
   
   const level = profile?.level || 1;
   const badges = profile?.badges || [];
@@ -85,7 +94,7 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
     handleUpdateStyle({ pinned_badges: newPinned });
   };
 
-  // Temas de borda e seus requisitos de nível
+  // Level-based default borders and foils
   const borderThemes = [
     { id: 'default', name: 'Original', desc: 'Cor do OVR Tier', minLevel: 1, colors: 'from-neutral-700 to-neutral-500' },
     { id: 'neon', name: 'Néon Vibrante', desc: 'Ciano e Magenta Néon', minLevel: 3, colors: 'from-cyan-400 via-pink-500 to-violet-600' },
@@ -93,13 +102,76 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
     { id: 'cosmic', name: 'Lendário Cósmico', desc: 'Aura Roxa Cósmica', minLevel: 12, colors: 'from-purple-600 via-pink-600 to-rose-500' },
   ] as const;
 
-  // Efeitos metalizados
   const foilEffects = [
     { id: 'none', name: 'Nenhum', desc: 'Sem cobertura metálica', minLevel: 1, style: 'bg-neutral-800' },
     { id: 'chrome', name: 'Prata Cromada', desc: 'Efeito metal escovado', minLevel: 5, style: 'bg-gradient-to-r from-slate-200 to-slate-400 text-slate-900' },
     { id: 'gold', name: 'Ouro Âmbar', desc: 'Brilho luxuoso em ouro', minLevel: 10, style: 'bg-gradient-to-r from-amber-300 to-amber-500 text-amber-950' },
     { id: 'diamond', name: 'Diamante Glacial', desc: 'Prisma ciano cristalino', minLevel: 15, style: 'bg-gradient-to-r from-cyan-200 to-indigo-400 text-cyan-950' },
   ] as const;
+
+  // Filter cosmetics catalog by types
+  const cosmeticBorders = catalog?.cosmetics?.filter(c => c.type === 'border') || [];
+  const cosmeticBackgrounds = catalog?.cosmetics?.filter(c => c.type === 'background') || [];
+  const cosmeticEffects = catalog?.cosmetics?.filter(c => c.type === 'effect') || [];
+
+  const renderCosmeticSection = (title: string, items: any[], type: 'border' | 'background' | 'effect') => {
+    if (items.length === 0) return null;
+    return (
+      <div className="space-y-2 border-t border-neutral-100 dark:border-neutral-850 pt-3">
+        <span className="text-[10px] font-bold font-mono text-neutral-450 uppercase tracking-wider block">{title}</span>
+        <div className="grid grid-cols-2 gap-2">
+          {items.map((item) => {
+            const isSelected = item.is_equipped;
+            const isLocked = !item.unlocked;
+            
+            return (
+              <button
+                key={item.id}
+                disabled={isLocked && !isSelected}
+                onClick={async () => {
+                  try {
+                    if (isSelected) {
+                      await unequipCosmetic(item.id);
+                      toast.success(`${item.name} desequipado!`);
+                    } else {
+                      await equipCosmetic(item.id);
+                      toast.success(`${item.name} equipado!`);
+                    }
+                  } catch (err) {
+                    toast.error('Erro ao atualizar cosmético.');
+                  }
+                }}
+                className={`p-2 rounded-xl border text-left flex flex-col justify-between h-18 transition-all relative ${
+                  isLocked 
+                    ? 'bg-neutral-50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-850/40 opacity-40 cursor-not-allowed'
+                    : isSelected
+                      ? 'bg-violet-500/5 dark:bg-violet-500/10 border-violet-500 text-neutral-900 dark:text-white cursor-pointer shadow-[0_0_12px_rgba(99,102,241,0.1)]'
+                      : 'bg-neutral-50/50 hover:bg-neutral-50 dark:bg-neutral-950/20 dark:hover:bg-neutral-950/40 border-neutral-200 dark:border-neutral-850 cursor-pointer text-neutral-800 dark:text-neutral-200'
+                }`}
+              >
+                <div className="flex justify-between items-start w-full">
+                  <span className="text-[10.5px] font-extrabold truncate pr-2 leading-tight">{item.name}</span>
+                  {isLocked ? (
+                    <Lock className="w-3 h-3 text-neutral-450 shrink-0 mt-0.5" />
+                  ) : (
+                    isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-violet-500 shrink-0" />
+                  )}
+                </div>
+                
+                {isLocked ? (
+                  <p className="text-[8.5px] text-neutral-450 leading-tight truncate w-full" title={item.unlock_requirement}>
+                    {item.unlock_requirement}
+                  </p>
+                ) : (
+                  <p className="text-[8.5px] text-emerald-500 font-medium">Disponível</p>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className={`p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-850 shadow-sm ${className}`}>
@@ -120,9 +192,56 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
       </div>
 
       <div className="space-y-4">
-        {/* Temas da Borda */}
-        <div className="space-y-2">
-          <span className="text-[10px] font-bold font-mono text-neutral-450 uppercase tracking-wider block">Tema da Borda</span>
+        {/* Título do Card */}
+        <div className="space-y-2 pb-2">
+          <span className="text-[10px] font-bold font-mono text-neutral-450 uppercase tracking-wider block">Título do Card</span>
+          <select
+            value={catalog?.titles?.find(t => t.is_equipped)?.id || 'none'}
+            onChange={async (e) => {
+              const selectedId = e.target.value;
+              const currentEquipped = catalog?.titles?.find(t => t.is_equipped);
+              
+              try {
+                if (selectedId === 'none') {
+                  if (currentEquipped) {
+                    await unequipTitle(currentEquipped.id);
+                    toast.success('Título removido!');
+                  }
+                } else {
+                  await equipTitle(selectedId);
+                  toast.success('Título equipado!');
+                }
+              } catch (err) {
+                toast.error('Erro ao atualizar título.');
+              }
+            }}
+            className="bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 text-neutral-800 dark:text-neutral-200 rounded-lg px-2.5 py-1.5 text-[11px] outline-none w-full cursor-pointer focus:border-violet-500 transition-colors"
+          >
+            <option value="none">Nenhum Título (Vazio)</option>
+            {catalog?.titles?.map((title) => (
+              <option 
+                key={title.id} 
+                value={title.id}
+                disabled={!title.unlocked}
+              >
+                {title.name} {!title.unlocked ? `🔒 (${title.unlock_requirement})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Molduras Especiais (Se desbloqueadas) */}
+        {renderCosmeticSection('Molduras Especiais (Conquistas)', cosmeticBorders, 'border')}
+
+        {/* Temas de Fundo (Se desbloqueados) */}
+        {renderCosmeticSection('Temas de Fundo do Card', cosmeticBackgrounds, 'background')}
+
+        {/* Efeitos Especiais do Card */}
+        {renderCosmeticSection('Efeitos Visuais Especiais', cosmeticEffects, 'effect')}
+
+        {/* Temas da Borda (Nível) */}
+        <div className="space-y-2 border-t border-neutral-100 dark:border-neutral-850 pt-3">
+          <span className="text-[10px] font-bold font-mono text-neutral-450 uppercase tracking-wider block">Tema da Borda (Nível)</span>
           <div className="grid grid-cols-2 gap-2">
             {borderThemes.map((t) => {
               const isLocked = level < t.minLevel;
@@ -140,15 +259,14 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
                     isLocked 
                       ? 'bg-neutral-50 dark:bg-neutral-950/20 border-neutral-200 dark:border-neutral-850/40 opacity-40 cursor-not-allowed'
                       : isSelected
-                        ? 'bg-violet-500/5 dark:bg-violet-500/10 border-violet-500 text-neutral-900 dark:text-white cursor-pointer shadow-[0_0_12px_rgba(99,102,241,0.1)]'
+                        ? 'bg-violet-500/5 dark:bg-violet-500/10 border-violet-500 text-neutral-900 dark:text-white cursor-pointer shadow-[0_0_12px_rgba(99,102,241,0.15)]'
                         : 'bg-neutral-50/50 hover:bg-neutral-50 dark:bg-neutral-950/20 dark:hover:bg-neutral-950/40 border-neutral-200 dark:border-neutral-850 cursor-pointer text-neutral-800 dark:text-neutral-200'
                   }`}
                 >
                   <div className="flex justify-between items-start w-full">
-                    {/* Visual dot representation of the gradient */}
                     <div className={`w-3.5 h-3.5 rounded-full bg-gradient-to-tr ${t.colors} border border-white/10`} />
                     {isLocked ? (
-                      <Lock className="w-3 h-3 text-neutral-400" />
+                      <Lock className="w-3 h-3 text-neutral-450" />
                     ) : (
                       isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-violet-500" />
                     )}
@@ -165,7 +283,7 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
           </div>
         </div>
 
-        {/* Efeitos Metalizados */}
+        {/* Efeitos Metalizados (Nível) */}
         <div className="space-y-2">
           <span className="text-[10px] font-bold font-mono text-neutral-450 uppercase tracking-wider block">Efeito Metalizado (Foil)</span>
           <div className="grid grid-cols-2 gap-2">
@@ -190,10 +308,9 @@ export function CardCustomizerPanel({ profile, className, onOpenTierModal }: Car
                   }`}
                 >
                   <div className="flex justify-between items-start w-full">
-                    {/* Visual represent */}
                     <div className={`w-6 h-3.5 rounded border border-white/5 ${f.style}`} />
                     {isLocked ? (
-                      <Lock className="w-3 h-3 text-neutral-400" />
+                      <Lock className="w-3 h-3 text-neutral-450" />
                     ) : (
                       isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-violet-500" />
                     )}
