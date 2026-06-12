@@ -12,42 +12,22 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Log;
 
-class UpdateDeveloperCardJob implements ShouldQueue, ShouldBeUnique
+class UpdateDeveloperCardJob
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    public $timeout = 120;
-    public $tries = 3;
-
-    /**
-     * Quantidade de tempo (em segundos) que a trava de fila única permanece ativa.
-     */
-    public $uniqueFor = 60;
+    use Dispatchable, SerializesModels;
 
     public function __construct(public Profile $profile)
     {
-        $this->onQueue('default');
-        $this->delay = 10;
-    }
-
-    /**
-     * Define o identificador único para o lock da fila.
-     */
-    public function uniqueId(): string
-    {
-        return $this->profile->id;
     }
 
     public function handle(): void
     {
-        Log::info("TechDNA: Orchestrator iniciando cadeia para o perfil: {$this->profile->id}");
+        Log::info("TechDNA: Orchestrator iniciando cadeia síncrona para o perfil: {$this->profile->id}");
 
-        // Orquestra a execução sequencial em lote (Chaining)
-        Bus::chain([
-            new UpdateProfileStatsJob($this->profile),
-            new RecalculateTechDnaJob($this->profile),
-            new RecalculateOvrJob($this->profile),
-            new EvaluateBadgesJob($this->profile),
-        ])->dispatch();
+        // Executa de forma síncrona
+        UpdateProfileStatsJob::dispatchSync($this->profile);
+        RecalculateTechDnaJob::dispatchSync($this->profile);
+        RecalculateOvrJob::dispatchSync($this->profile);
+        EvaluateBadgesJob::dispatchSync($this->profile);
     }
 }

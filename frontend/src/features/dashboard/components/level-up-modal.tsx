@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Sparkles, X, ChevronRight } from 'lucide-react';
 import { useGamificationListener } from '@/features/gamification/events';
+import confetti from 'canvas-confetti';
 
 export function LevelUpModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,6 +42,39 @@ export function LevelUpModal() {
       // Ignora erro se AudioContext for bloqueado pelo navegador
     }
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      const duration = 2.5 * 1000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.8 }
+        });
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.8 }
+        });
+        confetti({
+          particleCount: 3,
+          angle: 90,
+          spread: 100,
+          origin: { x: 0.5, y: 0.8 }
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+      frame();
+    }
+  }, [isOpen]);
 
   const handleClose = () => {
     setIsOpen(false);

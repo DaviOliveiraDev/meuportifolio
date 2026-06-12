@@ -22,6 +22,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useDopamineLoop } from '@/features/gamification/contexts/dopamine-context';
+import { calculateLevelProgress } from '@/features/gamification/lib/calculate-level';
+import { motion } from 'framer-motion';
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -29,6 +32,19 @@ export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { isAnimating, animatingXp, animatingLevel } = useDopamineLoop();
+  
+  const actualXp = user?.profile?.xp || 0;
+  const actualLevel = user?.profile?.level || 1;
+
+  const currentXp = isAnimating ? animatingXp : actualXp;
+  const currentLevel = isAnimating ? animatingLevel : actualLevel;
+
+  const progress = calculateLevelProgress(currentLevel, currentXp);
+  const xpInCurrentLevel = progress.xpInCurrentLevel;
+  const xpForNext = progress.xpForNext;
+  const percentage = progress.percentage;
 
   const menuItems = [
     { name: 'Geral', href: '/dashboard', icon: LayoutDashboard },
@@ -50,7 +66,7 @@ export function Header() {
   };
 
   return (
-    <header className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-850 h-16 flex items-center justify-between px-6 z-30 relative">
+    <header className="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-855 h-16 flex items-center justify-between px-6 z-30 relative">
       {/* Mobile Menu Toggle & Logo */}
       <div className="flex items-center gap-4">
         <button
@@ -71,6 +87,37 @@ export function Header() {
 
       {/* User profile & Actions */}
       <div className="flex items-center gap-4 ml-auto">
+        {user?.profile && (
+          <div className="hidden md:flex items-center gap-3 bg-neutral-50 dark:bg-neutral-950/40 border border-neutral-200 dark:border-neutral-850 px-4 py-1.5 rounded-xl max-w-xs w-60 mr-2 shadow-inner">
+            <div className="flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg w-7 h-7 text-white font-black text-xs shadow-sm">
+              L{currentLevel}
+            </div>
+            <div className="flex-1 space-y-0.5 min-w-0">
+              <div className="flex justify-between text-[9px] font-bold text-neutral-450 dark:text-neutral-500 uppercase tracking-wider leading-none">
+                <span>XP do Nível</span>
+                <span className="font-mono">{xpInCurrentLevel} / {xpForNext} XP</span>
+              </div>
+              <div className="relative h-2 w-full bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden border border-neutral-300/10 dark:border-neutral-900/40">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${percentage}%` }}
+                  transition={{ duration: isAnimating ? 0.05 : 0.8, ease: 'easeOut' }}
+                  className="h-full bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400 rounded-full relative"
+                >
+                  {/* Liquid shimmer overlay */}
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent)] bg-[size:120px_100%] animate-shimmer" 
+                       style={{
+                         animation: 'shimmer 2.2s infinite linear',
+                         backgroundImage: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3) 50%, transparent 100%)',
+                         backgroundSize: '200% 100%'
+                       }}
+                  />
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <span className="hidden sm:inline text-sm text-neutral-500 dark:text-neutral-400">
           Olá, <strong className="text-neutral-800 dark:text-neutral-200 font-semibold">{user?.profile?.name || user?.email}</strong>
         </span>

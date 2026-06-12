@@ -8,6 +8,8 @@ import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
+import { useAuth } from '@/features/auth/hooks/use-auth';
+import { useDopamineLoop } from '@/features/gamification/contexts/dopamine-context';
 import { 
   FolderGit2, 
   Plus, 
@@ -65,6 +67,8 @@ const projectSchema = zod.object({
 type ProjectFormValues = zod.infer<typeof projectSchema>;
 
 export default function ProjectsPage() {
+  const { user } = useAuth();
+  const { triggerDopamineLoop } = useDopamineLoop();
   const { projects, isLoading, createProject, updateProject, deleteProject } = useProjects();
   
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -251,14 +255,35 @@ export default function ProjectsPage() {
         demo_url: values.demo_url === '' ? null : values.demo_url,
       } as any;
 
+      const oldXp = user?.profile?.xp || 0;
+      const oldLevel = user?.profile?.level || 1;
+
       if (editingProject) {
         await updateProject({ id: editingProject.id, data: payload });
         toast.success('Projeto atualizado com sucesso!');
+        setDialogOpen(false);
       } else {
         await createProject(payload);
         toast.success('Projeto criado com sucesso!');
+        setDialogOpen(false);
+
+        // Dispara o Dopamine Loop visual instantâneo
+        setTimeout(() => {
+          const newXp = oldXp + 200;
+          let newLevel = oldLevel;
+          let tempXp = newXp;
+          while (true) {
+            const xpRequired = Math.floor(100 * Math.pow(newLevel, 1.5));
+            if (tempXp >= xpRequired) {
+              tempXp -= xpRequired;
+              newLevel++;
+            } else {
+              break;
+            }
+          }
+          triggerDopamineLoop(200, '🎉 Projeto Adicionado!', oldXp, oldLevel, newXp, newLevel);
+        }, 150);
       }
-      setDialogOpen(false);
     } catch (error: any) {
       const message = error.response?.data?.message || 'Erro ao salvar projeto.';
       toast.error(message);
