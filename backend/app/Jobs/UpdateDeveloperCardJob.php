@@ -27,7 +27,13 @@ class UpdateDeveloperCardJob
         // Executa de forma síncrona
         UpdateProfileStatsJob::dispatchSync($this->profile);
         RecalculateTechDnaJob::dispatchSync($this->profile);
-        RecalculateOvrJob::dispatchSync($this->profile);
+        
+        if (\App\Infrastructure\Services\FeatureFlag::isEnabled('reputation_v2')) {
+            \App\Jobs\RecalculateUserScore::dispatch($this->profile->user_id, 'profile_update');
+        } else {
+            RecalculateOvrJob::dispatchSync($this->profile);
+        }
+        
         EvaluateBadgesJob::dispatchSync($this->profile);
     }
 }
