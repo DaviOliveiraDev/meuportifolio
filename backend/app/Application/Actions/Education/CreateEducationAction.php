@@ -17,7 +17,13 @@ class CreateEducationAction
         $education = $this->educationRepository->create($dto->toArray());
 
         if ($dto->technologies !== null) {
-            $education->technologies()->sync($dto->technologies);
+            $legacyIds = collect($dto->technologies)->map(function ($item) {
+                return is_string($item) ? $item : ($item['id'] ?? $item['technology_id'] ?? null);
+            })->filter()->toArray();
+            
+            $education->technologies()->sync($legacyIds);
+            
+            app(\App\Domain\Gamification\Services\Reputation\EvidenceSyncService::class)->syncEducation($education, $dto->technologies);
         }
 
         if ($education->profile) {

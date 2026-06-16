@@ -54,4 +54,32 @@ class GithubService implements GithubServiceInterface
 
         return $repositories;
     }
+
+    /**
+     * Busca as linguagens utilizadas em um repositório específico.
+     */
+    public function fetchRepositoryLanguages(string $username, string $repo): array
+    {
+        Log::info("GithubService: Buscando linguagens do repositório {$username}/{$repo}");
+
+        $request = Http::withHeaders([
+            'Accept' => 'application/vnd.github.v3+json',
+            'User-Agent' => 'DevFolio-App',
+        ]);
+
+        if (app()->environment('local', 'testing')) {
+            $request = $request->withoutVerifying();
+        }
+
+        $response = $request->timeout(10)->get("https://api.github.com/repos/{$username}/{$repo}/languages");
+
+        if ($response->failed()) {
+            Log::warning("GithubService: Falha ao buscar linguagens para {$username}/{$repo}. Status: {$response->status()}");
+            return [];
+        }
+
+        $languages = $response->json();
+
+        return is_array($languages) ? $languages : [];
+    }
 }

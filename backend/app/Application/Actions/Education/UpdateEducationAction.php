@@ -24,7 +24,13 @@ class UpdateEducationAction
         $updatedEducation = $this->educationRepository->update($id, $dto->toArray());
 
         if ($dto->technologies !== null) {
-            $updatedEducation->technologies()->sync($dto->technologies);
+            $legacyIds = collect($dto->technologies)->map(function ($item) {
+                return is_string($item) ? $item : ($item['id'] ?? $item['technology_id'] ?? null);
+            })->filter()->toArray();
+            
+            $updatedEducation->technologies()->sync($legacyIds);
+            
+            app(\App\Domain\Gamification\Services\Reputation\EvidenceSyncService::class)->syncEducation($updatedEducation, $dto->technologies);
         }
 
         if ($updatedEducation->profile) {

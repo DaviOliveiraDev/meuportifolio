@@ -12,4 +12,14 @@ interface GithubServiceInterface
      * @throws \Exception
      */
     public function fetchUserRepositories(string $username): array;
+
+    /**
+     * Busca o detalhamento das linguagens utilizadas em um repositório.
+     *
+     * @param string $username
+     * @param string $repo
+     * @return array Mapa de linguagens (nome => bytes de código)
+     * @throws \Exception
+     */
+    public function fetchRepositoryLanguages(string $username, string $repo): array;
 }

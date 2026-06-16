@@ -27,8 +27,7 @@ class TechnologyController extends Controller
         if (DB::getDriverName() === 'pgsql') {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
-                  ->orWhereRaw("? = ANY(aliases)", [$search])
-                  ->orWhereRaw("array_to_string(aliases, ' ') ilike ?", ["%{$search}%"]);
+                  ->orWhereRaw("aliases::text ilike ?", ["%{$search}%"]);
             });
         } else {
             // Fallback para SQLite/MySQL

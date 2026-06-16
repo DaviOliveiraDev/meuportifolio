@@ -28,6 +28,7 @@ services:
     container_name: devfolio-backend
     ports:
       - "8000:8000"
+    command: sh -c "cd public && php -S 0.0.0.0:8000 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php"
     volumes:
       - ./backend:/var/www/html
     environment:

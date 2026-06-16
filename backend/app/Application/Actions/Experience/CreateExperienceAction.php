@@ -17,7 +17,13 @@ class CreateExperienceAction
         $experience = $this->experienceRepository->create($dto->toArray());
 
         if ($dto->technologies !== null) {
-            $experience->technologies()->sync($dto->technologies);
+            $legacyIds = collect($dto->technologies)->map(function ($item) {
+                return is_string($item) ? $item : ($item['id'] ?? $item['technology_id'] ?? null);
+            })->filter()->toArray();
+            
+            $experience->technologies()->sync($legacyIds);
+            
+            app(\App\Domain\Gamification\Services\Reputation\EvidenceSyncService::class)->syncExperience($experience, $dto->technologies);
         }
 
         if ($experience->profile) {
