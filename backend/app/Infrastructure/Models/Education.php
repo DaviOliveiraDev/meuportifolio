@@ -24,6 +24,7 @@ class Education extends Model
         'start_date',
         'end_date',
         'is_current',
+        'evidence_id',
     ];
 
     protected function casts(): array
@@ -64,6 +65,14 @@ class Education extends Model
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);
+    }
+
+    /**
+     * Evidência V2 associada a esta formação.
+     */
+    public function evidence(): BelongsTo
+    {
+        return $this->belongsTo(Evidence::class, 'evidence_id');
     }
 
     /**

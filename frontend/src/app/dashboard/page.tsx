@@ -21,6 +21,7 @@ import { ShareCardPanel } from '@/features/dashboard/components/share-card-panel
 import { CardCustomizerPanel } from '@/features/dashboard/components/card-customizer-panel';
 import { calculateOvr } from '@/features/gamification/domain/calculate-ovr';
 import { TierEvolutionModal } from '@/features/dashboard/components/tier-evolution-modal';
+import { GuidedOnboarding } from '@/components/dashboard/GuidedOnboarding';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -117,6 +118,13 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+
+          {/* Guided Onboarding Checklist for Cold Start */}
+          <GuidedOnboarding
+            projectsCount={projects?.length || 0}
+            experiencesCount={experiences?.length || 0}
+            educationsCount={educations?.length || 0}
+          />
 
           {/* Level Tracker (XP Progress) */}
           <LevelTracker 

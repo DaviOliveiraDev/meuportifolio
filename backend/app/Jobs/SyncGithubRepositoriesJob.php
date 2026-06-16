@@ -75,19 +75,19 @@ class SyncGithubRepositoriesJob implements ShouldQueue
                     continue;
                 }
 
-                // Verifica duplicado com base na URL do repositório para o mesmo perfil
-                $exists = Project::where('profile_id', $profileId)
+                // Busca se o projeto já existe
+                $project = Project::where('profile_id', $profileId)
                     ->where('repository_url', $repoUrl)
-                    ->exists();
+                    ->first();
 
-                if (!$exists) {
+                if (!$project) {
                     // Trata descrição opcional e limita a 2000 caracteres
                     $description = $repo['description'] ?? 'Projeto importado do GitHub.';
                     if (mb_strlen($description) > 2000) {
                         $description = mb_substr($description, 0, 1997) . '...';
                     }
 
-                    Project::create([
+                    $project = Project::create([
                         'profile_id' => $profileId,
                         'title' => $repo['name'],
                         'description' => $description,
@@ -98,6 +98,74 @@ class SyncGithubRepositoriesJob implements ShouldQueue
                         'order_weight' => 0,
                     ]);
                     $importedCount++;
+                }
+
+                // Sincroniza a evidência do GitHub V2
+                try {
+                    $languages = $githubService->fetchRepositoryLanguages($username, $repo['name']);
+                    if (empty($languages) && !empty($repo['language'])) {
+                        $languages = [$repo['language'] => 1];
+                    }
+
+                    // 1. Cria a evidência base
+                    $evidence = \App\Infrastructure\Models\Evidence::updateOrCreate(
+                        ['id' => $project->evidence_id],
+                        [
+                            'user_id' => $this->profile->user_id,
+                            'evidence_type' => 'github',
+                            'verification_level' => 'auto_verified',
+                            'verification_source' => 'github_oauth',
+                            'is_active' => true,
+                        ]
+                    );
+
+                    if ($project->evidence_id !== $evidence->id) {
+                        $project->evidence_id = $evidence->id;
+                        $project->saveQuietly();
+                    }
+
+                    // 2. Cria/Atualiza EvidenceGithub
+                    \App\Infrastructure\Models\EvidenceGithub::updateOrCreate(
+                        ['evidence_id' => $evidence->id],
+                        [
+                            'github_repo_id' => $repo['id'] ?? null,
+                            'repo_full_name' => $repo['full_name'] ?? null,
+                            'repo_url' => $repoUrl,
+                            'stars' => $repo['stargazers_count'] ?? 0,
+                            'forks' => $repo['forks_count'] ?? 0,
+                            'open_issues' => $repo['open_issues_count'] ?? 0,
+                            'subscribers' => $repo['watchers_count'] ?? 0,
+                            'has_readme' => false,
+                            'has_tests' => false,
+                            'has_ci' => false,
+                            'languages' => $languages,
+                            'last_commit_at' => isset($repo['pushed_at']) ? \Illuminate\Support\Carbon::parse($repo['pushed_at']) : null,
+                            'synced_at' => now(),
+                        ]
+                    );
+
+                    // 3. Sincroniza tecnologias
+                    $syncData = [];
+                    foreach ($languages as $langName => $bytes) {
+                        $slug = \Illuminate\Support\Str::slug($langName);
+                        $isSqlite = \Illuminate\Support\Facades\DB::connection()->getDriverName() === 'sqlite';
+                        $tech = \App\Infrastructure\Models\Technology::where('name', $isSqlite ? 'like' : 'ilike', $langName)
+                            ->orWhere('slug', $slug)
+                            ->first();
+
+                        if ($tech) {
+                            $isPrimary = (strtolower($langName) === strtolower($repo['language'] ?? ''));
+                            $syncData[$tech->id] = [
+                                'id' => (string) \Illuminate\Support\Str::uuid(),
+                                'usage_depth' => $isPrimary ? 'primary' : 'used',
+                                'is_primary' => $isPrimary,
+                            ];
+                        }
+                    }
+
+                    $evidence->technologies()->sync($syncData);
+                } catch (\Exception $e) {
+                    Log::error("ReputationV2: Erro ao sincronizar evidência do GitHub para o repositório {$repo['name']}: " . $e->getMessage());
                 }
             }
 

@@ -24,6 +24,7 @@ class Experience extends Model
         'end_date',
         'is_current',
         'description',
+        'evidence_id',
     ];
 
     protected function casts(): array
@@ -64,6 +65,14 @@ class Experience extends Model
     public function profile(): BelongsTo
     {
         return $this->belongsTo(Profile::class);
+    }
+
+    /**
+     * Evidência V2 associada a esta experiência.
+     */
+    public function evidence(): BelongsTo
+    {
+        return $this->belongsTo(Evidence::class, 'evidence_id');
     }
 
     /**
