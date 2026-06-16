@@ -5,6 +5,8 @@ namespace App\Console\Commands;
 use App\Infrastructure\Models\Profile;
 use App\Domain\Gamification\Services\TechDnaEngineService;
 use App\Domain\Gamification\Services\OvrEngineService;
+use App\Domain\Gamification\Services\Reputation\ScorePipeline;
+use App\Infrastructure\Services\FeatureFlag;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
@@ -27,7 +29,7 @@ class ConsolidateTechDna extends Command
     /**
      * Executa o comando de console.
      */
-    public function handle(TechDnaEngineService $techDnaEngine, OvrEngineService $ovrEngine): int
+    public function handle(TechDnaEngineService $techDnaEngine, OvrEngineService $ovrEngine, ScorePipeline $scorePipeline): int
     {
         $this->info('Iniciando consolidação noturna do Tech DNA e rankings...');
         Log::info('TechDNA: Iniciando comando Artisan devfolio:consolidate-tech-dna...');
@@ -43,7 +45,11 @@ class ConsolidateTechDna extends Command
                 $techDnaEngine->calculateProfileTechDna($profile);
 
                 // 2. Recalcula o OVR 2.0 (que lê os novos scores de tecnologia)
-                $ovrEngine->calculateAndUpdateOvr($profile);
+                if (FeatureFlag::isEnabled('reputation_v2')) {
+                    $scorePipeline->execute($profile->user_id);
+                } else {
+                    $ovrEngine->calculateAndUpdateOvr($profile);
+                }
             } catch (\Exception $e) {
                 Log::error("TechDNA: Erro ao consolidar perfil {$profile->id}: " . $e->getMessage());
             }
