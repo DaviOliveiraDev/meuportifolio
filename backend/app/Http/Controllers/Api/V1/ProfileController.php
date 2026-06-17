@@ -30,7 +30,10 @@ class ProfileController extends Controller
         }
 
         return response()->json([
-            'profile' => $profile->load(['experiences', 'educations', 'skills', 'badges', 'titles', 'cosmetics', 'technologies', 'technologyScores.technology'])
+            'profile' => $profile->load([
+                'experiences', 'educations', 'skills', 'badges', 'titles', 'cosmetics', 'technologies', 
+                'technologyScores.technology', 'reputationScore', 'userDomainScores.domain', 'userSkillScores.technology'
+            ])
         ]);
     }
 
@@ -51,7 +54,10 @@ class ProfileController extends Controller
 
             return response()->json([
                 'message' => 'Perfil atualizado com sucesso.',
-                'profile' => $updatedProfile->load(['experiences', 'educations', 'skills', 'badges', 'titles', 'cosmetics', 'technologies', 'technologyScores.technology']),
+                'profile' => $updatedProfile->load([
+                    'experiences', 'educations', 'skills', 'badges', 'titles', 'cosmetics', 'technologies', 
+                    'technologyScores.technology', 'reputationScore', 'userDomainScores.domain', 'userSkillScores.technology'
+                ]),
             ]);
         } catch (DomainException $e) {
             $statusCode = $e->getCode() === 404 ? 404 : 422;
@@ -267,5 +273,17 @@ class ProfileController extends Controller
         $profile->cosmetics()->updateExistingPivot($id, ['is_equipped' => false]);
 
         return response()->json(['message' => 'Cosmético desequipado com sucesso!']);
+    }
+
+    /**
+     * Retorna o histórico de OVR e Recruiter Score do usuário.
+     */
+    public function scoreHistory(Request $request): JsonResponse
+    {
+        $history = \App\Infrastructure\Models\UserScoreHistory::where('user_id', $request->user()->id)
+            ->orderBy('recorded_at', 'asc')
+            ->get();
+
+        return response()->json($history);
     }
 }

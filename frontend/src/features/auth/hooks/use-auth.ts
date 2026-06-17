@@ -24,6 +24,7 @@ interface UserProfile {
     profile_completeness?: number;
     badges?: any[];
     skills?: any[];
+    reputation_score?: any[];
   };
 }
 

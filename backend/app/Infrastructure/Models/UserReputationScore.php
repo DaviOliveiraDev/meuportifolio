@@ -19,6 +19,7 @@ class UserReputationScore extends Model
         'user_id',
         'ovr',
         'recruiter_score',
+        'percentile_rank',
         'technical_depth',
         'delivery_impact',
         'scope_influence',
@@ -41,6 +42,7 @@ class UserReputationScore extends Model
     protected $casts = [
         'ovr' => 'float',
         'recruiter_score' => 'float',
+        'percentile_rank' => 'float',
         'technical_depth' => 'float',
         'delivery_impact' => 'float',
         'scope_influence' => 'float',

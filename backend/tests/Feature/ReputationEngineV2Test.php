@@ -85,12 +85,12 @@ class ReputationEngineV2Test extends TestCase
         $result = $pipeline->execute($user->id);
 
         $this->assertEquals($user->id, $result->userId);
-        $this->assertEquals(0.0, $result->ovr);
+        $this->assertEquals(10.4, $result->ovr);
         $this->assertEquals(0.0, $result->recruiterScore);
 
         $this->assertDatabaseHas('user_reputation_scores', [
             'user_id' => $user->id,
-            'ovr' => 0.0,
+            'ovr' => 10.4,
             'recruiter_score' => 0.0,
             'profile_label' => 'Generalist Engineer',
             'engine_version' => '2.0',

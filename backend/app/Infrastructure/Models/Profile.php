@@ -220,4 +220,36 @@ class Profile extends Model
     {
         return $this->hasMany(ProfileXpHistory::class);
     }
+
+    /**
+     * Relação com o score de reputação v2 do usuário.
+     */
+    public function reputationScore(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(UserReputationScore::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * Relação com scores de domínios.
+     */
+    public function userDomainScores(): HasMany
+    {
+        return $this->hasMany(UserDomainScore::class, 'user_id', 'user_id')->orderBy('score', 'desc');
+    }
+
+    /**
+     * Relação com scores de competências.
+     */
+    public function userCompetencyScores(): HasMany
+    {
+        return $this->hasMany(UserCompetencyScore::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * Relação com scores de habilidades.
+     */
+    public function userSkillScores(): HasMany
+    {
+        return $this->hasMany(UserSkillScore::class, 'user_id', 'user_id')->orderBy('score', 'desc');
+    }
 }
