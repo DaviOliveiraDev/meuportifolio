@@ -4,12 +4,13 @@ namespace Database\Seeders;
 
 use App\Infrastructure\Models\User;
 use App\Infrastructure\Models\Profile;
+use App\Infrastructure\Models\Project;
+use App\Infrastructure\Models\Experience;
+use App\Infrastructure\Models\Education;
 use App\Infrastructure\Models\Evidence;
-use App\Infrastructure\Models\EvidenceProject;
-use App\Infrastructure\Models\EvidenceExperience;
-use App\Infrastructure\Models\EvidenceTechnology;
 use App\Infrastructure\Models\Technology;
 use App\Domain\Gamification\Services\Reputation\ScorePipeline;
+use App\Domain\Gamification\Services\Reputation\EvidenceSyncService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -19,6 +20,7 @@ class TestUsersSeeder extends Seeder
     public function run(): void
     {
         $pipeline = app(ScorePipeline::class);
+        $syncService = app(EvidenceSyncService::class);
 
         // Buscar tecnologias principais
         $laravel = Technology::where('slug', 'laravel')->first();
@@ -81,59 +83,46 @@ class TestUsersSeeder extends Seeder
             ]
         );
 
-        // Evidência de Experiência
-        $juniorExpEv = Evidence::create([
-            'user_id' => $juniorUser->id,
-            'evidence_type' => 'experience',
-            'verification_level' => 'self_declared',
-            'verification_source' => 'self',
-            'start_date' => now()->subMonths(6),
+        // Experiência
+        $juniorExp = Experience::create([
+            'profile_id' => $juniorProfile->id,
+            'company' => 'Startup Começo',
+            'role' => 'Junior Frontend Developer',
+            'description' => 'Manutenção de layouts responsivos e design de email marketing com HTML/CSS.',
+            'start_date' => now()->subMonths(6)->toDateString(),
             'is_current' => true,
-            'is_active' => true,
+        ]);
+        $syncService->syncExperience($juniorExp, [
+            ['id' => $html->id, 'usage_depth' => 'primary', 'is_primary' => true],
+            ['id' => $css->id, 'usage_depth' => 'primary', 'is_primary' => true],
+            ['id' => $javascript->id, 'usage_depth' => 'used', 'is_primary' => false],
         ]);
 
-        EvidenceExperience::create([
-            'evidence_id' => $juniorExpEv->id,
-            'company_name' => 'Startup Começo',
-            'role_title' => 'Junior Frontend Developer',
-            'employment_type' => 'full_time',
-            'company_tier' => 'company',
-        ]);
-
-        if ($html) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $juniorExpEv->id, 'technology_id' => $html->id, 'usage_depth' => 'primary', 'is_primary' => true]);
-        }
-        if ($css) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $juniorExpEv->id, 'technology_id' => $css->id, 'usage_depth' => 'primary', 'is_primary' => true]);
-        }
-        if ($javascript) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $juniorExpEv->id, 'technology_id' => $javascript->id, 'usage_depth' => 'used', 'is_primary' => false]);
-        }
-
-        // Evidência de Projeto
-        $juniorProjEv = Evidence::create([
-            'user_id' => $juniorUser->id,
-            'evidence_type' => 'project',
-            'verification_level' => 'self_declared',
-            'verification_source' => 'self',
-            'start_date' => now()->subMonths(3),
-            'is_current' => false,
-            'is_active' => true,
-        ]);
-
-        EvidenceProject::create([
-            'evidence_id' => $juniorProjEv->id,
+        // Projeto
+        $juniorProj = Project::create([
+            'profile_id' => $juniorProfile->id,
             'title' => 'Personal Portfolio Webpage',
-            'is_production' => false,
-            'user_scale' => 'personal',
+            'description' => 'Um portfólio pessoal construído com HTML5 e CSS3 sem frameworks, focado em semântica e acessibilidade.',
+            'is_featured' => false,
+            'order_weight' => 1,
+        ]);
+        $syncService->syncProject($juniorProj, [
+            ['id' => $html->id, 'usage_depth' => 'primary', 'is_primary' => true],
+            ['id' => $css->id, 'usage_depth' => 'used', 'is_primary' => false],
         ]);
 
-        if ($html) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $juniorProjEv->id, 'technology_id' => $html->id, 'usage_depth' => 'primary', 'is_primary' => true]);
-        }
-        if ($css) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $juniorProjEv->id, 'technology_id' => $css->id, 'usage_depth' => 'used', 'is_primary' => false]);
-        }
+        // Formação
+        $juniorEdu = Education::create([
+            'profile_id' => $juniorProfile->id,
+            'institution' => 'Faculdade de Tecnologia Carioca',
+            'course' => 'Análise e Desenvolvimento de Sistemas',
+            'start_date' => now()->subYears(2)->toDateString(),
+            'is_current' => true,
+        ]);
+        $syncService->syncEducation($juniorEdu, [
+            ['id' => $html->id, 'usage_depth' => 'used', 'is_primary' => false],
+            ['id' => $css->id, 'usage_depth' => 'used', 'is_primary' => false],
+        ]);
 
         // -------------------------------------------------------------
         // 2. USUÁRIO PLENO
@@ -159,86 +148,48 @@ class TestUsersSeeder extends Seeder
             ]
         );
 
-        // Evidência de Experiência Atual (Plena)
-        $plenoExpEv1 = Evidence::create([
-            'user_id' => $plenoUser->id,
-            'evidence_type' => 'experience',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'linkedin_oauth',
-            'start_date' => now()->subYears(2),
+        // Experiência Atual (Plena)
+        $plenoExp1 = Experience::create([
+            'profile_id' => $plenoProfile->id,
+            'company' => 'Empresa Crescimento',
+            'role' => 'Full Stack Developer Pleno',
+            'description' => 'Desenvolvimento de features ponta a ponta em SaaS financeiro usando Laravel com SPA em React.',
+            'start_date' => now()->subYears(2)->toDateString(),
             'is_current' => true,
-            'is_active' => true,
+        ]);
+        $syncService->syncExperience($plenoExp1, [
+            ['id' => $laravel->id, 'usage_depth' => 'primary', 'is_primary' => true],
+            ['id' => $react->id, 'usage_depth' => 'primary', 'is_primary' => true],
+            ['id' => $postgresql->id, 'usage_depth' => 'used', 'is_primary' => false],
         ]);
 
-        EvidenceExperience::create([
-            'evidence_id' => $plenoExpEv1->id,
-            'company_name' => 'Empresa Crescimento',
-            'role_title' => 'Full Stack Developer Pleno',
-            'employment_type' => 'full_time',
-            'company_tier' => 'startup_funded',
-        ]);
-
-        if ($laravel) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $plenoExpEv1->id, 'technology_id' => $laravel->id, 'usage_depth' => 'primary', 'is_primary' => true]);
-        }
-        if ($react) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $plenoExpEv1->id, 'technology_id' => $react->id, 'usage_depth' => 'primary', 'is_primary' => true]);
-        }
-        if ($postgresql) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $plenoExpEv1->id, 'technology_id' => $postgresql->id, 'usage_depth' => 'used', 'is_primary' => false]);
-        }
-
-        // Evidência de Experiência Passada (Júnior)
-        $plenoExpEv2 = Evidence::create([
-            'user_id' => $plenoUser->id,
-            'evidence_type' => 'experience',
-            'verification_level' => 'self_declared',
-            'verification_source' => 'self',
-            'start_date' => now()->subYears(3)->subMonths(6),
-            'end_date' => now()->subYears(2),
+        // Experiência Passada (Júnior)
+        $plenoExp2 = Experience::create([
+            'profile_id' => $plenoProfile->id,
+            'company' => 'Agência Digital local',
+            'role' => 'Junior Web Developer',
+            'description' => 'Manutenção de CMSs, portais governamentais e criação de APIs REST simples em PHP puro.',
+            'start_date' => now()->subYears(3)->subMonths(6)->toDateString(),
+            'end_date' => now()->subYears(2)->toDateString(),
             'is_current' => false,
-            'is_active' => true,
+        ]);
+        $syncService->syncExperience($plenoExp2, [
+            ['id' => $php->id, 'usage_depth' => 'primary', 'is_primary' => true],
+            ['id' => $javascript->id, 'usage_depth' => 'used', 'is_primary' => false],
         ]);
 
-        EvidenceExperience::create([
-            'evidence_id' => $plenoExpEv2->id,
-            'company_name' => 'Agência Digital local',
-            'role_title' => 'Junior Web Developer',
-            'employment_type' => 'full_time',
-            'company_tier' => 'company',
-        ]);
-
-        if ($php) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $plenoExpEv2->id, 'technology_id' => $php->id, 'usage_depth' => 'primary', 'is_primary' => true]);
-        }
-        if ($javascript) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $plenoExpEv2->id, 'technology_id' => $javascript->id, 'usage_depth' => 'used', 'is_primary' => false]);
-        }
-
-        // Evidência de Projeto
-        $plenoProjEv = Evidence::create([
-            'user_id' => $plenoUser->id,
-            'evidence_type' => 'project',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'github_oauth',
-            'start_date' => now()->subYear(),
-            'is_current' => false,
-            'is_active' => true,
-        ]);
-
-        EvidenceProject::create([
-            'evidence_id' => $plenoProjEv->id,
+        // Projeto
+        $plenoProj = Project::create([
+            'profile_id' => $plenoProfile->id,
             'title' => 'SaaS Task Management Platform',
-            'is_production' => true,
-            'user_scale' => 'medium',
+            'description' => 'Uma plataforma para acompanhamento de sprints e squads de desenvolvimento de produtos digitais.',
+            'is_featured' => true,
+            'order_weight' => 1,
         ]);
-
-        if ($laravel) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $plenoProjEv->id, 'technology_id' => $laravel->id, 'usage_depth' => 'primary', 'is_primary' => true]);
-        }
-        if ($react) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $plenoProjEv->id, 'technology_id' => $react->id, 'usage_depth' => 'used', 'is_primary' => false]);
-        }
+        $syncService->syncProject($plenoProj, [
+            ['id' => $laravel->id, 'usage_depth' => 'primary', 'is_primary' => true],
+            ['id' => $react->id, 'usage_depth' => 'used', 'is_primary' => false],
+        ]);
 
         // -------------------------------------------------------------
         // 3. USUÁRIO SÊNIOR / TECH LEAD
@@ -264,111 +215,61 @@ class TestUsersSeeder extends Seeder
             ]
         );
 
-        // Evidência de Experiência Atual (Tech Lead - Tier 1 Global)
-        $seniorExpEv1 = Evidence::create([
-            'user_id' => $seniorUser->id,
-            'evidence_type' => 'experience',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'linkedin_oauth',
-            'start_date' => now()->subYears(3),
+        // Experiência Atual (Tech Lead)
+        $seniorExp1 = Experience::create([
+            'profile_id' => $seniorProfile->id,
+            'company' => 'Big Tech Corporation',
+            'role' => 'Tech Lead & Architect',
+            'description' => 'Arquitetura e infraestrutura de APIs para processamento em larga escala. Liderança técnica de 8 desenvolvedores.',
+            'start_date' => now()->subYears(3)->toDateString(),
             'is_current' => true,
-            'is_active' => true,
+        ]);
+        $syncService->syncExperience($seniorExp1, [
+            ['id' => $laravel->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $docker->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $typescript->id, 'usage_depth' => 'expert', 'is_primary' => false],
         ]);
 
-        EvidenceExperience::create([
-            'evidence_id' => $seniorExpEv1->id,
-            'company_name' => 'Big Tech Corporation',
-            'role_title' => 'Tech Lead & Architect',
-            'employment_type' => 'full_time',
-            'company_tier' => 'tier1_global',
-        ]);
-
-        if ($laravel) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $seniorExpEv1->id, 'technology_id' => $laravel->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($docker) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $seniorExpEv1->id, 'technology_id' => $docker->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($typescript) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $seniorExpEv1->id, 'technology_id' => $typescript->id, 'usage_depth' => 'expert', 'is_primary' => false]);
-        }
-
-        // Evidência de Experiência Passada (Senior Full Stack)
-        $seniorExpEv2 = Evidence::create([
-            'user_id' => $seniorUser->id,
-            'evidence_type' => 'experience',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'linkedin_oauth',
-            'start_date' => now()->subYears(6),
-            'end_date' => now()->subYears(3),
+        // Experiência Passada (Senior Full Stack)
+        $seniorExp2 = Experience::create([
+            'profile_id' => $seniorProfile->id,
+            'company' => 'Fast Growth Startup',
+            'role' => 'Senior Full Stack Developer',
+            'description' => 'Criação da arquitetura frontend baseada em Next.js e design systems reutilizáveis.',
+            'start_date' => now()->subYears(6)->toDateString(),
+            'end_date' => now()->subYears(3)->toDateString(),
             'is_current' => false,
-            'is_active' => true,
+        ]);
+        $syncService->syncExperience($seniorExp2, [
+            ['id' => $typescript->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $react->id, 'usage_depth' => 'expert', 'is_primary' => true],
         ]);
 
-        EvidenceExperience::create([
-            'evidence_id' => $seniorExpEv2->id,
-            'company_name' => 'Fast Growth Startup',
-            'role_title' => 'Senior Full Stack Developer',
-            'employment_type' => 'full_time',
-            'company_tier' => 'startup_funded',
-        ]);
-
-        if ($typescript) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $seniorExpEv2->id, 'technology_id' => $typescript->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($react) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $seniorExpEv2->id, 'technology_id' => $react->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-
-        // Evidência de Projeto 1 (Escala Massiva)
-        $seniorProjEv1 = Evidence::create([
-            'user_id' => $seniorUser->id,
-            'evidence_type' => 'project',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'github_oauth',
-            'start_date' => now()->subYears(2),
-            'is_current' => false,
-            'is_active' => true,
-        ]);
-
-        EvidenceProject::create([
-            'evidence_id' => $seniorProjEv1->id,
+        // Projeto 1
+        $seniorProj1 = Project::create([
+            'profile_id' => $seniorProfile->id,
             'title' => 'High-throughput Notification Service',
-            'is_production' => true,
-            'user_scale' => 'massive',
+            'description' => 'Microsserviço responsável pelo disparo de push notifications e e-mails com capacidade de 50.000 requisições por segundo.',
+            'is_featured' => true,
+            'order_weight' => 1,
+        ]);
+        $syncService->syncProject($seniorProj1, [
+            ['id' => $docker->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $postgresql->id, 'usage_depth' => 'expert', 'is_primary' => true],
         ]);
 
-        if ($docker) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $seniorProjEv1->id, 'technology_id' => $docker->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($postgresql) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $seniorProjEv1->id, 'technology_id' => $postgresql->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-
-        // Evidência de Projeto 2 (Código Aberto)
-        $seniorProjEv2 = Evidence::create([
-            'user_id' => $seniorUser->id,
-            'evidence_type' => 'project',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'github_oauth',
-            'start_date' => now()->subYear(),
-            'is_current' => false,
-            'is_active' => true,
-        ]);
-
-        EvidenceProject::create([
-            'evidence_id' => $seniorProjEv2->id,
+        // Projeto 2
+        $seniorProj2 = Project::create([
+            'profile_id' => $seniorProfile->id,
             'title' => 'Laravel Advanced Caching Package',
-            'is_production' => false,
-            'user_scale' => 'large',
+            'description' => 'Biblioteca open source em PHP para implementar estratégias complexas de cache tag e lock atômico distribuído.',
+            'is_featured' => false,
+            'order_weight' => 2,
         ]);
-
-        if ($laravel) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $seniorProjEv2->id, 'technology_id' => $laravel->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($php) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $seniorProjEv2->id, 'technology_id' => $php->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
+        $syncService->syncProject($seniorProj2, [
+            ['id' => $laravel->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $php->id, 'usage_depth' => 'expert', 'is_primary' => true],
+        ]);
 
 
         // -------------------------------------------------------------
@@ -395,203 +296,107 @@ class TestUsersSeeder extends Seeder
             ]
         );
 
-        // Evidência de Experiência 1 (Backend, DevOps-Cloud, Database)
-        $legendExp1 = Evidence::create([
-            'user_id' => $legendUser->id,
-            'evidence_type' => 'experience',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'linkedin_oauth',
-            'start_date' => now()->subYears(4),
+        // Experiência 1 (Backend, DevOps-Cloud, Database)
+        $legendExp1 = Experience::create([
+            'profile_id' => $legendProfile->id,
+            'company' => 'Global Tech Giant',
+            'role' => 'Principal Systems Architect',
+            'description' => 'Arquitetura e design de infraestrutura e serviços core. Orquestração com Kubernetes e gerenciamento de bancos de dados relacionais gigantes.',
+            'start_date' => now()->subYears(4)->toDateString(),
             'is_current' => true,
-            'is_active' => true,
+        ]);
+        $syncService->syncExperience($legendExp1, [
+            ['id' => $laravel->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $kubernetes->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $postgresql->id, 'usage_depth' => 'expert', 'is_primary' => false],
         ]);
 
-        EvidenceExperience::create([
-            'evidence_id' => $legendExp1->id,
-            'company_name' => 'Global Tech Giant',
-            'role_title' => 'Principal Systems Architect',
-            'employment_type' => 'full_time',
-            'company_tier' => 'tier1_global',
-        ]);
-
-        if ($laravel) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendExp1->id, 'technology_id' => $laravel->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($kubernetes) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendExp1->id, 'technology_id' => $kubernetes->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($postgresql) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendExp1->id, 'technology_id' => $postgresql->id, 'usage_depth' => 'expert', 'is_primary' => false]);
-        }
-
-        // Evidência de Experiência 2 (Systems & Embedded, Mobile)
-        $legendExp2 = Evidence::create([
-            'user_id' => $legendUser->id,
-            'evidence_type' => 'experience',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'linkedin_oauth',
-            'start_date' => now()->subYears(8),
-            'end_date' => now()->subYears(4),
+        // Experiência 2 (Systems & Embedded, Mobile)
+        $legendExp2 = Experience::create([
+            'profile_id' => $legendProfile->id,
+            'company' => 'IoT & Devices Inc',
+            'role' => 'Embedded Systems Lead',
+            'description' => 'Desenvolvimento de firmware robusto e drivers de baixo nível em Rust/C. Aplicativos mobile embarcados em Flutter.',
+            'start_date' => now()->subYears(8)->toDateString(),
+            'end_date' => now()->subYears(4)->toDateString(),
             'is_current' => false,
-            'is_active' => true,
+        ]);
+        $syncService->syncExperience($legendExp2, [
+            ['id' => $cLang->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $rust->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $flutter->id, 'usage_depth' => 'primary', 'is_primary' => false],
         ]);
 
-        EvidenceExperience::create([
-            'evidence_id' => $legendExp2->id,
-            'company_name' => 'IoT & Devices Inc',
-            'role_title' => 'Embedded Systems Lead',
-            'employment_type' => 'full_time',
-            'company_tier' => 'startup_funded',
-        ]);
-
-        if ($cLang) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendExp2->id, 'technology_id' => $cLang->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($rust) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendExp2->id, 'technology_id' => $rust->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($flutter) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendExp2->id, 'technology_id' => $flutter->id, 'usage_depth' => 'primary', 'is_primary' => false]);
-        }
-
-        // Evidência de Experiência 3 (Segurança / AppSec) - Completa o domínio de Security
-        $legendExp3 = Evidence::create([
-            'user_id' => $legendUser->id,
-            'evidence_type' => 'experience',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'linkedin_oauth',
-            'start_date' => now()->subYears(5),
-            'end_date' => now()->subYears(3),
+        // Experiência 3 (Segurança / AppSec) - Completa o domínio de Security
+        $legendExp3 = Experience::create([
+            'profile_id' => $legendProfile->id,
+            'company' => 'Cyber Defense LLC',
+            'role' => 'Security Architect & Consultant',
+            'description' => 'Auditorias de segurança de código e implementação de infraestruturas de proteção de segredos com HashiCorp Vault e SonarQube.',
+            'start_date' => now()->subYears(5)->toDateString(),
+            'end_date' => now()->subYears(3)->toDateString(),
             'is_current' => false,
-            'is_active' => true,
+        ]);
+        $syncService->syncExperience($legendExp3, [
+            ['id' => $hashicorpVault->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $sonarQube->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $kaliLinux->id, 'usage_depth' => 'primary', 'is_primary' => false],
         ]);
 
-        EvidenceExperience::create([
-            'evidence_id' => $legendExp3->id,
-            'company_name' => 'Cyber Defense LLC',
-            'role_title' => 'Security Architect & Consultant',
-            'employment_type' => 'contract',
-            'company_tier' => 'startup_funded',
-        ]);
-
-        if ($hashicorpVault) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendExp3->id, 'technology_id' => $hashicorpVault->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($sonarQube) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendExp3->id, 'technology_id' => $sonarQube->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($kaliLinux) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendExp3->id, 'technology_id' => $kaliLinux->id, 'usage_depth' => 'primary', 'is_primary' => false]);
-        }
-
-        // Evidência de Projeto 1 (AI-ML)
-        $legendProj1 = Evidence::create([
-            'user_id' => $legendUser->id,
-            'evidence_type' => 'project',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'github_oauth',
-            'start_date' => now()->subYears(2),
-            'is_current' => false,
-            'is_active' => true,
-        ]);
-
-        EvidenceProject::create([
-            'evidence_id' => $legendProj1->id,
+        // Projeto 1 (AI-ML)
+        $legendProj1 = Project::create([
+            'profile_id' => $legendProfile->id,
             'title' => 'AI Automated Agent Stock Predictor',
-            'is_production' => true,
-            'user_scale' => 'large',
+            'description' => 'Agente inteligente para predição de mercado utilizando PyTorch e processando dados históricos em tempo real.',
+            'is_featured' => true,
+            'order_weight' => 1,
+        ]);
+        $syncService->syncProject($legendProj1, [
+            ['id' => $python->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $tensorflow->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $pytorch->id, 'usage_depth' => 'used', 'is_primary' => false],
         ]);
 
-        if ($python) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj1->id, 'technology_id' => $python->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($tensorflow) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj1->id, 'technology_id' => $tensorflow->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($pytorch) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj1->id, 'technology_id' => $pytorch->id, 'usage_depth' => 'used', 'is_primary' => false]);
-        }
-
-        // Evidência de Projeto 2 (Web3 & Blockchain, Frontend)
-        $legendProj2 = Evidence::create([
-            'user_id' => $legendUser->id,
-            'evidence_type' => 'project',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'github_oauth',
-            'start_date' => now()->subYear(),
-            'is_current' => false,
-            'is_active' => true,
-        ]);
-
-        EvidenceProject::create([
-            'evidence_id' => $legendProj2->id,
+        // Projeto 2 (Web3 & Blockchain, Frontend)
+        $legendProj2 = Project::create([
+            'profile_id' => $legendProfile->id,
             'title' => 'Multi-chain DAO dApp UI',
-            'is_production' => true,
-            'user_scale' => 'medium',
+            'description' => 'Protocolo DeFi yielding completo com smart contracts em Solidity e dApp integrado com React/TypeScript.',
+            'is_featured' => true,
+            'order_weight' => 2,
+        ]);
+        $syncService->syncProject($legendProj2, [
+            ['id' => $solidity->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $react->id, 'usage_depth' => 'primary', 'is_primary' => true],
+            ['id' => $typescript->id, 'usage_depth' => 'primary', 'is_primary' => false],
         ]);
 
-        if ($solidity) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj2->id, 'technology_id' => $solidity->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($react) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj2->id, 'technology_id' => $react->id, 'usage_depth' => 'primary', 'is_primary' => true]);
-        }
-        if ($typescript) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj2->id, 'technology_id' => $typescript->id, 'usage_depth' => 'primary', 'is_primary' => false]);
-        }
-
-        // Evidência de Projeto 3 (QA & Testing)
-        $legendProj3 = Evidence::create([
-            'user_id' => $legendUser->id,
-            'evidence_type' => 'project',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'github_oauth',
-            'start_date' => now()->subMonths(8),
-            'is_current' => false,
-            'is_active' => true,
-        ]);
-
-        EvidenceProject::create([
-            'evidence_id' => $legendProj3->id,
+        // Projeto 3 (QA & Testing)
+        $legendProj3 = Project::create([
+            'profile_id' => $legendProfile->id,
             'title' => 'Continuous E2E Integration Testing Framework',
-            'is_production' => false,
-            'user_scale' => 'large',
+            'description' => 'Ferramenta corporativa para automação de testes de ponta a ponta e integração contínua (CI) usando Jest e Cypress.',
+            'is_featured' => false,
+            'order_weight' => 3,
+        ]);
+        $syncService->syncProject($legendProj3, [
+            ['id' => $cypress->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $jest->id, 'usage_depth' => 'expert', 'is_primary' => true],
         ]);
 
-        if ($cypress) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj3->id, 'technology_id' => $cypress->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($jest) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj3->id, 'technology_id' => $jest->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-
-        // Evidência de Projeto 4 (Engenharia de Dados) - Completa o domínio de Data Engineering
-        $legendProj4 = Evidence::create([
-            'user_id' => $legendUser->id,
-            'evidence_type' => 'project',
-            'verification_level' => 'auto_verified',
-            'verification_source' => 'github_oauth',
-            'start_date' => now()->subYears(2),
-            'is_current' => false,
-            'is_active' => true,
-        ]);
-
-        EvidenceProject::create([
-            'evidence_id' => $legendProj4->id,
+        // Projeto 4 (Engenharia de Dados) - Completa o domínio de Data Engineering
+        $legendProj4 = Project::create([
+            'profile_id' => $legendProfile->id,
             'title' => 'Big Data Processing Pipeline',
-            'is_production' => true,
-            'user_scale' => 'massive',
+            'description' => 'Pipeline de orquestração de processamento de Big Data em cluster Apache Spark e orquestrado por Apache Airflow.',
+            'is_featured' => false,
+            'order_weight' => 4,
         ]);
-
-        if ($apacheSpark) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj4->id, 'technology_id' => $apacheSpark->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($apacheAirflow) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj4->id, 'technology_id' => $apacheAirflow->id, 'usage_depth' => 'expert', 'is_primary' => true]);
-        }
-        if ($snowflake) {
-            EvidenceTechnology::create(['id' => (string) Str::uuid(), 'evidence_id' => $legendProj4->id, 'technology_id' => $snowflake->id, 'usage_depth' => 'primary', 'is_primary' => false]);
-        }
+        $syncService->syncProject($legendProj4, [
+            ['id' => $apacheSpark->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $apacheAirflow->id, 'usage_depth' => 'expert', 'is_primary' => true],
+            ['id' => $snowflake->id, 'usage_depth' => 'primary', 'is_primary' => false],
+        ]);
 
         // -------------------------------------------------------------
         // 5. CRIAÇÃO DE USUÁRIOS ESPECIALISTAS (1 PARA CADA DOMÍNIO)
@@ -610,8 +415,6 @@ class TestUsersSeeder extends Seeder
                 'detail_data' => [
                     'company_name' => 'Backend Solutions Corp',
                     'role_title' => 'Senior Backend Developer',
-                    'employment_type' => 'full_time',
-                    'company_tier' => 'tier1_br',
                 ],
                 'techs' => [
                     ['tech' => $laravel, 'depth' => 'expert', 'primary' => true],
@@ -630,7 +433,6 @@ class TestUsersSeeder extends Seeder
                 'detail_data' => [
                     'title' => 'Design System Core UI',
                     'is_production' => true,
-                    'user_scale' => 'large',
                 ],
                 'techs' => [
                     ['tech' => $react, 'depth' => 'expert', 'primary' => true],
@@ -651,8 +453,6 @@ class TestUsersSeeder extends Seeder
                 'detail_data' => [
                     'company_name' => 'Mobile First Inc',
                     'role_title' => 'Senior Mobile Engineer',
-                    'employment_type' => 'full_time',
-                    'company_tier' => 'startup_funded',
                 ],
                 'techs' => [
                     ['tech' => $flutter, 'depth' => 'expert', 'primary' => true],
@@ -669,8 +469,6 @@ class TestUsersSeeder extends Seeder
                 'detail_data' => [
                     'company_name' => 'CloudOps Global',
                     'role_title' => 'DevOps Architect',
-                    'employment_type' => 'full_time',
-                    'company_tier' => 'tier1_global',
                 ],
                 'techs' => [
                     ['tech' => $kubernetes, 'depth' => 'expert', 'primary' => true],
@@ -690,7 +488,6 @@ class TestUsersSeeder extends Seeder
                 'detail_data' => [
                     'title' => 'Distributed Data Lake Pipeline',
                     'is_production' => true,
-                    'user_scale' => 'massive',
                 ],
                 'techs' => [
                     ['tech' => $apacheSpark, 'depth' => 'expert', 'primary' => true],
@@ -709,7 +506,6 @@ class TestUsersSeeder extends Seeder
                 'detail_data' => [
                     'title' => 'Visual QA LLM Agent',
                     'is_production' => true,
-                    'user_scale' => 'medium',
                 ],
                 'techs' => [
                     ['tech' => $python, 'depth' => 'expert', 'primary' => true],
@@ -728,8 +524,6 @@ class TestUsersSeeder extends Seeder
                 'detail_data' => [
                     'company_name' => 'SecureNet Defense',
                     'role_title' => 'Senior AppSec Engineer',
-                    'employment_type' => 'full_time',
-                    'company_tier' => 'tier1_br',
                 ],
                 'techs' => [
                     ['tech' => $hashicorpVault, 'depth' => 'expert', 'primary' => true],
@@ -748,7 +542,6 @@ class TestUsersSeeder extends Seeder
                 'detail_data' => [
                     'title' => 'Global End-to-End Test Suite',
                     'is_production' => true,
-                    'user_scale' => 'large',
                 ],
                 'techs' => [
                     ['tech' => $cypress, 'depth' => 'expert', 'primary' => true],
@@ -767,8 +560,6 @@ class TestUsersSeeder extends Seeder
                 'detail_data' => [
                     'company_name' => 'IoT Devices Corp',
                     'role_title' => 'Hardware & Firmware Developer',
-                    'employment_type' => 'full_time',
-                    'company_tier' => 'startup_funded',
                 ],
                 'techs' => [
                     ['tech' => $cLang, 'depth' => 'expert', 'primary' => true],
@@ -787,7 +578,6 @@ class TestUsersSeeder extends Seeder
                 'detail_data' => [
                     'title' => 'DeFi Yield Aggregator Protocol',
                     'is_production' => true,
-                    'user_scale' => 'large',
                 ],
                 'techs' => [
                     ['tech' => $solidity, 'depth' => 'expert', 'primary' => true],
@@ -818,40 +608,40 @@ class TestUsersSeeder extends Seeder
                 ]
             );
 
-            // Criar evidência correspondente
-            $evidence = Evidence::create([
-                'user_id' => $user->id,
-                'evidence_type' => $specData['type'],
-                'verification_level' => 'auto_verified',
-                'verification_source' => 'linkedin_oauth',
-                'start_date' => now()->subYears(2),
-                'is_current' => $specData['type'] === 'experience',
-                'is_active' => true,
-            ]);
-
-            if ($specData['type'] === 'experience') {
-                EvidenceExperience::create(array_merge(
-                    ['evidence_id' => $evidence->id],
-                    $specData['detail_data']
-                ));
-            } else {
-                EvidenceProject::create(array_merge(
-                    ['evidence_id' => $evidence->id],
-                    $specData['detail_data']
-                ));
-            }
-
-            // Associar tecnologias com suas profundidades
+            // Preparar a lista de tecnologias para a sincronização
+            $techsInput = [];
             foreach ($specData['techs'] as $tInfo) {
                 if ($tInfo['tech']) {
-                    EvidenceTechnology::create([
-                        'id' => (string) Str::uuid(),
-                        'evidence_id' => $evidence->id,
-                        'technology_id' => $tInfo['tech']->id,
+                    $techsInput[] = [
+                        'id' => $tInfo['tech']->id,
                         'usage_depth' => $tInfo['depth'],
                         'is_primary' => $tInfo['primary']
-                    ]);
+                    ];
                 }
+            }
+
+            if ($specData['type'] === 'experience') {
+                $experience = Experience::create([
+                    'profile_id' => $profile->id,
+                    'company' => $specData['detail_data']['company_name'],
+                    'role' => $specData['detail_data']['role_title'],
+                    'description' => "Trabalho como especialista de " . $specData['role'] . " utilizando tecnologias modernas.",
+                    'start_date' => now()->subYears(2)->toDateString(),
+                    'is_current' => true,
+                ]);
+
+                // Sincroniza a evidência automaticamente
+                $syncService->syncExperience($experience, $techsInput);
+            } else {
+                $project = Project::create([
+                    'profile_id' => $profile->id,
+                    'title' => $specData['detail_data']['title'],
+                    'description' => "Projeto voltado para " . $specData['role'] . " utilizando boas práticas e padrões da indústria.",
+                    'is_featured' => $specData['detail_data']['is_production'],
+                    'order_weight' => 1,
+                ]);
+
+                $syncService->syncProject($project, $techsInput);
             }
 
             // Executar pipeline de recalculo de score para o especialista
