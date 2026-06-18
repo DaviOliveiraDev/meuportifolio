@@ -13,3 +13,7 @@ Schedule::command('devfolio:flush-analytics')->everyMinute();
 
 // Consolidação noturna do Tech DNA e rankings à meia-noite diariamente
 Schedule::command('devfolio:consolidate-tech-dna')->daily();
+
+// Recálculo diário analítico de percentis de OVR, competências e domínios às 02:00 da manhã
+Schedule::command('devfolio:recalculate-percentiles')->dailyAt('02:00');
+

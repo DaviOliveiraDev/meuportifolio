@@ -47,5 +47,5 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 # Expõe a porta do servidor de desenvolvimento do Laravel
 EXPOSE 8000
 
-# Executa o servidor nativo do PHP Artisan para desenvolvimento local
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Executa o servidor nativo do PHP diretamente com o roteador do Laravel para preservar variáveis de ambiente
+CMD ["sh", "-c", "cd public && php -S 0.0.0.0:8000 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php"]

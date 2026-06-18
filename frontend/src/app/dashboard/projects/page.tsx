@@ -61,7 +61,11 @@ const projectSchema = zod.object({
   demo_url: zod.string().url('URL da demonstração inválida.').or(zod.literal('')).nullable(),
   is_featured: zod.boolean(),
   order_weight: zod.number().int(),
-  technologies: zod.array(zod.string()),
+  technologies: zod.array(zod.object({
+    id: zod.string(),
+    usage_depth: zod.string(),
+    is_primary: zod.boolean(),
+  })),
 });
 
 type ProjectFormValues = zod.infer<typeof projectSchema>;
@@ -80,9 +84,11 @@ export default function ProjectsPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string>('idle');
   
-  // Catálogo de tecnologias e busca interna do formulário
-  const [allTechnologies, setAllTechnologies] = useState<any[]>([]);
+  // Lookup de detalhes de tecnologias (id -> { name, category }) para renderizar tags selecionadas
+  const [techDetailsLookup, setTechDetailsLookup] = useState<Record<string, { name: string; category?: any }>>({});
   const [techQuery, setTechQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -133,18 +139,27 @@ export default function ProjectsPage() {
     }
   };
 
-  // Carrega catálogo de tecnologias no mount
+  // Autocomplete com Debounce
   useEffect(() => {
-    const loadTechnologies = async () => {
+    if (techQuery.trim().length === 0) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    const delayDebounce = setTimeout(async () => {
       try {
-        const response = await apiClient.get('/technologies?cb=' + Date.now());
-        setAllTechnologies(Array.isArray(response.data) ? response.data : []);
+        const response = await apiClient.get(`/technologies/autocomplete?q=${encodeURIComponent(techQuery)}`);
+        setSearchResults(Array.isArray(response.data) ? response.data : []);
       } catch (err) {
-        console.error('Erro ao carregar catálogo de tecnologias:', err);
+        console.error('Erro ao carregar autocomplete:', err);
+      } finally {
+        setIsSearching(false);
       }
-    };
-    loadTechnologies();
-  }, []);
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [techQuery]);
 
   useEffect(() => {
     const checkInitialStatus = async () => {
@@ -177,12 +192,13 @@ export default function ProjectsPage() {
     }
   });
 
-  const selectedTechIds = watch('technologies') || [];
+  const selectedTechs = watch('technologies') || [];
 
   const openAddDialog = () => {
     setEditingProject(null);
     setCoverPreview(null);
     setTechQuery('');
+    setSearchResults([]);
     reset({
       title: '',
       description: '',
@@ -200,6 +216,15 @@ export default function ProjectsPage() {
     setEditingProject(project);
     setCoverPreview(project.cover_image_url);
     setTechQuery('');
+    setSearchResults([]);
+
+    // Popula o lookup de detalhes para as tecnologias já salvas no projeto
+    const lookup = { ...techDetailsLookup };
+    project.technologies?.forEach((t: any) => {
+      lookup[t.id] = { name: t.name, category: t.category };
+    });
+    setTechDetailsLookup(lookup);
+
     reset({
       title: project.title,
       description: project.description,
@@ -208,7 +233,11 @@ export default function ProjectsPage() {
       demo_url: project.demo_url || '',
       is_featured: project.is_featured,
       order_weight: project.order_weight,
-      technologies: project.technologies ? project.technologies.map((t: any) => t.id) : [],
+      technologies: project.technologies ? project.technologies.map((t: any) => ({
+        id: t.id,
+        usage_depth: t.usage_depth || t.pivot?.usage_depth || 'used',
+        is_primary: t.is_primary || t.pivot?.is_primary || false,
+      })) : [],
     });
     setDialogOpen(true);
   };
@@ -396,17 +425,30 @@ export default function ProjectsPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg font-bold text-neutral-900 dark:text-neutral-100 line-clamp-1">{project.title}</CardTitle>
                   <CardDescription className="text-sm text-neutral-650 dark:text-neutral-400 line-clamp-2 min-h-[40px]">{project.description}</CardDescription>
+                  {project.technologies && project.technologies.length > 0 && (
+                    <CardContent className="pt-0 pb-1 flex flex-wrap gap-1.5">
+                      {project.technologies.map((tech: any) => {
+                        const depth = tech.usage_depth || tech.pivot?.usage_depth || 'used';
+                        let badgeClass = "bg-neutral-100 dark:bg-neutral-850 text-neutral-600 dark:text-neutral-450 border-neutral-250 dark:border-neutral-800";
+                        if (depth === 'primary') {
+                          badgeClass = "bg-violet-500/10 dark:bg-violet-500/20 text-violet-650 dark:text-violet-400 border-violet-500/20";
+                        } else if (depth === 'expert') {
+                          badgeClass = "bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+                        }
+                        return (
+                          <span key={tech.id} className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono border ${badgeClass}`}>
+                            {tech.name}
+                            {depth !== 'used' && (
+                              <span className="ml-1 opacity-70 text-[9px] uppercase">
+                                {depth === 'primary' ? '★' : 'XP'}
+                              </span>
+                            )}
+                          </span>
+                        );
+                      })}
+                    </CardContent>
+                  )}
                 </CardHeader>
-
-                {project.technologies && project.technologies.length > 0 && (
-                  <CardContent className="pt-0 pb-1 flex flex-wrap gap-1.5">
-                    {project.technologies.map((tech: any) => (
-                      <span key={tech.id} className="inline-flex items-center px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-850 text-neutral-600 dark:text-neutral-450 text-[10px] font-mono border border-neutral-250 dark:border-neutral-800">
-                        {tech.name}
-                      </span>
-                    ))}
-                  </CardContent>
-                )}
               </div>
 
               <CardFooter className="pt-0 flex items-center justify-between gap-2 border-t border-neutral-100 dark:border-neutral-850/50 mt-4 py-3">
@@ -535,29 +577,64 @@ export default function ProjectsPage() {
               
               {/* Selected tech tags */}
               <div className="flex flex-wrap gap-1.5 mb-2">
-                {selectedTechIds.map((id: string) => {
-                  const tech = allTechnologies.find(t => t.id === id);
-                  if (!tech) return null;
+                {selectedTechs.map((selected: any) => {
+                  const detail = techDetailsLookup[selected.id];
+                  if (!detail) return null;
+                  const depth = selected.usage_depth || 'used';
+                  
+                  let badgeColor = "bg-neutral-100 dark:bg-neutral-850 text-neutral-600 dark:text-neutral-400 border-neutral-250 dark:border-neutral-800";
+                  let depthLabel = "Usou";
+                  if (depth === 'primary') {
+                    badgeColor = "bg-violet-500/10 dark:bg-violet-500/20 text-violet-650 dark:text-violet-400 border-violet-500/25";
+                    depthLabel = "Principal";
+                  } else if (depth === 'expert') {
+                    badgeColor = "bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/25";
+                    depthLabel = "Expert";
+                  }
+
                   return (
                     <span 
-                      key={id} 
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-violet-500/10 text-violet-650 border border-violet-500/20 dark:text-violet-400 dark:bg-violet-500/10"
+                      key={selected.id} 
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold border ${badgeColor}`}
                     >
-                      {tech.name}
+                      <span>{detail.name}</span>
                       <button
                         type="button"
                         onClick={() => {
-                          const updated = selectedTechIds.filter((tId: string) => tId !== id);
+                          const depth = selected.usage_depth || 'used';
+                          let nextDepth = 'used';
+                          let isPrimary = false;
+                          if (depth === 'used') {
+                            nextDepth = 'primary';
+                            isPrimary = true;
+                          } else if (depth === 'primary') {
+                            nextDepth = 'expert';
+                            isPrimary = false;
+                          }
+                          const updated = selectedTechs.map((t: any) => 
+                            t.id === selected.id ? { ...t, usage_depth: nextDepth, is_primary: isPrimary } : t
+                          );
                           setValue('technologies', updated);
                         }}
-                        className="hover:text-red-500 focus:outline-none ml-1 font-bold text-[10px] cursor-pointer"
+                        className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 font-bold transition-colors cursor-pointer"
+                        title="Clique para alterar profundidade (Usou -> Principal -> Expert)"
+                      >
+                        {depthLabel}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = selectedTechs.filter((t: any) => t.id !== selected.id);
+                          setValue('technologies', updated);
+                        }}
+                        className="hover:text-red-500 focus:outline-none ml-1 font-bold text-[11px] cursor-pointer"
                       >
                         ×
                       </button>
                     </span>
                   );
                 })}
-                {selectedTechIds.length === 0 && (
+                {selectedTechs.length === 0 && (
                   <p className="text-[11px] text-neutral-500 italic mt-0.5 leading-tight">
                     Nenhuma tecnologia selecionada.
                   </p>
@@ -573,28 +650,36 @@ export default function ProjectsPage() {
                   onChange={(e) => setTechQuery(e.target.value)}
                   className="bg-white border-neutral-250 text-sm text-neutral-900 focus:border-violet-500 dark:bg-neutral-950 dark:border-neutral-850 dark:text-neutral-200"
                 />
+                {isSearching && (
+                  <div className="absolute right-3 top-2.5">
+                    <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
+                  </div>
+                )}
               </div>
 
               {/* Lista filtrada de correspondências */}
               {techQuery.trim().length > 0 && (
                 <div className="border border-neutral-200 dark:border-neutral-800 rounded-lg max-h-36 overflow-y-auto bg-white dark:bg-neutral-950 p-1 divide-y divide-neutral-100 dark:divide-neutral-850 shadow-sm relative z-50">
-                  {Array.isArray(allTechnologies) && allTechnologies
-                    .filter(t => t.name.toLowerCase().includes(techQuery.toLowerCase()) && !selectedTechIds.includes(t.id))
-                    .slice(0, 10)
+                  {searchResults
+                    .filter(t => !selectedTechs.some((st: any) => st.id === t.id))
                     .map((tech) => (
                       <button
                         key={tech.id}
                         type="button"
                         onClick={() => {
-                          setValue('technologies', [...selectedTechIds, tech.id]);
+                          setTechDetailsLookup(prev => ({
+                            ...prev,
+                            [tech.id]: { name: tech.name, category: tech.category }
+                          }));
+                          setValue('technologies', [...selectedTechs, { id: tech.id, usage_depth: 'used', is_primary: false }]);
                           setTechQuery('');
                         }}
                         className="w-full text-left px-3 py-2 text-xs hover:bg-violet-500/5 hover:text-violet-500 dark:hover:bg-violet-500/10 dark:hover:text-violet-400 font-semibold transition-colors cursor-pointer"
                       >
-                        + {tech.name} <span className="text-[10px] text-neutral-450 ml-1 font-medium">({tech.category?.name})</span>
+                        + {tech.name} <span className="text-[10px] text-neutral-450 ml-1 font-medium">({tech.category?.name || tech.category || ''})</span>
                       </button>
                     ))}
-                  {(!Array.isArray(allTechnologies) || allTechnologies.filter(t => t.name.toLowerCase().includes(techQuery.toLowerCase()) && !selectedTechIds.includes(t.id)).length === 0) && (
+                  {searchResults.filter(t => !selectedTechs.some((st: any) => st.id === t.id)).length === 0 && !isSearching && (
                     <p className="text-[10px] text-neutral-500 italic p-2 text-center">Nenhuma tecnologia encontrada.</p>
                   )}
                 </div>

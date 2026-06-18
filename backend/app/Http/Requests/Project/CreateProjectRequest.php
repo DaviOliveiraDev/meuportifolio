@@ -23,7 +23,7 @@ class CreateProjectRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'cover_image_url' => ['nullable', 'url', 'max:2048'],
@@ -32,7 +32,19 @@ class CreateProjectRequest extends FormRequest
             'is_featured' => ['nullable', 'boolean'],
             'order_weight' => ['nullable', 'integer', 'min:0'],
             'technologies' => ['nullable', 'array'],
-            'technologies.*' => ['exists:technologies,id'],
         ];
+
+        $techInput = $this->input('technologies');
+        if (is_array($techInput) && count($techInput) > 0) {
+            if (is_string(reset($techInput))) {
+                $rules['technologies.*'] = ['exists:technologies,id'];
+            } else {
+                $rules['technologies.*.id'] = ['required', 'exists:technologies,id'];
+                $rules['technologies.*.usage_depth'] = ['required', 'string', 'in:used,primary,expert'];
+                $rules['technologies.*.is_primary'] = ['required', 'boolean'];
+            }
+        }
+
+        return $rules;
     }
 }

@@ -23,16 +23,16 @@ class AuthController extends Controller
     public function register(RegisterRequest $request, RegisterUserAction $action): JsonResponse
     {
         $dto = RegisterDTO::fromRequest($request);
-        
+
         $user = $action->execute($dto);
-        
+
         // Gera o token de API do Laravel Sanctum
         $token = $user->createToken('auth_token')->plainTextToken;
-        
+
         return response()->json([
             'message' => 'Usuário cadastrado e autenticado com sucesso.',
             'token' => $token,
-            'user' => $user->load(['profile.skills', 'profile.badges']),
+            'user' => $user->load(['profile.skills', 'profile.badges', 'profile.reputationScore', 'profile.userDomainScores.domain', 'profile.userSkillScores.technology']),
         ], 201);
     }
 
@@ -44,7 +44,7 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         $user = User::where('email', $credentials['email'])->first();
-        
+
         if (!$user || !\Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['As credenciais fornecidas estão incorretas.'],
@@ -57,7 +57,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Login realizado com sucesso.',
             'token' => $token,
-            'user' => $user->load(['profile.skills', 'profile.badges']),
+            'user' => $user->load(['profile.skills', 'profile.badges', 'profile.reputationScore', 'profile.userDomainScores.domain', 'profile.userSkillScores.technology']),
         ]);
     }
 
@@ -79,15 +79,15 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user()->load(['profile.skills', 'profile.badges']);
-        
+        $user = $request->user()->load(['profile.skills', 'profile.badges', 'profile.reputationScore', 'profile.userDomainScores.domain', 'profile.userSkillScores.technology']);
+
         if ($user->profile && $user->profile->skills->count() >= 3) {
             $xpManager = app(\App\Domain\Services\XpManagerService::class);
             $xpManager->awardXpForAction($user->profile, 'add_skills');
             // Reload to get updated XP/level
-            $user->load(['profile.skills', 'profile.badges']);
+            $user->load(['profile.skills', 'profile.badges', 'profile.reputationScore', 'profile.userDomainScores.domain', 'profile.userSkillScores.technology']);
         }
-        
+
         return response()->json([
             'user' => $user,
         ]);

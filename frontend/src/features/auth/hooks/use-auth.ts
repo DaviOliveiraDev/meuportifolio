@@ -24,6 +24,7 @@ interface UserProfile {
     profile_completeness?: number;
     badges?: any[];
     skills?: any[];
+    reputation_score?: any[];
   };
 }
 
@@ -104,7 +105,13 @@ export function useAuth() {
   // Mutation de Logout
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiClient.post('/auth/logout');
+      try {
+        await apiClient.post('/auth/logout');
+      } catch (error) {
+        // Silenciosamente ignora erros de rede ou de sessão expirada no backend
+        // para que a limpeza local e o redirecionamento sempre aconteçam.
+        console.warn('Erro ao chamar logout no backend:', error);
+      }
     },
     onSuccess: () => {
       localStorage.removeItem('auth_token');

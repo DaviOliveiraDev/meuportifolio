@@ -26,6 +26,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/leaderboard', [ExploreController::class, 'leaderboard']);
     Route::get('/compare', [CompareController::class, 'compare']);
     Route::get('/technologies', [ExploreController::class, 'technologies']);
+    Route::get('/technologies/autocomplete', [\App\Http\Controllers\Api\V1\TechnologyController::class, 'autocomplete']);
     
     // Rotas públicas de autenticação
     Route::prefix('auth')->group(function () {
@@ -47,6 +48,7 @@ Route::prefix('v1')->group(function () {
         Route::put('profile', [ProfileController::class, 'update']);
         Route::get('profile/achievements', [ProfileController::class, 'achievements']);
         Route::get('profile/ovr-breakdown', [ProfileController::class, 'ovrBreakdown']);
+        Route::get('profile/score-history', [ProfileController::class, 'scoreHistory']);
         Route::get('profile/cosmetics', [ProfileController::class, 'cosmeticsCatalog']);
         Route::post('profile/titles/{id}/equip', [ProfileController::class, 'equipTitle']);
         Route::post('profile/titles/{id}/unequip', [ProfileController::class, 'unequipTitle']);

@@ -80,4 +80,12 @@ class User extends Authenticatable
     {
         return $this->hasOne(Profile::class);
     }
+
+    /**
+     * Relação com o score de reputação v2.
+     */
+    public function reputationScore(): HasOne
+    {
+        return $this->hasOne(UserReputationScore::class, 'user_id');
+    }
 }

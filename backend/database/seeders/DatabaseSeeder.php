@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
         // 0. Registrar módulo de gamificação
         $this->call(GamificationSeeder::class);
         $this->call(TechDnaSeeder::class);
+        $this->call(TaxonomySeeder::class);
 
         // 1. Criar habilidades globais
         $skillsList = [
@@ -134,5 +135,8 @@ class DatabaseSeeder extends Seeder
                 $randomSkills->mapWithKeys(fn ($id) => [$id => ['proficiency_level' => rand(40, 100)]])
             );
         });
+
+        // 4. Criar usuários teste com diferentes níveis (Engine V2)
+        $this->call(TestUsersSeeder::class);
     }
 }

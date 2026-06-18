@@ -19,6 +19,11 @@ class Season extends Model
         'start_date',
         'end_date',
         'is_active',
+        'slug',
+        'starts_at',
+        'ends_at',
+        'scoring_weights',
+        'featured_domains',
     ];
 
     protected function casts(): array
@@ -27,6 +32,10 @@ class Season extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'is_active' => 'boolean',
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
+            'scoring_weights' => 'array',
+            'featured_domains' => 'array',
         ];
     }
 
@@ -36,5 +45,13 @@ class Season extends Model
     public function profileStats(): HasMany
     {
         return $this->hasMany(ProfileSeasonStat::class);
+    }
+
+    /**
+     * Relacionamento com os scores de temporada dos usuários.
+     */
+    public function seasonScores(): HasMany
+    {
+        return $this->hasMany(SeasonScore::class, 'season_id');
     }
 }

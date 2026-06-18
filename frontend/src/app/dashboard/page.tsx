@@ -21,6 +21,8 @@ import { ShareCardPanel } from '@/features/dashboard/components/share-card-panel
 import { CardCustomizerPanel } from '@/features/dashboard/components/card-customizer-panel';
 import { calculateOvr } from '@/features/gamification/domain/calculate-ovr';
 import { TierEvolutionModal } from '@/features/dashboard/components/tier-evolution-modal';
+import { GuidedOnboarding } from '@/components/dashboard/GuidedOnboarding';
+import { TechDnaSection } from '@/features/dashboard/components/tech-dna-section';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -28,7 +30,7 @@ export default function DashboardPage() {
   const { experiences, isLoading: experiencesLoading } = useExperiences();
   const { educations, isLoading: educationsLoading } = useEducations();
 
-  const profile = user?.profile;
+  const profile = user?.profile as any;
   const username = profile?.username || '';
   
   const [portfolioUrl, setPortfolioUrl] = useState('');
@@ -118,11 +120,23 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Guided Onboarding Checklist for Cold Start */}
+          <GuidedOnboarding
+            projectsCount={projects?.length || 0}
+            experiencesCount={experiences?.length || 0}
+            educationsCount={educations?.length || 0}
+          />
+
           {/* Level Tracker (XP Progress) */}
           <LevelTracker 
             level={profile?.level} 
             xp={profile?.xp} 
           />
+
+          {/* Seção de Perfil de DNA e Histórico de OVR (V2 Reputation Engine) */}
+          {profile?.reputation_score && (
+            <TechDnaSection profile={profile} />
+          )}
 
           {/* Next Best Action (LinkedIn style checklist) */}
           <NextBestAction 
@@ -176,6 +190,7 @@ export default function DashboardPage() {
                 projects={projects}
                 experiences={experiences}
                 educations={educations}
+                ovrOverride={profile?.reputation_score?.ovr ? Number(profile.reputation_score.ovr) : undefined}
               />
             )}
           </div>
@@ -223,7 +238,7 @@ export default function DashboardPage() {
         <TierEvolutionModal
           isOpen={isTierModalOpen}
           onClose={() => setIsTierModalOpen(false)}
-          currentOvr={calculatedOvr}
+          currentOvr={profile?.reputation_score?.ovr ? Number(profile.reputation_score.ovr) : calculatedOvr}
           profile={profile}
           projects={projects}
           experiences={experiences}

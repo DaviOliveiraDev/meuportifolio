@@ -22,18 +22,36 @@ class Technology extends Model
         'slug',
         'logo_url',
         'is_verified',
+        'category',
+        'status',
+        'aliases',
+        'market_demand_score',
+        'deprecated_at',
+        'replacement_id',
     ];
 
     protected $casts = [
         'is_verified' => 'boolean',
+        'aliases' => 'array',
+        'market_demand_score' => 'float',
+        'deprecated_at' => 'datetime',
     ];
 
     /**
-     * Relação de pertencimento com categoria.
+     * Relação de pertencimento com categoria (legada).
      */
-    public function category(): BelongsTo
+    public function categoryLegacy(): BelongsTo
     {
         return $this->belongsTo(TechnologyCategory::class, 'category_id');
+    }
+
+    /**
+     * Relação com as competências associadas (M:N).
+     */
+    public function competencies(): BelongsToMany
+    {
+        return $this->belongsToMany(TechCompetency::class, 'tech_competency_mappings', 'technology_id', 'competency_id')
+                    ->withPivot('is_primary', 'contribution_weight');
     }
 
     /**
